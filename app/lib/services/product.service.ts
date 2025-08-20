@@ -14,7 +14,8 @@ export async function getAllProducts(organizationId: string): Promise<ProductWit
     .select(`
       *,
       category:categories(*),
-      subcategory:subcategories(*)
+      subcategory:subcategories(*),
+      features:product_features(*)
     `)
     .eq("organization_clerk_id", organizationId)
     .order("created_at", { ascending: false });
@@ -39,7 +40,8 @@ export async function getActiveProducts(organizationId: string): Promise<Product
     .select(`
       *,
       category:categories(*),
-      subcategory:subcategories(*)
+      subcategory:subcategories(*),
+      features:product_features(*)
     `)
     .eq("organization_clerk_id", organizationId)
     .eq("status", "active")
@@ -68,7 +70,8 @@ export async function getProductById(
     .select(`
       *,
       category:categories(*),
-      subcategory:subcategories(*)
+      subcategory:subcategories(*),
+      features:product_features(*)
     `)
     .eq("id", id)
     .eq("organization_clerk_id", organizationId)

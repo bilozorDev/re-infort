@@ -1,4 +1,5 @@
 import { type Tables, type TablesInsert, type TablesUpdate } from "./database.types";
+import type { ProductFeature } from "./features";
 
 export type Product = Tables<"products">;
 export type CreateProductInput = Omit<
@@ -33,6 +34,7 @@ export type UpdateSubcategoryInput = Omit<
 export type ProductWithCategory = Product & {
   category?: Category | null;
   subcategory?: Subcategory | null;
+  features?: ProductFeature[] | null;
 };
 
 export type ProductStatus = "active" | "inactive" | "discontinued";

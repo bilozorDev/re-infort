@@ -3,14 +3,15 @@ import type {
   ProductFeature,
   UpdateProductFeatureInput,
 } from "@/app/types/features";
+import type { ProductWithCategory } from "@/app/types/product";
 
-import { createSupabaseClient } from "../supabase/client";
+import { createClient } from "../supabase/client";
 
 export async function getProductFeatures(
   productId: string,
   orgId: string
 ): Promise<ProductFeature[]> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("product_features")
@@ -32,7 +33,7 @@ export async function createProductFeature(
   input: CreateProductFeatureInput,
   orgId: string
 ): Promise<ProductFeature> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("product_features")
@@ -61,7 +62,7 @@ export async function updateProductFeature(
   input: UpdateProductFeatureInput,
   orgId: string
 ): Promise<ProductFeature> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("product_features")
@@ -83,7 +84,7 @@ export async function deleteProductFeature(
   id: string,
   orgId: string
 ): Promise<void> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("product_features")
@@ -102,7 +103,7 @@ export async function upsertProductFeatures(
   features: CreateProductFeatureInput[],
   orgId: string
 ): Promise<ProductFeature[]> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   // First, delete all existing features for this product
   const { error: deleteError } = await supabase
@@ -149,8 +150,8 @@ export async function getProductsWithFeatures(
     subcategoryId?: string;
     featureFilters?: Array<{ name: string; value: string }>;
   }
-): Promise<any[]> {
-  const supabase = await createSupabaseClient();
+): Promise<ProductWithCategory[]> {
+  const supabase = await createClient();
 
   let query = supabase
     .from("products")

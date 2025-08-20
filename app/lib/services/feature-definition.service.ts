@@ -4,14 +4,14 @@ import type {
   UpdateFeatureDefinitionInput,
 } from "@/app/types/features";
 
-import { createSupabaseClient } from "../supabase/client";
+import { createClient } from "../supabase/client";
 
 export async function getFeatureDefinitions(
   orgId: string,
   categoryId?: string,
   subcategoryId?: string
 ): Promise<FeatureDefinition[]> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   let query = supabase
     .from("feature_definitions")
@@ -49,7 +49,7 @@ export async function getFeatureDefinitionById(
   id: string,
   orgId: string
 ): Promise<FeatureDefinition | null> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("feature_definitions")
@@ -74,7 +74,7 @@ export async function createFeatureDefinition(
   orgId: string,
   userId: string
 ): Promise<FeatureDefinition> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   // Validate that either category_id or subcategory_id is provided
   if (!input.category_id && !input.subcategory_id) {
@@ -109,7 +109,7 @@ export async function updateFeatureDefinition(
   input: UpdateFeatureDefinitionInput,
   orgId: string
 ): Promise<FeatureDefinition> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("feature_definitions")
@@ -134,7 +134,7 @@ export async function deleteFeatureDefinition(
   id: string,
   orgId: string
 ): Promise<void> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("feature_definitions")
@@ -152,7 +152,7 @@ export async function reorderFeatureDefinitions(
   featureIds: string[],
   orgId: string
 ): Promise<void> {
-  const supabase = await createSupabaseClient();
+  const supabase = await createClient();
 
   // Update display_order for each feature
   const updates = featureIds.map((id, index) => ({

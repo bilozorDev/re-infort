@@ -20,13 +20,18 @@ CREATE TABLE feature_definitions (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
     created_by_clerk_user_id TEXT NOT NULL,
     
-    -- Ensure unique feature names per category/subcategory
-    UNIQUE(organization_clerk_id, category_id, name) WHERE subcategory_id IS NULL,
-    UNIQUE(organization_clerk_id, subcategory_id, name) WHERE subcategory_id IS NOT NULL,
-    
     -- Ensure at least category_id or subcategory_id is set
     CHECK (category_id IS NOT NULL OR subcategory_id IS NOT NULL)
 );
+
+-- Create unique constraints for feature names per category/subcategory
+CREATE UNIQUE INDEX unique_feature_per_category 
+    ON feature_definitions(organization_clerk_id, category_id, name) 
+    WHERE subcategory_id IS NULL;
+
+CREATE UNIQUE INDEX unique_feature_per_subcategory 
+    ON feature_definitions(organization_clerk_id, subcategory_id, name) 
+    WHERE subcategory_id IS NOT NULL;
 
 -- Create indexes for better query performance
 CREATE INDEX idx_feature_definitions_organization_clerk_id ON feature_definitions(organization_clerk_id);

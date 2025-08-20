@@ -122,8 +122,8 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="mb-4">
+    <div className="space-y-6 relative">
+      <div className="mb-4 absolute -top-6 -left-4">
         <Link
           href="/dashboard/products"
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"

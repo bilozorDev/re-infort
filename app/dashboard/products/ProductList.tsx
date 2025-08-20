@@ -115,6 +115,23 @@ export default function ProductList({
               {product.category && (
                 <p className="text-sm text-gray-500 mt-1">{product.category.name}</p>
               )}
+              {product.features && product.features.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Features:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {product.features.slice(0, 3).map((feature, idx) => (
+                      <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">
+                        {feature.name}: {feature.value}
+                      </span>
+                    ))}
+                    {product.features.length > 3 && (
+                      <span className="text-xs text-gray-500">
+                        +{product.features.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="mt-3 flex items-center justify-between">
                 <div>
                   {product.price && (
@@ -219,6 +236,12 @@ export default function ProductList({
                     {product.description && (
                       <div className="text-sm text-gray-500 truncate max-w-xs">
                         {product.description}
+                      </div>
+                    )}
+                    {product.features && product.features.length > 0 && (
+                      <div className="text-xs text-gray-400 mt-1">
+                        {product.features.slice(0, 2).map((f) => `${f.name}: ${f.value}`).join(", ")}
+                        {product.features.length > 2 && ` +${product.features.length - 2} more`}
                       </div>
                     )}
                   </div>

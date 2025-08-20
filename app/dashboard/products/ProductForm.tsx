@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon, MinusIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ChevronUpDownIcon, MinusIcon, PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
 import { Fragment, useEffect, useState } from "react";
 
@@ -14,10 +14,12 @@ import {
   useCreateSubcategory,
   useSubcategories,
 } from "@/app/hooks/use-categories";
+import { useFeatureDefinitions, useProductFeatures, useUpdateProductFeatures } from "@/app/hooks/use-features";
 import { useCreateProduct, useProduct, useUpdateProduct } from "@/app/hooks/use-products";
 import { useSupabase } from "@/app/hooks/use-supabase";
 import { getSignedUrls } from "@/app/lib/services/storage.service";
 import { createProductSchema } from "@/app/lib/validations/product";
+import type { CreateProductFeatureInput } from "@/app/types/features";
 
 interface ProductFormProps {
   productId: string | null;
@@ -45,6 +47,8 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [signedPhotoUrls, setSignedPhotoUrls] = useState<string[]>([]);
+  const [productFeatures, setProductFeatures] = useState<Record<string, string>>({});
+  const [customFeatures, setCustomFeatures] = useState<Array<{ name: string; value: string }>>([]);
   const supabase = useSupabase();
 
   const form = useForm({
@@ -77,11 +81,53 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
 
         const validatedData = createProductSchema.parse(data);
 
+        let savedProductId = productId;
+        
         if (productId) {
           await updateProduct.mutateAsync({ id: productId, data: validatedData });
         } else {
-          await createProduct.mutateAsync(validatedData);
+          const newProduct = await createProduct.mutateAsync(validatedData);
+          savedProductId = newProduct.id;
         }
+        
+        // Save product features if any
+        if (savedProductId) {
+          const featuresToSave: CreateProductFeatureInput[] = [];
+          
+          // Add predefined features
+          Object.entries(productFeatures).forEach(([definitionId, value]) => {
+            if (value) {
+              const definition = featureDefinitions?.find(d => d.id === definitionId);
+              if (definition) {
+                featuresToSave.push({
+                  feature_definition_id: definitionId,
+                  name: definition.name,
+                  value,
+                  is_custom: false,
+                });
+              }
+            }
+          });
+          
+          // Add custom features
+          customFeatures.forEach((custom) => {
+            if (custom.name && custom.value) {
+              featuresToSave.push({
+                name: custom.name,
+                value: custom.value,
+                is_custom: true,
+              });
+            }
+          });
+          
+          if (featuresToSave.length > 0) {
+            await updateProductFeatures.mutateAsync({
+              productId: savedProductId,
+              features: featuresToSave,
+            });
+          }
+        }
+        
         onClose();
       } catch {
         // Error is handled by mutation hooks and toast notifications
@@ -124,6 +170,16 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   }, [form.store, currentCategoryId]);
 
   const { data: subcategories, isLoading: subcategoriesLoading } = useSubcategories(currentCategoryId || null);
+  
+  // Get feature definitions for the selected category/subcategory
+  const { data: featureDefinitions } = useFeatureDefinitions(
+    currentCategoryId || undefined,
+    form.store.state.values.subcategory_id || undefined
+  );
+  
+  // Get existing product features if editing
+  const { data: existingFeatures } = useProductFeatures(productId || "");
+  const updateProductFeatures = useUpdateProductFeatures();
 
   // Update form when product data loads
   useEffect(() => {
@@ -145,6 +201,25 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
       setCurrentCategoryId(product.category_id || "");
     }
   }, [product, form]);
+  
+  // Load existing features when editing
+  useEffect(() => {
+    if (existingFeatures && existingFeatures.length > 0) {
+      const predefinedFeatures: Record<string, string> = {};
+      const customFeaturesList: Array<{ name: string; value: string }> = [];
+      
+      existingFeatures.forEach((feature) => {
+        if (feature.is_custom) {
+          customFeaturesList.push({ name: feature.name, value: feature.value });
+        } else if (feature.feature_definition_id) {
+          predefinedFeatures[feature.feature_definition_id] = feature.value;
+        }
+      });
+      
+      setProductFeatures(predefinedFeatures);
+      setCustomFeatures(customFeaturesList);
+    }
+  }, [existingFeatures]);
 
 
   const statusOptions = [
@@ -692,6 +767,143 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                           </FormField>
                         )}
                       </form.Field>
+
+                      {/* Dynamic Feature Fields */}
+                      {featureDefinitions && featureDefinitions.length > 0 && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium text-gray-900">Product Features</h3>
+                          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                            {featureDefinitions.map((definition) => (
+                              <div key={definition.id}>
+                                <label className="block text-sm/6 font-medium text-gray-900">
+                                  {definition.name}
+                                  {definition.is_required && <span className="text-red-500 ml-1">*</span>}
+                                  {definition.unit && <span className="text-gray-500 ml-1">({definition.unit})</span>}
+                                </label>
+                                <div className="mt-2">
+                                  {definition.input_type === "select" && definition.options ? (
+                                    <select
+                                      value={productFeatures[definition.id] || ""}
+                                      onChange={(e) => setProductFeatures({
+                                        ...productFeatures,
+                                        [definition.id]: e.target.value,
+                                      })}
+                                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                      required={definition.is_required}
+                                    >
+                                      <option value="">Select {definition.name}</option>
+                                      {definition.options.map((option) => (
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : definition.input_type === "boolean" ? (
+                                    <input
+                                      type="checkbox"
+                                      checked={productFeatures[definition.id] === "true"}
+                                      onChange={(e) => setProductFeatures({
+                                        ...productFeatures,
+                                        [definition.id]: e.target.checked ? "true" : "false",
+                                      })}
+                                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                    />
+                                  ) : definition.input_type === "number" ? (
+                                    <input
+                                      type="number"
+                                      value={productFeatures[definition.id] || ""}
+                                      onChange={(e) => setProductFeatures({
+                                        ...productFeatures,
+                                        [definition.id]: e.target.value,
+                                      })}
+                                      placeholder={`Enter ${definition.name.toLowerCase()}`}
+                                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                      required={definition.is_required}
+                                    />
+                                  ) : definition.input_type === "date" ? (
+                                    <input
+                                      type="date"
+                                      value={productFeatures[definition.id] || ""}
+                                      onChange={(e) => setProductFeatures({
+                                        ...productFeatures,
+                                        [definition.id]: e.target.value,
+                                      })}
+                                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                      required={definition.is_required}
+                                    />
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      value={productFeatures[definition.id] || ""}
+                                      onChange={(e) => setProductFeatures({
+                                        ...productFeatures,
+                                        [definition.id]: e.target.value,
+                                      })}
+                                      placeholder={`Enter ${definition.name.toLowerCase()}`}
+                                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                      required={definition.is_required}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Custom Features */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-medium text-gray-900">Custom Features</h3>
+                          <button
+                            type="button"
+                            onClick={() => setCustomFeatures([...customFeatures, { name: "", value: "" }])}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                          >
+                            + Add Custom Feature
+                          </button>
+                        </div>
+                        {customFeatures.length > 0 && (
+                          <div className="space-y-3">
+                            {customFeatures.map((feature, index) => (
+                              <div key={index} className="flex gap-3">
+                                <input
+                                  type="text"
+                                  value={feature.name}
+                                  onChange={(e) => {
+                                    const updated = [...customFeatures];
+                                    updated[index].name = e.target.value;
+                                    setCustomFeatures(updated);
+                                  }}
+                                  placeholder="Feature name"
+                                  className="flex-1 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                />
+                                <input
+                                  type="text"
+                                  value={feature.value}
+                                  onChange={(e) => {
+                                    const updated = [...customFeatures];
+                                    updated[index].value = e.target.value;
+                                    setCustomFeatures(updated);
+                                  }}
+                                  placeholder="Feature value"
+                                  className="flex-1 rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = customFeatures.filter((_, i) => i !== index);
+                                    setCustomFeatures(updated);
+                                  }}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
                       {/* Photo Upload */}
                       <form.Field name="photo_urls">

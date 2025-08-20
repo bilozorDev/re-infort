@@ -1,14 +1,16 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { AdjustmentsHorizontalIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import { useCreateCategory, useUpdateCategory } from "@/app/hooks/use-categories";
 import { createCategorySchema } from "@/app/lib/validations/product";
 import type { Category } from "@/app/types/product";
+
+import FeatureDefinitionForm from "./FeatureDefinitionForm";
 
 interface CategoryFormProps {
   category: Category | null;
@@ -19,6 +21,7 @@ interface CategoryFormProps {
 export default function CategoryForm({ category, isOpen, onClose }: CategoryFormProps) {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
+  const [showFeatureManager, setShowFeatureManager] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -168,6 +171,20 @@ export default function CategoryForm({ category, isOpen, onClose }: CategoryForm
                   </form.Field>
                 </div>
 
+                {/* Manage Features Button for existing categories */}
+                {category && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setShowFeatureManager(true)}
+                      className="w-full flex items-center justify-center gap-2 rounded-md bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100"
+                    >
+                      <AdjustmentsHorizontalIcon className="h-4 w-4" />
+                      Manage Product Features
+                    </button>
+                  </div>
+                )}
+
                 <div className="mt-6 flex items-center justify-end gap-x-3">
                   <button
                     type="button"
@@ -197,6 +214,16 @@ export default function CategoryForm({ category, isOpen, onClose }: CategoryForm
           </DialogPanel>
         </div>
       </div>
+
+      {/* Feature Definition Manager */}
+      {category && showFeatureManager && (
+        <FeatureDefinitionForm
+          categoryId={category.id}
+          categoryName={category.name}
+          isOpen={showFeatureManager}
+          onClose={() => setShowFeatureManager(false)}
+        />
+      )}
     </Dialog>
   );
 }
