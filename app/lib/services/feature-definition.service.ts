@@ -4,7 +4,7 @@ import type {
   UpdateFeatureDefinitionInput,
 } from "@/app/types/features";
 
-import { createClient } from "../supabase/client";
+import { createClient } from "../supabase/server";
 
 export async function getFeatureDefinitions(
   orgId: string,

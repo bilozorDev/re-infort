@@ -5,7 +5,7 @@ import type {
 } from "@/app/types/features";
 import type { ProductWithCategory } from "@/app/types/product";
 
-import { createClient } from "../supabase/client";
+import { createClient } from "../supabase/server";
 
 export async function getProductFeatures(
   productId: string,

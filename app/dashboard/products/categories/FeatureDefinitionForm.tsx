@@ -61,20 +61,30 @@ export default function FeatureDefinitionForm({
     },
     onSubmit: async ({ value }) => {
       try {
-        const data = {
-          ...value,
-          category_id: categoryId,
-          subcategory_id: subcategoryId,
-          options: value.input_type === "select" && selectOptions.length > 0 ? selectOptions : null,
-          unit: value.unit || null,
-          display_order: features?.length || 0,
-        };
-
         if (editingFeature) {
-          await updateFeature.mutateAsync({ id: editingFeature.id, data });
+          // For update, only send the fields that can be changed
+          const updateData = {
+            name: value.name,
+            input_type: value.input_type,
+            options: value.input_type === "select" && selectOptions.length > 0 ? selectOptions : null,
+            unit: value.unit || null,
+            is_required: value.is_required,
+            // Keep the existing display_order
+            display_order: editingFeature.display_order,
+          };
+          await updateFeature.mutateAsync({ id: editingFeature.id, data: updateData });
           setEditingFeature(null);
         } else {
-          await createFeature.mutateAsync(data);
+          // For create, include all fields
+          const createData = {
+            ...value,
+            category_id: categoryId,
+            subcategory_id: subcategoryId,
+            options: value.input_type === "select" && selectOptions.length > 0 ? selectOptions : null,
+            unit: value.unit || null,
+            display_order: features?.length || 0,
+          };
+          await createFeature.mutateAsync(createData);
         }
 
         form.reset();
@@ -341,7 +351,18 @@ export default function FeatureDefinitionForm({
                     </div>
                   ) : (
                     <button
-                      onClick={() => setShowAddForm(true)}
+                      onClick={() => {
+                        // Reset form for new feature
+                        setEditingFeature(null);
+                        form.reset({
+                          name: "",
+                          input_type: "text" as FeatureInputType,
+                          unit: "",
+                          is_required: false,
+                        });
+                        setSelectOptions([]);
+                        setShowAddForm(true);
+                      }}
                       className="w-full mt-4 rounded-md bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-100"
                     >
                       <PlusIcon className="h-4 w-4 inline mr-2" />

@@ -70,6 +70,69 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_definitions: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          created_by_clerk_user_id: string
+          display_order: number | null
+          id: string
+          input_type: string
+          is_required: boolean | null
+          name: string
+          options: Json | null
+          organization_clerk_id: string
+          subcategory_id: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          created_by_clerk_user_id: string
+          display_order?: number | null
+          id?: string
+          input_type: string
+          is_required?: boolean | null
+          name: string
+          options?: Json | null
+          organization_clerk_id: string
+          subcategory_id?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          created_by_clerk_user_id?: string
+          display_order?: number | null
+          id?: string
+          input_type?: string
+          is_required?: boolean | null
+          name?: string
+          options?: Json | null
+          organization_clerk_id?: string
+          subcategory_id?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_definitions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feature_definitions_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           created_at: string
@@ -185,6 +248,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "price_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_features: {
+        Row: {
+          created_at: string
+          feature_definition_id: string | null
+          id: string
+          is_custom: boolean | null
+          name: string
+          organization_clerk_id: string
+          product_id: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          feature_definition_id?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name: string
+          organization_clerk_id: string
+          product_id: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          feature_definition_id?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name?: string
+          organization_clerk_id?: string
+          product_id?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_features_feature_definition_id_fkey"
+            columns: ["feature_definition_id"]
+            isOneToOne: false
+            referencedRelation: "feature_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_features_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
