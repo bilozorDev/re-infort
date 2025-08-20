@@ -1,6 +1,6 @@
-import { forwardRef, type TextareaHTMLAttributes } from 'react';
+import { forwardRef, type TextareaHTMLAttributes } from "react";
 
-import { cn } from '@/app/lib/utils';
+import { cn } from "@/app/lib/utils";
 
 export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -14,10 +14,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label 
-            htmlFor={id} 
-            className="block text-sm/6 font-medium text-gray-900"
-          >
+          <label htmlFor={id} className="block text-sm/6 font-medium text-gray-900">
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -51,4 +48,4 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   }
 );
 
-TextArea.displayName = 'TextArea';
+TextArea.displayName = "TextArea";

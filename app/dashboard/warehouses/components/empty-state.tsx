@@ -1,4 +1,4 @@
-import { BuildingOfficeIcon } from '@heroicons/react/24/outline';
+import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 
 interface EmptyStateProps {
   isAdmin: boolean;
@@ -9,11 +9,9 @@ export function EmptyState({ isAdmin, onAddWarehouse }: EmptyStateProps) {
   return (
     <div className="text-center py-12">
       <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-semibold text-gray-900">
-        No warehouses
-      </h3>
+      <h3 className="mt-2 text-sm font-semibold text-gray-900">No warehouses</h3>
       <p className="mt-1 text-sm text-gray-500">
-        {isAdmin 
+        {isAdmin
           ? "Get started by creating your first warehouse location."
           : "No warehouse locations have been created yet. Contact an administrator to add warehouses."}
       </p>

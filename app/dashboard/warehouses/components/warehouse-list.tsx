@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/20/solid';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-import { useDeleteWarehouse } from '@/app/hooks/use-warehouses';
-import { type Warehouse } from '@/app/types/warehouse';
+import { useDeleteWarehouse } from "@/app/hooks/use-warehouses";
+import { type Warehouse } from "@/app/types/warehouse";
 
 interface WarehouseListProps {
   warehouses: Warehouse[];
@@ -23,19 +23,21 @@ export function WarehouseList({ warehouses, isAdmin, onEdit }: WarehouseListProp
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'office': return 'Office';
-      case 'vehicle': return 'Vehicle';
-      case 'other': return 'Other';
-      default: return type;
+      case "office":
+        return "Office";
+      case "vehicle":
+        return "Vehicle";
+      case "other":
+        return "Other";
+      default:
+        return type;
     }
   };
 
   return (
     <div className="overflow-hidden bg-white shadow-xs rounded-lg">
       <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-base font-semibold text-gray-900">
-          Warehouse Locations
-        </h3>
+        <h3 className="text-base font-semibold text-gray-900">Warehouse Locations</h3>
       </div>
       <div className="border-t border-gray-200">
         <ul role="list" className="divide-y divide-gray-200">
@@ -45,7 +47,7 @@ export function WarehouseList({ warehouses, isAdmin, onEdit }: WarehouseListProp
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
-                      {warehouse.status === 'active' ? (
+                      {warehouse.status === "active" ? (
                         <CheckCircleIcon className="h-5 w-5 text-green-500" />
                       ) : (
                         <XCircleIcon className="h-5 w-5 text-gray-400" />
@@ -60,23 +62,18 @@ export function WarehouseList({ warehouses, isAdmin, onEdit }: WarehouseListProp
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {getTypeLabel(warehouse.type)}
-                      </p>
+                      <p className="text-sm text-gray-500">{getTypeLabel(warehouse.type)}</p>
                     </div>
                   </div>
                   <div className="mt-2">
                     <p className="text-sm text-gray-600">
-                      {warehouse.address}, {warehouse.city}, {warehouse.state_province} {warehouse.postal_code}
+                      {warehouse.address}, {warehouse.city}, {warehouse.state_province}{" "}
+                      {warehouse.postal_code}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {warehouse.country}
-                    </p>
+                    <p className="text-sm text-gray-500">{warehouse.country}</p>
                   </div>
                   {warehouse.notes && (
-                    <p className="mt-2 text-sm text-gray-500 italic">
-                      {warehouse.notes}
-                    </p>
+                    <p className="mt-2 text-sm text-gray-500 italic">{warehouse.notes}</p>
                   )}
                 </div>
                 {isAdmin && (

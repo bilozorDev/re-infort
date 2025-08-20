@@ -1,13 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
-import { auth } from '@clerk/nextjs/server'
-import { cookies } from 'next/headers'
+import { auth } from "@clerk/nextjs/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function createClient() {
-  const cookieStore = await cookies()
-  const { getToken } = await auth()
-  
+  const cookieStore = await cookies();
+  const { getToken } = await auth();
+
   // Get the Clerk JWT token to pass to Supabase
-  const token = await getToken({ template: 'supabase' })
+  const token = await getToken({ template: "supabase" });
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,22 +15,21 @@ export async function createClient() {
     {
       global: {
         headers: {
-          Authorization: token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       },
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
-            )
-          } catch {
-          }
+            );
+          } catch {}
         },
       },
     }
-  )
+  );
 }

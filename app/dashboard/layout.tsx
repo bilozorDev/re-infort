@@ -1,13 +1,8 @@
-'use client'
+"use client";
 
-import { OrganizationSwitcher,UserButton } from '@clerk/nextjs'
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  TransitionChild,
-} from '@headlessui/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from "@headlessui/react";
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   BellIcon,
@@ -18,30 +13,26 @@ import {
   HomeIcon,
   UsersIcon,
   XMarkIcon,
-} from '@heroicons/react/24/outline'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+} from "@heroicons/react/24/outline";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Warehouses', href: '/dashboard/warehouses', icon: BuildingOfficeIcon },
-  { name: 'Team', href: '/dashboard/team', icon: UsersIcon },
-  { name: 'Projects', href: '/dashboard/projects', icon: FolderIcon },
-  { name: 'Documents', href: '/dashboard/documents', icon: DocumentDuplicateIcon },
-  { name: 'Reports', href: '/dashboard/reports', icon: ChartPieIcon },
-]
+  { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { name: "Warehouses", href: "/dashboard/warehouses", icon: BuildingOfficeIcon },
+  { name: "Team", href: "/dashboard/team", icon: UsersIcon },
+  { name: "Projects", href: "/dashboard/projects", icon: FolderIcon },
+  { name: "Documents", href: "/dashboard/documents", icon: DocumentDuplicateIcon },
+  { name: "Reports", href: "/dashboard/reports", icon: ChartPieIcon },
+];
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const pathname = usePathname()
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen">
@@ -58,7 +49,11 @@ export default function DashboardLayout({
           >
             <TransitionChild>
               <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
-                <button type="button" onClick={() => setSidebarOpen(false)} className="-m-2.5 p-2.5">
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(false)}
+                  className="-m-2.5 p-2.5"
+                >
                   <span className="sr-only">Close sidebar</span>
                   <XMarkIcon aria-hidden="true" className="size-6 text-white" />
                 </button>
@@ -79,18 +74,18 @@ export default function DashboardLayout({
                             href={item.href}
                             className={classNames(
                               pathname === item.href
-                                ? 'bg-gray-50 text-indigo-600'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
-                              'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
+                                ? "bg-gray-50 text-indigo-600"
+                                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                              "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
                             )}
                           >
                             <item.icon
                               aria-hidden="true"
                               className={classNames(
                                 pathname === item.href
-                                  ? 'text-indigo-600'
-                                  : 'text-gray-400 group-hover:text-indigo-600',
-                                'size-6 shrink-0',
+                                  ? "text-indigo-600"
+                                  : "text-gray-400 group-hover:text-indigo-600",
+                                "size-6 shrink-0"
                               )}
                             />
                             {item.name}
@@ -101,15 +96,16 @@ export default function DashboardLayout({
                   </li>
                   <li className="mt-auto">
                     <div className="mb-4">
-                      <OrganizationSwitcher 
+                      <OrganizationSwitcher
                         afterCreateOrganizationUrl="/dashboard"
                         afterSelectOrganizationUrl="/dashboard"
                         afterLeaveOrganizationUrl="/dashboard"
                         appearance={{
                           elements: {
                             rootBox: "w-full",
-                            organizationSwitcherTrigger: "w-full justify-between px-2 py-2 hover:bg-gray-50 rounded-md",
-                          }
+                            organizationSwitcherTrigger:
+                              "w-full justify-between px-2 py-2 hover:bg-gray-50 rounded-md",
+                          },
                         }}
                       />
                     </div>
@@ -136,18 +132,18 @@ export default function DashboardLayout({
                         href={item.href}
                         className={classNames(
                           pathname.startsWith(item.href)
-                            ? 'bg-gray-50 text-indigo-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
-                          'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold',
+                            ? "bg-gray-50 text-indigo-600"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                          "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
                         )}
                       >
                         <item.icon
                           aria-hidden="true"
                           className={classNames(
                             pathname.startsWith(item.href)
-                              ? 'text-indigo-600'
-                              : 'text-gray-400 group-hover:text-indigo-600',
-                            'size-6 shrink-0',
+                              ? "text-indigo-600"
+                              : "text-gray-400 group-hover:text-indigo-600",
+                            "size-6 shrink-0"
                           )}
                         />
                         {item.name}
@@ -158,15 +154,16 @@ export default function DashboardLayout({
               </li>
               <li className="mt-auto">
                 <div className="mb-4">
-                  <OrganizationSwitcher 
+                  <OrganizationSwitcher
                     afterCreateOrganizationUrl="/dashboard"
                     afterSelectOrganizationUrl="/dashboard"
                     afterLeaveOrganizationUrl="/dashboard"
                     appearance={{
                       elements: {
                         rootBox: "w-full",
-                        organizationSwitcherTrigger: "w-full justify-between px-2 py-2 hover:bg-gray-50 rounded-md",
-                      }
+                        organizationSwitcherTrigger:
+                          "w-full justify-between px-2 py-2 hover:bg-gray-50 rounded-md",
+                      },
                     }}
                   />
                 </div>
@@ -210,12 +207,12 @@ export default function DashboardLayout({
 
               <div aria-hidden="true" className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
 
-              <UserButton 
+              <UserButton
                 afterSignOutUrl="/"
                 appearance={{
                   elements: {
                     avatarBox: "size-8",
-                  }
+                  },
                 }}
               />
             </div>
@@ -227,5 +224,5 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

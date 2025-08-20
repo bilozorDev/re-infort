@@ -1,9 +1,9 @@
-import { OrganizationList } from '@clerk/nextjs';
-import type { Metadata } from 'next';
+import { OrganizationList } from "@clerk/nextjs";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Select Organization',
-  description: 'Select or create an organization to continue',
+  title: "Select Organization",
+  description: "Select or create an organization to continue",
 };
 
 export default function OrganizationSelectionPage() {
@@ -16,7 +16,7 @@ export default function OrganizationSelectionPage() {
             Choose an existing organization or create a new one to get started
           </p>
         </div>
-        
+
         <OrganizationList
           afterSelectOrganizationUrl="/dashboard"
           afterCreateOrganizationUrl="/dashboard"
@@ -25,7 +25,7 @@ export default function OrganizationSelectionPage() {
             elements: {
               rootBox: "flex justify-center",
               organizationList: "flex justify-center",
-            }
+            },
           }}
         />
       </div>

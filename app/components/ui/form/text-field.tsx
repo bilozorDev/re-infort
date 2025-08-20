@@ -1,6 +1,6 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes } from "react";
 
-import { cn } from '@/app/lib/utils';
+import { cn } from "@/app/lib/utils";
 
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -15,10 +15,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     return (
       <div className="w-full">
         {label && (
-          <label 
-            htmlFor={id} 
-            className="block text-sm/6 font-medium text-gray-900"
-          >
+          <label htmlFor={id} className="block text-sm/6 font-medium text-gray-900">
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -71,4 +68,4 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   }
 );
 
-TextField.displayName = 'TextField';
+TextField.displayName = "TextField";

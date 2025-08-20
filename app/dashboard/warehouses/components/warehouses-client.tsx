@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 
-import { useWarehouses } from '@/app/hooks/use-warehouses';
+import { useWarehouses } from "@/app/hooks/use-warehouses";
 
-import { EmptyState } from './empty-state';
-import { WarehouseForm } from './warehouse-form';
-import { WarehouseList } from './warehouse-list';
+import { EmptyState } from "./empty-state";
+import { WarehouseForm } from "./warehouse-form";
+import { WarehouseList } from "./warehouse-list";
 
 interface WarehousesClientProps {
   isAdmin: boolean;
@@ -39,9 +39,7 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
   if (error) {
     return (
       <div className="rounded-md bg-red-50 p-4">
-        <p className="text-sm text-red-800">
-          Failed to load warehouses. Please try again later.
-        </p>
+        <p className="text-sm text-red-800">Failed to load warehouses. Please try again later.</p>
       </div>
     );
   }
@@ -71,24 +69,12 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
 
       {/* Content */}
       {hasWarehouses ? (
-        <WarehouseList 
-          warehouses={warehouses} 
-          isAdmin={isAdmin}
-          onEdit={handleEdit}
-        />
+        <WarehouseList warehouses={warehouses} isAdmin={isAdmin} onEdit={handleEdit} />
       ) : (
-        <EmptyState 
-          isAdmin={isAdmin} 
-          onAddWarehouse={() => setShowForm(true)}
-        />
+        <EmptyState isAdmin={isAdmin} onAddWarehouse={() => setShowForm(true)} />
       )}
 
-      {showForm && (
-        <WarehouseForm
-          warehouseId={editingWarehouse}
-          onClose={handleCloseForm}
-        />
-      )}
+      {showForm && <WarehouseForm warehouseId={editingWarehouse} onClose={handleCloseForm} />}
     </div>
   );
 }

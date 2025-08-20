@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createBrowserClient } from '@supabase/ssr';
-import { useAuth } from '@clerk/nextjs';
-import { useMemo } from 'react';
+import { useAuth } from "@clerk/nextjs";
+import { createBrowserClient } from "@supabase/ssr";
+import { useMemo } from "react";
 
 export function useSupabaseClient() {
   const { getToken } = useAuth();
@@ -14,11 +14,11 @@ export function useSupabaseClient() {
       {
         global: {
           fetch: async (url, options = {}) => {
-            const token = await getToken({ template: 'supabase' });
-            
+            const token = await getToken({ template: "supabase" });
+
             const headers = new Headers(options.headers);
             if (token) {
-              headers.set('Authorization', `Bearer ${token}`);
+              headers.set("Authorization", `Bearer ${token}`);
             }
 
             return fetch(url, {

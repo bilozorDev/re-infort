@@ -10,33 +10,26 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends(
-    "next/core-web-vitals", 
-    "next/typescript",
-    "prettier"
-  ),
+  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
   ...compat.config({
-    plugins: [
-      "simple-import-sort",
-      "unused-imports"
-    ],
+    plugins: ["simple-import-sort", "unused-imports"],
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
-        }
+        },
       ],
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/consistent-type-imports": [
         "error",
         {
           prefer: "type-imports",
-          fixStyle: "inline-type-imports"
-        }
+          fixStyle: "inline-type-imports",
+        },
       ],
-      
+
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
       "unused-imports/no-unused-imports": "error",
@@ -47,12 +40,12 @@ const eslintConfig = [
           varsIgnorePattern: "^_",
           args: "after-used",
           argsIgnorePattern: "^_",
-        }
+        },
       ],
-      
+
       "react/jsx-curly-brace-presence": ["error", "never"],
       "react/self-closing-comp": "error",
-    }
+    },
   }),
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -70,9 +63,9 @@ const eslintConfig = [
       "public/**",
       "*.config.js",
       "*.config.mjs",
-      ".vercel/**"
-    ]
-  }
+      ".vercel/**",
+    ],
+  },
 ];
 
 export default eslintConfig;

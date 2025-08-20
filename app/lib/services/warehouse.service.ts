@@ -1,6 +1,10 @@
-import { createClient } from '@/app/lib/supabase/server';
-import { type CreateWarehouseInput, type UpdateWarehouseInput,type Warehouse } from '@/app/types/warehouse';
-import { isAdmin } from '@/app/utils/roles';
+import { createClient } from "@/app/lib/supabase/server";
+import {
+  type CreateWarehouseInput,
+  type UpdateWarehouseInput,
+  type Warehouse,
+} from "@/app/types/warehouse";
+import { isAdmin } from "@/app/utils/roles";
 
 async function unsetDefaultWarehouses(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -8,13 +12,13 @@ async function unsetDefaultWarehouses(
   excludeId?: string
 ): Promise<void> {
   let query = supabase
-    .from('warehouses')
+    .from("warehouses")
     .update({ is_default: false })
-    .eq('organization_clerk_id', organizationId)
-    .eq('is_default', true);
+    .eq("organization_clerk_id", organizationId)
+    .eq("is_default", true);
 
   if (excludeId) {
-    query = query.neq('id', excludeId);
+    query = query.neq("id", excludeId);
   }
 
   const { error } = await query;
@@ -26,12 +30,12 @@ async function unsetDefaultWarehouses(
 
 export async function getAllWarehouses(organizationId: string): Promise<Warehouse[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('warehouses')
-    .select('*')
-    .eq('organization_clerk_id', organizationId)
-    .order('created_at', { ascending: false });
+    .from("warehouses")
+    .select("*")
+    .eq("organization_clerk_id", organizationId)
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Failed to fetch warehouses: ${error.message}`);
@@ -40,23 +44,25 @@ export async function getAllWarehouses(organizationId: string): Promise<Warehous
   return data || [];
 }
 
-export async function getWarehouseById(id: string, organizationId: string): Promise<Warehouse | null> {
+export async function getWarehouseById(
+  id: string,
+  organizationId: string
+): Promise<Warehouse | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('warehouses')
-    .select('*')
-    .eq('id', id)
-    .eq('organization_clerk_id', organizationId)
+    .from("warehouses")
+    .select("*")
+    .eq("id", id)
+    .eq("organization_clerk_id", organizationId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
+  if (error && error.code !== "PGRST116") {
     throw new Error(`Failed to fetch warehouse: ${error.message}`);
   }
 
   return data;
 }
-
 
 export async function createWarehouse(
   input: CreateWarehouseInput,
@@ -66,18 +72,18 @@ export async function createWarehouse(
   // Check if user is admin
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
-    throw new Error('Only administrators can create warehouses');
+    throw new Error("Only administrators can create warehouses");
   }
 
   const supabase = await createClient();
-  
+
   // If this is set as default, unset other defaults
   if (input.is_default) {
     await unsetDefaultWarehouses(supabase, organizationId);
   }
 
   const { data, error } = await supabase
-    .from('warehouses')
+    .from("warehouses")
     .insert({
       ...input,
       organization_clerk_id: organizationId,
@@ -101,21 +107,21 @@ export async function updateWarehouse(
   // Check if user is admin
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
-    throw new Error('Only administrators can update warehouses');
+    throw new Error("Only administrators can update warehouses");
   }
 
   const supabase = await createClient();
-  
+
   // If setting as default, unset other defaults
   if (input.is_default) {
     await unsetDefaultWarehouses(supabase, organizationId, id);
   }
 
   const { data, error } = await supabase
-    .from('warehouses')
+    .from("warehouses")
     .update(input)
-    .eq('id', id)
-    .eq('organization_clerk_id', organizationId)
+    .eq("id", id)
+    .eq("organization_clerk_id", organizationId)
     .select()
     .single();
 
@@ -124,7 +130,7 @@ export async function updateWarehouse(
   }
 
   if (!data) {
-    throw new Error('Warehouse not found');
+    throw new Error("Warehouse not found");
   }
 
   return data;
@@ -134,16 +140,16 @@ export async function deleteWarehouse(id: string, organizationId: string): Promi
   // Check if user is admin
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
-    throw new Error('Only administrators can delete warehouses');
+    throw new Error("Only administrators can delete warehouses");
   }
 
   const supabase = await createClient();
-  
+
   const { error } = await supabase
-    .from('warehouses')
+    .from("warehouses")
     .delete()
-    .eq('id', id)
-    .eq('organization_clerk_id', organizationId);
+    .eq("id", id)
+    .eq("organization_clerk_id", organizationId);
 
   if (error) {
     throw new Error(`Failed to delete warehouse: ${error.message}`);
@@ -152,13 +158,13 @@ export async function deleteWarehouse(id: string, organizationId: string): Promi
 
 export async function getActiveWarehouses(organizationId: string): Promise<Warehouse[]> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('warehouses')
-    .select('*')
-    .eq('organization_clerk_id', organizationId)
-    .eq('status', 'active')
-    .order('name', { ascending: true });
+    .from("warehouses")
+    .select("*")
+    .eq("organization_clerk_id", organizationId)
+    .eq("status", "active")
+    .order("name", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch active warehouses: ${error.message}`);
@@ -169,15 +175,15 @@ export async function getActiveWarehouses(organizationId: string): Promise<Wareh
 
 export async function getDefaultWarehouse(organizationId: string): Promise<Warehouse | null> {
   const supabase = await createClient();
-  
+
   const { data, error } = await supabase
-    .from('warehouses')
-    .select('*')
-    .eq('organization_clerk_id', organizationId)
-    .eq('is_default', true)
+    .from("warehouses")
+    .select("*")
+    .eq("organization_clerk_id", organizationId)
+    .eq("is_default", true)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
+  if (error && error.code !== "PGRST116") {
     throw new Error(`Failed to fetch default warehouse: ${error.message}`);
   }
 

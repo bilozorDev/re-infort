@@ -10,7 +10,7 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-xl font-semibold">Re-infort</h1>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <SignedOut>
                 <Link
@@ -26,7 +26,7 @@ export default function Home() {
                   Sign Up
                 </Link>
               </SignedOut>
-              
+
               <SignedIn>
                 <Link
                   href="/dashboard"
@@ -47,10 +47,10 @@ export default function Home() {
             Welcome to Re-infort
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Your application is ready with Clerk authentication and Supabase integration.
-            Start building amazing features today.
+            Your application is ready with Clerk authentication and Supabase integration. Start
+            building amazing features today.
           </p>
-          
+
           <div className="flex gap-4 justify-center">
             <SignedOut>
               <Link
@@ -66,7 +66,7 @@ export default function Home() {
                 Sign In
               </Link>
             </SignedOut>
-            
+
             <SignedIn>
               <Link
                 href="/dashboard"
@@ -88,7 +88,7 @@ export default function Home() {
               Powered by Clerk for enterprise-grade security and user management
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="bg-gray-100 rounded-lg p-3 w-12 h-12 mx-auto mb-4 flex items-center justify-center">
               ⚡
@@ -98,7 +98,7 @@ export default function Home() {
               Supabase provides instant data sync and powerful queries
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="bg-gray-100 rounded-lg p-3 w-12 h-12 mx-auto mb-4 flex items-center justify-center">
               🚀

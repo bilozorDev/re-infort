@@ -1,6 +1,6 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes } from "react";
 
-import { cn } from '@/app/lib/utils';
+import { cn } from "@/app/lib/utils";
 
 export interface RadioOption {
   value: string;
@@ -8,32 +8,37 @@ export interface RadioOption {
   description?: string;
 }
 
-export interface RadioGroupProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface RadioGroupProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: string;
   error?: string;
   helperText?: string;
   options: RadioOption[];
-  orientation?: 'horizontal' | 'vertical';
+  orientation?: "horizontal" | "vertical";
 }
 
 export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
-  ({ className, label, error, helperText, options, orientation = 'vertical', name, value, onChange, ...props }, ref) => {
+  (
+    {
+      className,
+      label,
+      error,
+      helperText,
+      options,
+      orientation = "vertical",
+      name,
+      value,
+      onChange,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <fieldset className="w-full">
-        {label && (
-          <legend className="text-sm/6 font-semibold text-gray-900">
-            {label}
-          </legend>
-        )}
-        {helperText && !error && (
-          <p className="mt-1 text-sm/6 text-gray-600">
-            {helperText}
-          </p>
-        )}
-        <div className={cn(
-          "mt-6",
-          orientation === 'vertical' ? "space-y-6" : "flex flex-wrap gap-6"
-        )}>
+        {label && <legend className="text-sm/6 font-semibold text-gray-900">{label}</legend>}
+        {helperText && !error && <p className="mt-1 text-sm/6 text-gray-600">{helperText}</p>}
+        <div
+          className={cn("mt-6", orientation === "vertical" ? "space-y-6" : "flex flex-wrap gap-6")}
+        >
           {options.map((option) => (
             <div key={option.value} className="flex items-center gap-x-3">
               <input
@@ -49,9 +54,12 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
                   error && "border-red-500",
                   className
                 )}
-                aria-invalid={!!error}
                 aria-describedby={
-                  error ? `${name}-error` : option.description ? `${name}-${option.value}-description` : undefined
+                  error
+                    ? `${name}-error`
+                    : option.description
+                      ? `${name}-${option.value}-description`
+                      : undefined
                 }
                 {...props}
               />
@@ -63,10 +71,7 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
                   {option.label}
                 </label>
                 {option.description && (
-                  <p 
-                    id={`${name}-${option.value}-description`}
-                    className="text-sm text-gray-500"
-                  >
+                  <p id={`${name}-${option.value}-description`} className="text-sm text-gray-500">
                     {option.description}
                   </p>
                 )}
@@ -84,4 +89,4 @@ export const RadioGroup = forwardRef<HTMLInputElement, RadioGroupProps>(
   }
 );
 
-RadioGroup.displayName = 'RadioGroup';
+RadioGroup.displayName = "RadioGroup";

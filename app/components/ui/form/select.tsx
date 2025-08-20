@@ -1,7 +1,7 @@
-import { ChevronDownIcon } from '@heroicons/react/16/solid';
-import { forwardRef, type SelectHTMLAttributes } from 'react';
+import { ChevronDownIcon } from "@heroicons/react/16/solid";
+import { forwardRef, type SelectHTMLAttributes } from "react";
 
-import { cn } from '@/app/lib/utils';
+import { cn } from "@/app/lib/utils";
 
 export interface SelectOption {
   value: string;
@@ -22,10 +22,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label 
-            htmlFor={id} 
-            className="block text-sm/6 font-medium text-gray-900"
-          >
+          <label htmlFor={id} className="block text-sm/6 font-medium text-gray-900">
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -74,4 +71,4 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   }
 );
 
-Select.displayName = 'Select';
+Select.displayName = "Select";

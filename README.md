@@ -15,7 +15,7 @@ An inventory tracking application built with Next.js, Clerk authentication, and 
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Supabase CLI (for local development)
 - A Clerk account
@@ -54,6 +54,9 @@ Update the following variables in `.env.local`:
   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
   - `CLERK_SECRET_KEY`
 
+- **Mapbox**: Get your access token from [Mapbox account](https://account.mapbox.com/access-tokens/)
+  - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`
+
 ### 4. Set up Supabase locally
 
 Start Supabase locally:
@@ -80,14 +83,14 @@ In your Clerk dashboard:
 
 ```json
 {
-    "aud": "authenticated",
-    "role": "authenticated",
-    "email": "{{user.primary_email_address}}",
-    "org_id": "{{org.id}}",
-    "o": {
-        "id": "{{org.id}}",
-        "rol": "{{org.role}}"
-    }
+  "aud": "authenticated",
+  "role": "authenticated",
+  "email": "{{user.primary_email_address}}",
+  "org_id": "{{org.id}}",
+  "o": {
+    "id": "{{org.id}}",
+    "rol": "{{org.role}}"
+  }
 }
 ```
 
@@ -107,6 +110,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 - **Multi-tenant Architecture**: Organization-based data isolation
 - **Role-Based Access Control**: Admin and member roles with different permissions
 - **Warehouse Management**: Create, read, update, and delete warehouse locations
+- **Address Autocomplete**: Mapbox-powered address suggestions for easy data entry
 - **Row Level Security**: Database-level security policies
 - **Real-time Updates**: Using React Query for optimistic updates and caching
 
