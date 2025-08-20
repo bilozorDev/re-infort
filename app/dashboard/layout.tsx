@@ -8,6 +8,7 @@ import {
   BellIcon,
   BuildingOfficeIcon,
   ChartPieIcon,
+  CubeIcon,
   DocumentDuplicateIcon,
   FolderIcon,
   HomeIcon,
@@ -19,6 +20,7 @@ import { useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { name: "Products", href: "/dashboard/products", icon: CubeIcon },
   { name: "Warehouses", href: "/dashboard/warehouses", icon: BuildingOfficeIcon },
   { name: "Team", href: "/dashboard/team", icon: UsersIcon },
   { name: "Projects", href: "/dashboard/projects", icon: FolderIcon },

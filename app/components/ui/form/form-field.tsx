@@ -38,6 +38,7 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
     }
     
     if (!('target' in e)) {
+      // This handles direct value changes from components like Listbox
       field.handleChange(e);
       return;
     }
@@ -72,5 +73,7 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
     "aria-describedby": error ? `${field.name}-error` : undefined,
   };
 
-  return cloneElement(children, childProps);
+  // Merge with existing props to preserve things like disabled, placeholder, etc.
+  const mergedProps = Object.assign({}, children.props, childProps);
+  return cloneElement(children, mergedProps);
 }

@@ -1,6 +1,8 @@
 export type { CheckboxProps } from "./checkbox";
 export { Checkbox } from "./checkbox";
 export { FormField } from "./form-field";
+export type { ListboxOption, ListboxProps } from "./listbox";
+export { Listbox } from "./listbox";
 export type { RadioGroupProps, RadioOption } from "./radio-group";
 export { RadioGroup } from "./radio-group";
 export type { SelectOption, SelectProps } from "./select";

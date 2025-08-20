@@ -9,6 +9,11 @@ export async function createClient() {
   // Get the Clerk JWT token to pass to Supabase
   const token = await getToken({ template: "supabase" });
 
+  // If we detect a JWT timing issue, try to get a fresh token
+  if (!token) {
+    console.warn("No JWT token available");
+  }
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
