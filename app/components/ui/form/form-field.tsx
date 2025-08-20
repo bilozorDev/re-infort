@@ -74,10 +74,12 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
   };
 
   // Check if the child is a checkbox component and add checked prop
-  const isCheckbox = children.type && 
-    (children.type.displayName === 'Checkbox' || 
-     children.type.name === 'Checkbox' ||
-     children.props.type === 'checkbox');
+  const childType = children.type;
+  const isCheckbox = childType && 
+    (typeof childType === 'function' && 
+     ((childType as any).displayName === 'Checkbox' || 
+      childType.name === 'Checkbox')) ||
+    (children.props && (children.props as Record<string, unknown>).type === 'checkbox');
   
   if (isCheckbox) {
     (childProps as any).checked = field.state.value;

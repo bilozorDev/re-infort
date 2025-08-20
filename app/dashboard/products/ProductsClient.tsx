@@ -21,12 +21,8 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
-  const filteredProducts = products?.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Note: Filtering is now handled inside ProductTable via globalFilter
+  // We pass all products and let TanStack Table handle the filtering
 
   return (
     <div className="space-y-6">
@@ -126,10 +122,12 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
         </div>
       ) : (
         <ProductList
-          products={filteredProducts || []}
+          products={products || []}
           viewMode={viewMode}
           onEdit={setEditingProduct}
           isAdmin={isAdmin}
+          globalFilter={searchTerm}
+          onViewModeChange={setViewMode}
         />
       )}
 

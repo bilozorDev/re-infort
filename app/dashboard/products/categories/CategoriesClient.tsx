@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, CubeIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -141,16 +141,25 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
           </p>
         </div>
         {isAdmin && (
-          <button
-            onClick={() => {
-              setEditingCategory(null);
-              setShowCategoryForm(true);
-            }}
-            className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            <PlusIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-            Add Category
-          </button>
+          <div className="flex items-center gap-x-3">
+            <Link
+              href="/dashboard/products/library"
+              className="inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              <CubeIcon className="-ml-0.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+              Import from Library
+            </Link>
+            <button
+              onClick={() => {
+                setEditingCategory(null);
+                setShowCategoryForm(true);
+              }}
+              className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              <PlusIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+              Add Category
+            </button>
+          </div>
         )}
       </div>
 

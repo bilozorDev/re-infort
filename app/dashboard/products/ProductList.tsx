@@ -9,11 +9,15 @@ import { useSupabase } from "@/app/hooks/use-supabase";
 import { getSignedUrls } from "@/app/lib/services/storage.service";
 import { type ProductWithCategory } from "@/app/types/product";
 
+import { ProductTable } from "./ProductTable";
+
 interface ProductListProps {
   products: ProductWithCategory[];
   viewMode: "list" | "grid";
   onEdit: (id: string) => void;
   isAdmin: boolean;
+  globalFilter?: string;
+  onViewModeChange?: (mode: "list" | "grid") => void;
 }
 
 export default function ProductList({
@@ -21,6 +25,7 @@ export default function ProductList({
   viewMode,
   onEdit,
   isAdmin,
+  globalFilter = "",
 }: ProductListProps) {
   const supabase = useSupabase();
   const deleteProduct = useDeleteProduct();
@@ -79,6 +84,23 @@ export default function ProductList({
     );
   }
 
+  // Use the new TanStack Table for list view
+  if (viewMode === "list") {
+    return (
+      <div className="space-y-4">
+        <div className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
+          <ProductTable
+            products={products}
+            onEdit={onEdit}
+            isAdmin={isAdmin}
+            globalFilter={globalFilter}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Keep existing grid view implementation
   if (viewMode === "grid") {
     return (
       <>
@@ -176,137 +198,6 @@ export default function ProductList({
     );
   }
 
-  return (
-    <>
-      <div className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Product
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              SKU
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Cost
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Price
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="relative px-6 py-3">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {products.map((product) => (
-            <tr key={product.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  {productImages[product.id]?.length > 0 ? (
-                    <div 
-                      className="relative h-10 w-10 cursor-pointer"
-                      onClick={() => openLightbox(product.id)}
-                    >
-                      <img
-                        src={productImages[product.id][0]}
-                        alt={product.name}
-                        className="h-10 w-10 rounded-full object-cover hover:opacity-90 transition-opacity"
-                      />
-                      {productImages[product.id].length > 1 && (
-                        <div className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                          {productImages[product.id].length}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <PhotoIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                    {product.description && (
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {product.description}
-                      </div>
-                    )}
-                    {product.features && product.features.length > 0 && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        {product.features.slice(0, 2).map((f) => `${f.name}: ${f.value}`).join(", ")}
-                        {product.features.length > 2 && ` +${product.features.length - 2} more`}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {product.sku}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {product.category?.name || "-"}
-                {product.subcategory && (
-                  <span className="block text-xs">{product.subcategory.name}</span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {product.cost ? `$${product.cost.toFixed(2)}` : "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {product.price ? `$${product.price.toFixed(2)}` : "-"}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
-                    product.status === "active"
-                      ? "bg-green-100 text-green-800"
-                      : product.status === "inactive"
-                      ? "bg-gray-100 text-gray-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {product.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  onClick={() => onEdit(product.id)}
-                  className="text-indigo-600 hover:text-indigo-900 mr-4"
-                >
-                  Edit
-                </button>
-                {isAdmin && (
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    {/* Photo Lightbox */}
-    {lightboxOpen && (
-      <PhotoLightbox
-        images={lightboxImages}
-        currentIndex={lightboxIndex}
-        isOpen={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        onNavigate={(index) => setLightboxIndex(index)}
-      />
-    )}
-  </>
-  );
+  // Default fallback (should not reach here)
+  return null;
 }

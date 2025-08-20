@@ -70,6 +70,42 @@ export type Database = {
         }
         Relationships: []
       }
+      category_templates: {
+        Row: {
+          business_type: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          business_type: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       feature_definitions: {
         Row: {
           category_id: string | null
@@ -510,6 +546,163 @@ export type Database = {
           },
         ]
       }
+      template_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          name: string
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_categories_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "category_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_features: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          input_type: string
+          is_required: boolean | null
+          name: string
+          options: Json | null
+          template_category_id: string | null
+          template_subcategory_id: string | null
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          input_type: string
+          is_required?: boolean | null
+          name: string
+          options?: Json | null
+          template_category_id?: string | null
+          template_subcategory_id?: string | null
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          input_type?: string
+          is_required?: boolean | null
+          name?: string
+          options?: Json | null
+          template_category_id?: string | null
+          template_subcategory_id?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_features_template_category_id_fkey"
+            columns: ["template_category_id"]
+            isOneToOne: false
+            referencedRelation: "template_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_features_template_subcategory_id_fkey"
+            columns: ["template_subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "template_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_subcategories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          name: string
+          template_category_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          template_category_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          template_category_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_subcategories_template_category_id_fkey"
+            columns: ["template_category_id"]
+            isOneToOne: false
+            referencedRelation: "template_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          clerk_user_id: string
+          created_at: string | null
+          feature_settings: Json | null
+          id: string
+          organization_clerk_id: string
+          table_preferences: Json | null
+          ui_preferences: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          clerk_user_id: string
+          created_at?: string | null
+          feature_settings?: Json | null
+          id?: string
+          organization_clerk_id: string
+          table_preferences?: Json | null
+          ui_preferences?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          clerk_user_id?: string
+          created_at?: string | null
+          feature_settings?: Json | null
+          id?: string
+          organization_clerk_id?: string
+          table_preferences?: Json | null
+          ui_preferences?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       warehouses: {
         Row: {
           address: string
@@ -734,6 +927,10 @@ export type Database = {
           warehouses: Json
         }[]
       }
+      increment: {
+        Args: { column_name: string; row_id: string; table_name: string }
+        Returns: undefined
+      }
       is_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -773,6 +970,10 @@ export type Database = {
           p_reason?: string
           p_to_warehouse_id: string
         }
+        Returns: Json
+      }
+      update_table_preferences: {
+        Args: { p_preferences: Json; p_table_key: string; p_user_id: string }
         Returns: Json
       }
     }
