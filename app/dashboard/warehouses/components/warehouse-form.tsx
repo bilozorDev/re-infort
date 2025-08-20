@@ -23,7 +23,6 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
   const form = useForm({
     defaultValues: {
       name: '',
-      code: '',
       type: 'office' as WarehouseType,
       status: 'active' as WarehouseStatus,
       address: '',
@@ -40,12 +39,15 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
         const validatedData = createWarehouseSchema.parse(value);
         
         if (warehouseId) {
+          console.log('Updating warehouse:', warehouseId, validatedData);
           await updateWarehouse.mutateAsync({ id: warehouseId, data: validatedData });
         } else {
+          console.log('Creating warehouse:', validatedData);
           await createWarehouse.mutateAsync(validatedData);
         }
         onClose();
       } catch (error) {
+        console.error('Form submission error:', error);
         // Error is handled by mutation hooks and toast notifications
       }
     },
@@ -54,23 +56,21 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
   // Update form when warehouse data loads
   useEffect(() => {
     if (warehouse) {
-      form.update({
-        defaultValues: {
-          name: warehouse.name,
-          code: warehouse.code,
-          type: warehouse.type as WarehouseType,
-          status: warehouse.status as WarehouseStatus,
-          address: warehouse.address,
-          city: warehouse.city,
-          state_province: warehouse.state_province,
-          postal_code: warehouse.postal_code,
-          country: warehouse.country,
-          notes: warehouse.notes || '',
-          is_default: warehouse.is_default,
-        },
+      // Reset the form with the warehouse data
+      form.reset({
+        name: warehouse.name,
+        type: warehouse.type as WarehouseType,
+        status: warehouse.status as WarehouseStatus,
+        address: warehouse.address,
+        city: warehouse.city,
+        state_province: warehouse.state_province,
+        postal_code: warehouse.postal_code,
+        country: warehouse.country,
+        notes: warehouse.notes || '',
+        is_default: warehouse.is_default,
       });
     }
-  }, [warehouse]);
+  }, [warehouse, form]);
 
   const typeOptions = [
     { value: 'office', label: 'Office' },
@@ -93,7 +93,7 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+      <DialogBackdrop className="fixed inset-0 bg-gray-500/25 transition-opacity" />
 
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
@@ -125,8 +125,8 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
                     }}
                     className="space-y-6"
                   >
-                    <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-                      {/* Name Field */}
+                    <div className="space-y-6">
+                      {/* Name Field - Full Width */}
                       <form.Field
                         name="name"
                         validators={{
@@ -145,56 +145,32 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
                         )}
                       </form.Field>
 
-                      {/* Code Field */}
-                      <form.Field
-                        name="code"
-                        validators={{
-                          onChange: ({ value }) => {
-                            if (!value) return 'Warehouse code is required';
-                            if (!/^[A-Z0-9-]+$/.test(value)) {
-                              return 'Code must contain only uppercase letters, numbers, and hyphens';
-                            }
-                            return undefined;
-                          },
-                        }}
-                      >
-                        {(field) => (
-                          <FormField field={field}>
-                            <TextField
-                              label="Warehouse Code"
-                              placeholder="WH-001"
-                              required
-                              style={{ textTransform: 'uppercase' }}
-                            />
-                          </FormField>
-                        )}
-                      </form.Field>
+                      {/* Type and Status Fields */}
+                      <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                        <form.Field name="type">
+                          {(field) => (
+                            <FormField field={field}>
+                              <Select
+                                label="Type"
+                                options={typeOptions}
+                                required
+                              />
+                            </FormField>
+                          )}
+                        </form.Field>
 
-                      {/* Type Field */}
-                      <form.Field name="type">
-                        {(field) => (
-                          <FormField field={field}>
-                            <Select
-                              label="Type"
-                              options={typeOptions}
-                              required
-                            />
-                          </FormField>
-                        )}
-                      </form.Field>
-
-                      {/* Status Field */}
-                      <form.Field name="status">
-                        {(field) => (
-                          <FormField field={field}>
-                            <Select
-                              label="Status"
-                              options={statusOptions}
-                              required
-                            />
-                          </FormField>
-                        )}
-                      </form.Field>
+                        <form.Field name="status">
+                          {(field) => (
+                            <FormField field={field}>
+                              <Select
+                                label="Status"
+                                options={statusOptions}
+                                required
+                              />
+                            </FormField>
+                          )}
+                        </form.Field>
+                      </div>
                     </div>
 
                     {/* Address Fields */}

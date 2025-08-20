@@ -66,16 +66,8 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Error creating warehouse:', error);
     
-    // Handle specific errors
-    if (error.message?.includes('already exists')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 409 }
-      );
-    }
-    
     return NextResponse.json(
-      { error: 'Failed to create warehouse' },
+      { error: error.message || 'Failed to create warehouse' },
       { status: 500 }
     );
   }

@@ -57,22 +57,6 @@ export async function getWarehouseById(id: string, organizationId: string): Prom
   return data;
 }
 
-export async function getWarehouseByCode(code: string, organizationId: string): Promise<Warehouse | null> {
-  const supabase = await createClient();
-  
-  const { data, error } = await supabase
-    .from('warehouses')
-    .select('*')
-    .eq('code', code)
-    .eq('organization_clerk_id', organizationId)
-    .single();
-
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Failed to fetch warehouse by code: ${error.message}`);
-  }
-
-  return data;
-}
 
 export async function createWarehouse(
   input: CreateWarehouseInput,
@@ -87,12 +71,6 @@ export async function createWarehouse(
 
   const supabase = await createClient();
   
-  // Check if code already exists for this organization
-  const existing = await getWarehouseByCode(input.code, organizationId);
-  if (existing) {
-    throw new Error(`Warehouse with code ${input.code} already exists`);
-  }
-
   // If this is set as default, unset other defaults
   if (input.is_default) {
     await unsetDefaultWarehouses(supabase, organizationId);
@@ -128,14 +106,6 @@ export async function updateWarehouse(
 
   const supabase = await createClient();
   
-  // If updating code, check it doesn't already exist
-  if (input.code) {
-    const existing = await getWarehouseByCode(input.code, organizationId);
-    if (existing && existing.id !== id) {
-      throw new Error(`Warehouse with code ${input.code} already exists`);
-    }
-  }
-
   // If setting as default, unset other defaults
   if (input.is_default) {
     await unsetDefaultWarehouses(supabase, organizationId, id);

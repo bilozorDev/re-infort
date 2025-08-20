@@ -79,14 +79,6 @@ export async function PUT(
   } catch (error: any) {
     console.error('Error updating warehouse:', error);
     
-    // Handle specific errors
-    if (error.message?.includes('already exists')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 409 }
-      );
-    }
-    
     if (error.message?.includes('not found')) {
       return NextResponse.json(
         { error: error.message },
@@ -95,7 +87,7 @@ export async function PUT(
     }
     
     return NextResponse.json(
-      { error: 'Failed to update warehouse' },
+      { error: error.message || 'Failed to update warehouse' },
       { status: 500 }
     );
   }

@@ -5,11 +5,6 @@ export const warehouseStatusEnum = z.enum(['active', 'inactive']);
 
 export const createWarehouseSchema = z.object({
   name: z.string().min(1, 'Warehouse name is required').max(100),
-  code: z
-    .string()
-    .min(1, 'Warehouse code is required')
-    .max(20)
-    .regex(/^[A-Z0-9-]+$/, 'Code must contain only uppercase letters, numbers, and hyphens'),
   type: warehouseTypeEnum,
   status: warehouseStatusEnum.default('active'),
   address: z.string().min(1, 'Address is required').max(200),

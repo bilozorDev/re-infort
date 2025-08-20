@@ -61,7 +61,7 @@ export function WarehouseList({ warehouses, isAdmin, onEdit }: WarehouseListProp
                         )}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {warehouse.code} • {getTypeLabel(warehouse.type)}
+                        {getTypeLabel(warehouse.type)}
                       </p>
                     </div>
                   </div>

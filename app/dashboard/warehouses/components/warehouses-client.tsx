@@ -49,26 +49,33 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
   const hasWarehouses = warehouses && warehouses.length > 0;
 
   return (
-    <>
-      {hasWarehouses ? (
-        <div className="space-y-4">
-          {isAdmin && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <PlusIcon className="h-4 w-4" />
-                Add Warehouse
-              </button>
-            </div>
-          )}
-          <WarehouseList 
-            warehouses={warehouses} 
-            isAdmin={isAdmin}
-            onEdit={handleEdit}
-          />
+    <div className="space-y-6">
+      {/* Header with title and add button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Warehouses</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage your inventory locations and warehouses
+          </p>
         </div>
+        {isAdmin && hasWarehouses && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full sm:w-auto justify-center"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Warehouse
+          </button>
+        )}
+      </div>
+
+      {/* Content */}
+      {hasWarehouses ? (
+        <WarehouseList 
+          warehouses={warehouses} 
+          isAdmin={isAdmin}
+          onEdit={handleEdit}
+        />
       ) : (
         <EmptyState 
           isAdmin={isAdmin} 
@@ -82,6 +89,6 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
           onClose={handleCloseForm}
         />
       )}
-    </>
+    </div>
   );
 }
