@@ -1,37 +1,173 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Re-infort
+
+An inventory tracking application built with Next.js, Clerk authentication, and Supabase.
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Authentication**: Clerk
+- **Database**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS v4
+- **Form Management**: TanStack Form
+- **Data Fetching**: TanStack Query (React Query)
+- **Validation**: Zod
+- **UI Components**: Headless UI
+
+## Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Supabase CLI (for local development)
+- A Clerk account
+- A Supabase account (for production)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/re-infort.git
+cd re-infort
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Update the following variables in `.env.local`:
+
+- **Supabase**: Get these from your [Supabase project dashboard](https://app.supabase.com)
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+- **Clerk**: Get these from your [Clerk dashboard](https://dashboard.clerk.com)
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+  - `CLERK_SECRET_KEY`
+
+### 4. Set up Supabase locally
+
+Start Supabase locally:
+
+```bash
+npx supabase start
+```
+
+This will start a local Supabase instance and output the local URLs and keys.
+
+Run migrations:
+
+```bash
+npx supabase migration up --local
+```
+
+### 5. Configure Clerk JWT Template
+
+In your Clerk dashboard:
+
+1. Go to "JWT Templates"
+2. Create a new template named "supabase"
+3. Add the following claims:
+
+```json
+{
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "{{user.primary_email_address}}",
+    "org_id": "{{org.id}}",
+    "o": {
+        "id": "{{org.id}}",
+        "rol": "{{org.role}}"
+    }
+}
+```
+
+4. Set the signing algorithm to HS256
+5. Use your Supabase JWT secret as the signing key (find it in Supabase Dashboard → Settings → API → JWT Secret)
+
+### 6. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Multi-tenant Architecture**: Organization-based data isolation
+- **Role-Based Access Control**: Admin and member roles with different permissions
+- **Warehouse Management**: Create, read, update, and delete warehouse locations
+- **Row Level Security**: Database-level security policies
+- **Real-time Updates**: Using React Query for optimistic updates and caching
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+├── api/              # API routes
+├── components/       # Reusable UI components
+├── dashboard/        # Dashboard pages and components
+├── hooks/           # Custom React hooks
+├── lib/             # Utility functions and services
+├── types/           # TypeScript type definitions
+└── utils/           # Helper functions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+supabase/
+├── migrations/      # Database migrations
+└── config.toml     # Supabase configuration
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Available Scripts
 
-## Deploy on Vercel
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run typecheck` - Run TypeScript type checking
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Database Schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# re-infort
+The application uses the following main tables:
+
+- **warehouses**: Stores warehouse/location information
+  - Filtered by organization
+  - Role-based access control for CRUD operations
+
+## Security
+
+- Authentication handled by Clerk
+- Authorization at both API and database levels
+- Row Level Security (RLS) policies ensure data isolation
+- JWT tokens passed from Clerk to Supabase for authentication
+
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Import the project in Vercel
+3. Add environment variables in Vercel project settings
+4. Deploy
+
+### Deploy Supabase
+
+1. Link to your Supabase project: `npx supabase link --project-ref your-project-ref`
+2. Push migrations: `npx supabase db push`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+[MIT License](LICENSE)
