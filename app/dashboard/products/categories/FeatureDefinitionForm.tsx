@@ -98,14 +98,17 @@ export default function FeatureDefinitionForm({
 
   const handleEdit = (feature: FeatureDefinition) => {
     setEditingFeature(feature);
-    form.reset({
-      name: feature.name,
-      input_type: feature.input_type,
-      unit: feature.unit || "",
-      is_required: feature.is_required,
-    });
     setSelectOptions(feature.options || []);
     setShowAddForm(true);
+    // Use setTimeout to ensure state updates are processed before form reset
+    setTimeout(() => {
+      form.reset({
+        name: feature.name,
+        input_type: feature.input_type,
+        unit: feature.unit || "",
+        is_required: feature.is_required,
+      });
+    }, 0);
   };
 
   const handleDelete = async (feature: FeatureDefinition) => {
@@ -211,6 +214,7 @@ export default function FeatureDefinitionForm({
                         {editingFeature ? "Edit Feature" : "Add New Feature"}
                       </h3>
                       <form
+                        key={editingFeature?.id || 'new'}
                         onSubmit={(e) => {
                           e.preventDefault();
                           e.stopPropagation();

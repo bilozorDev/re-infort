@@ -73,6 +73,16 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
     "aria-describedby": error ? `${field.name}-error` : undefined,
   };
 
+  // Check if the child is a checkbox component and add checked prop
+  const isCheckbox = children.type && 
+    (children.type.displayName === 'Checkbox' || 
+     children.type.name === 'Checkbox' ||
+     children.props.type === 'checkbox');
+  
+  if (isCheckbox) {
+    (childProps as any).checked = field.state.value;
+  }
+
   // Merge with existing props to preserve things like disabled, placeholder, etc.
   const mergedProps = Object.assign({}, children.props, childProps);
   return cloneElement(children, mergedProps);

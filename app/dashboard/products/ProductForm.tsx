@@ -1,13 +1,15 @@
 "use client";
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon, MinusIcon, PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpDownIcon, InformationCircleIcon, MinusIcon, PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
 import { Fragment, useEffect, useState } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
+import InfoDrawer from "@/app/components/ui/InfoDrawer";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { PhotoUpload } from "@/app/components/ui/PhotoUpload";
+import StepIndicator, { type Step } from "@/app/components/ui/StepIndicator";
 import {
   useCategories,
   useCreateCategory,
@@ -37,6 +39,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   const createCategory = useCreateCategory();
   const createSubcategory = useCreateSubcategory();
 
+  const [currentStep, setCurrentStep] = useState(0);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [showNewSubcategory, setShowNewSubcategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -49,7 +52,15 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   const [signedPhotoUrls, setSignedPhotoUrls] = useState<string[]>([]);
   const [productFeatures, setProductFeatures] = useState<Record<string, string>>({});
   const [customFeatures, setCustomFeatures] = useState<Array<{ name: string; value: string }>>([]);
+  const [showFeaturesInfo, setShowFeaturesInfo] = useState(false);
   const supabase = useSupabase();
+  
+  const steps: Step[] = [
+    { name: 'Basic Information', status: currentStep === 0 ? 'current' : currentStep > 0 ? 'complete' : 'upcoming' },
+    { name: 'Pricing & Description', status: currentStep === 1 ? 'current' : currentStep > 1 ? 'complete' : 'upcoming' },
+    { name: 'Features & Specifications', status: currentStep === 2 ? 'current' : currentStep > 2 ? 'complete' : 'upcoming' },
+    { name: 'Media & Status', status: currentStep === 3 ? 'current' : currentStep > 3 ? 'complete' : 'upcoming' },
+  ];
 
   const form = useForm({
     defaultValues: {
@@ -66,6 +77,13 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
       status: "active" as "active" | "inactive" | "discontinued",
     },
     onSubmit: async ({ value }) => {
+      console.log('Form submitted - currentStep:', currentStep);
+      // Only allow submission from the last step
+      if (currentStep !== steps.length - 1) {
+        console.warn('Form submission blocked - not on final step');
+        return;
+      }
+      
       try {
         const data = {
           ...value,
@@ -286,6 +304,48 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
       form.setFieldValue("price", price.toFixed(2));
     }
   };
+  
+  const canGoToNextStep = () => {
+    switch (currentStep) {
+      case 0:
+        // Only check for required fields (name and SKU must not be empty after trimming)
+        const name = form.store.state.values.name?.trim();
+        const sku = form.store.state.values.sku?.trim();
+        return !!(name && sku);
+      case 1:
+        return true;
+      case 2:
+        return true;
+      case 3:
+        return true;
+      default:
+        return false;
+    }
+  };
+  
+  const handleStepChange = (newStep: number) => {
+    if (newStep < currentStep) {
+      setCurrentStep(newStep);
+    } else if (newStep === currentStep + 1 && canGoToNextStep()) {
+      setCurrentStep(newStep);
+    }
+  };
+  
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (currentStep < steps.length - 1 && canGoToNextStep()) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+  
+  const handlePrevious = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -312,6 +372,10 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                       <XMarkIcon className="h-6 w-6" />
                     </button>
                   </div>
+                  
+                  <div className="mb-6">
+                    <StepIndicator steps={steps} onStepClick={handleStepChange} />
+                  </div>
 
                   <form
                     onSubmit={(e) => {
@@ -321,7 +385,8 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                     }}
                     className="space-y-6"
                   >
-                    {/* Basic Information */}
+                    {/* Step 1: Basic Information */}
+                    {currentStep === 0 && (
                     <div className="space-y-6">
                       <form.Field
                         name="name"
@@ -411,7 +476,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                                                 leaveFrom="opacity-100"
                                                 leaveTo="opacity-0"
                                               >
-                                                <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                                                <ListboxOptions anchor="bottom" className="z-50 w-[var(--button-width)] mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm [--anchor-gap:4px]">
                                                   <ListboxOption
                                                     value=""
                                                     className={({ focus }) =>
@@ -508,6 +573,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                                         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                         autoFocus
                                       />
+                                      <p className="mt-1 text-xs text-gray-500">Press Enter to save</p>
                                     </div>
                                   </Transition>
                                 </div>
@@ -562,7 +628,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                                                 leaveFrom="opacity-100"
                                                 leaveTo="opacity-0"
                                               >
-                                                <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                                                <ListboxOptions anchor="bottom" className="z-50 w-[var(--button-width)] mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm [--anchor-gap:4px]">
                                                   <ListboxOption
                                                     value=""
                                                     className={({ focus }) =>
@@ -662,6 +728,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                                         className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                                         autoFocus
                                       />
+                                      <p className="mt-1 text-xs text-gray-500">Press Enter to save</p>
                                     </div>
                                   </Transition>
                                 </div>
@@ -670,7 +737,12 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                           </form.Field>
                         </div>
                       </div>
-
+                    </div>
+                    )}
+                    
+                    {/* Step 2: Pricing & Description */}
+                    {currentStep === 1 && (
+                    <div className="space-y-6">
                       {/* Pricing */}
                       <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                         <form.Field name="cost">
@@ -718,13 +790,15 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                                   currentActiveMarkup = 15;
                                 } else if (Math.abs(markup - 20) < 0.01) {
                                   currentActiveMarkup = 20;
+                                } else if (Math.abs(markup - 25) < 0.01) {
+                                  currentActiveMarkup = 25;
                                 }
                               }
                               
                               return (
                                 <div className="mt-2 flex gap-2">
-                                  <span className="text-xs text-gray-500 mr-1 mt-1">Quick markup:</span>
-                                  {[10, 15, 20].map((percentage) => {
+                                  <span className="text-xs text-gray-500 mr-1 mt-1">Markup:</span>
+                                  {[10, 15, 20, 25].map((percentage) => {
                                     const isDisabled = !costValue || costValue <= 0;
                                     const isActive = currentActiveMarkup === percentage;
                                     
@@ -767,11 +841,28 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                           </FormField>
                         )}
                       </form.Field>
-
+                    </div>
+                    )}
+                    
+                    {/* Step 3: Features & Specifications */}
+                    {currentStep === 2 && (
+                    <div className="space-y-6">
+                      {/* Features Header with Info */}
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium text-gray-900">Product Features</h3>
+                        <button
+                          type="button"
+                          onClick={() => setShowFeaturesInfo(true)}
+                          className="text-gray-400 hover:text-gray-500"
+                          aria-label="Learn more about product features"
+                        >
+                          <InformationCircleIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                      
                       {/* Dynamic Feature Fields */}
-                      {featureDefinitions && featureDefinitions.length > 0 && (
+                      {featureDefinitions && featureDefinitions.length > 0 ? (
                         <div className="space-y-4">
-                          <h3 className="text-sm font-medium text-gray-900">Product Features</h3>
                           <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                             {featureDefinitions.map((definition) => (
                               <div key={definition.id}>
@@ -849,6 +940,11 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                             ))}
                           </div>
                         </div>
+                      ) : (
+                        <div className="text-sm text-gray-500">
+                          <p>No predefined features for this category.</p>
+                          <p className="mt-1">You can add custom features below to specify product attributes.</p>
+                        </div>
                       )}
 
                       {/* Custom Features */}
@@ -904,7 +1000,12 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                           </div>
                         )}
                       </div>
-
+                    </div>
+                    )}
+                    
+                    {/* Step 4: Media & Status */}
+                    {currentStep === 3 && (
+                    <div className="space-y-6">
                       {/* Photo Upload */}
                       <form.Field name="photo_urls">
                         {(field) => (
@@ -946,30 +1047,71 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                         )}
                       </form.Field>
                     </div>
+                    )}
 
-                    <div className="mt-6 flex items-center justify-end gap-x-3">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="text-sm font-semibold text-gray-900"
-                      >
-                        Cancel
-                      </button>
-                      <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-                        {([canSubmit]) => (
+                    <div className="mt-6 flex items-center justify-between">
+                      <div className="flex items-center gap-x-3">
+                        {currentStep > 0 && (
                           <button
-                            type="submit"
-                            disabled={!canSubmit || isSubmitting || isUploadingPhotos}
-                            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button"
+                            onClick={handlePrevious}
+                            className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                           >
-                            {isSubmitting
-                              ? "Saving..."
-                              : productId
-                              ? "Update Product"
-                              : "Create Product"}
+                            <ChevronLeftIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+                            Previous
                           </button>
                         )}
-                      </form.Subscribe>
+                      </div>
+                      
+                      <div className="flex items-center gap-x-3">
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          className="text-sm font-semibold text-gray-900"
+                        >
+                          Cancel
+                        </button>
+                        
+                        {currentStep < steps.length - 1 ? (
+                          <form.Subscribe selector={(state) => state.values}>
+                            {(values) => {
+                              let canProceed = false;
+                              if (currentStep === 0) {
+                                canProceed = !!(values.name?.trim() && values.sku?.trim());
+                              } else {
+                                canProceed = true;
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={handleNext}
+                                  disabled={!canProceed}
+                                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Next
+                                  <ChevronRightIcon className="ml-1.5 -mr-0.5 h-5 w-5" aria-hidden="true" />
+                                </button>
+                              );
+                            }}
+                          </form.Subscribe>
+                        ) : (
+                          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                            {([canSubmit]) => (
+                              <button
+                                type="submit"
+                                disabled={!canSubmit || isSubmitting || isUploadingPhotos}
+                                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isSubmitting
+                                  ? "Saving..."
+                                  : productId
+                                  ? "Update Product"
+                                  : "Create Product"}
+                              </button>
+                            )}
+                          </form.Subscribe>
+                        )}
+                      </div>
                     </div>
                   </form>
                 </div>
@@ -989,6 +1131,86 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
           onNavigate={(index) => setLightboxIndex(index)}
         />
       )}
+      
+      {/* Features Info Drawer */}
+      <InfoDrawer
+        open={showFeaturesInfo}
+        onClose={() => setShowFeaturesInfo(false)}
+        title="About Product Features"
+      >
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">What are Product Features?</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Product features allow you to define specific attributes and specifications for your products. 
+              They help organize and standardize product information across your inventory.
+            </p>
+          </div>
+          
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Types of Features</h3>
+            <div className="mt-2 space-y-3">
+              <div>
+                <h4 className="text-sm font-medium text-gray-900">Category-Specific Features</h4>
+                <p className="text-sm text-gray-600">
+                  These are predefined features that appear based on the category and subcategory you select. 
+                  For example, electronics might have "Screen Size" or "Battery Life".
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-900">Custom Features</h4>
+                <p className="text-sm text-gray-600">
+                  You can add your own custom features for any product to capture unique specifications 
+                  not covered by the predefined options.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">How to Use Features</h3>
+            <ol className="mt-2 space-y-2 text-sm text-gray-600">
+              <li className="flex">
+                <span className="mr-2 font-medium">1.</span>
+                <span>Fill in the predefined features that appear for your selected category</span>
+              </li>
+              <li className="flex">
+                <span className="mr-2 font-medium">2.</span>
+                <span>Features marked with a red asterisk (*) are required</span>
+              </li>
+              <li className="flex">
+                <span className="mr-2 font-medium">3.</span>
+                <span>Click "Add Custom Feature" to include additional specifications</span>
+              </li>
+              <li className="flex">
+                <span className="mr-2 font-medium">4.</span>
+                <span>Enter both a name and value for each custom feature</span>
+              </li>
+            </ol>
+          </div>
+          
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Managing Feature Definitions</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Administrators can manage feature definitions for categories and subcategories to ensure 
+              consistent product information across your organization.
+            </p>
+            <div className="mt-3">
+              <a
+                href="/dashboard/feature-definitions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Manage Feature Definitions
+                <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </InfoDrawer>
     </Dialog>
   );
 }

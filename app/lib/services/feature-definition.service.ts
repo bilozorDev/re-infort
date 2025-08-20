@@ -20,19 +20,11 @@ export async function getFeatureDefinitions(
     .order("display_order", { ascending: true });
 
   if (subcategoryId) {
-    // If subcategory is specified, get features for both category and subcategory
-    const { data: subcategory } = await supabase
-      .from("subcategories")
-      .select("category_id")
-      .eq("id", subcategoryId)
-      .single();
-
-    if (subcategory) {
-      query = query.or(`subcategory_id.eq.${subcategoryId},category_id.eq.${subcategory.category_id}`);
-    }
+    // If subcategory is specified, get features for ONLY that subcategory
+    query = query.eq("subcategory_id", subcategoryId);
   } else if (categoryId) {
-    // If only category is specified, get features for that category
-    query = query.eq("category_id", categoryId);
+    // If only category is specified, get features for that category (excluding subcategory features)
+    query = query.eq("category_id", categoryId).is("subcategory_id", null);
   }
 
   const { data, error } = await query;
