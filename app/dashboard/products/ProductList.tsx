@@ -1,9 +1,12 @@
 "use client";
 
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
+import { PencilIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 
+import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { useDeleteProduct } from "@/app/hooks/use-products";
+import { useSupabase } from "@/app/hooks/use-supabase";
+import { getSignedUrls } from "@/app/lib/services/storage.service";
 import { type ProductWithCategory } from "@/app/types/product";
 
 interface ProductListProps {
@@ -19,11 +22,52 @@ export default function ProductList({
   onEdit,
   isAdmin,
 }: ProductListProps) {
+  const supabase = useSupabase();
   const deleteProduct = useDeleteProduct();
+  const [productImages, setProductImages] = useState<Record<string, string[]>>({});
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Load signed URLs for all products
+  useEffect(() => {
+    const loadAllImages = async () => {
+      const imageMap: Record<string, string[]> = {};
+      
+      for (const product of products) {
+        if (product.photo_urls && product.photo_urls.length > 0) {
+          try {
+            const urls = await getSignedUrls(supabase, product.photo_urls);
+            imageMap[product.id] = urls;
+          } catch (error) {
+            console.error(`Failed to load images for product ${product.id}:`, error);
+            imageMap[product.id] = [];
+          }
+        } else {
+          imageMap[product.id] = [];
+        }
+      }
+      
+      setProductImages(imageMap);
+    };
+
+    if (products.length > 0) {
+      loadAllImages();
+    }
+  }, [products, supabase]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       deleteProduct.mutate(id);
+    }
+  };
+
+  const openLightbox = (productId: string, index: number = 0) => {
+    const images = productImages[productId] || [];
+    if (images.length > 0) {
+      setLightboxImages(images);
+      setLightboxIndex(index);
+      setLightboxOpen(true);
     }
   };
 
@@ -37,24 +81,32 @@ export default function ProductList({
 
   if (viewMode === "grid") {
     return (
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((product) => (
           <div
             key={product.id}
             className="relative bg-white rounded-lg shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-shadow"
           >
-            {product.photo_url ? (
-              <div className="relative w-full h-48">
-                <Image
-                  src={product.photo_url}
+            {productImages[product.id]?.length > 0 ? (
+              <div 
+                className="relative w-full h-48 cursor-pointer group"
+                onClick={() => openLightbox(product.id)}
+              >
+                <img
+                  src={productImages[product.id][0]}
                   alt={product.name}
-                  fill
-                  className="object-cover rounded-t-lg"
+                  className="w-full h-full object-cover rounded-t-lg group-hover:opacity-90 transition-opacity"
                 />
+                {productImages[product.id].length > 1 && (
+                  <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
+                    +{productImages[product.id].length - 1} more
+                  </div>
+                )}
               </div>
             ) : (
               <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                <span className="text-gray-400">No image</span>
+                <PhotoIcon className="h-12 w-12 text-gray-400" />
               </div>
             )}
             <div className="p-4">
@@ -92,11 +144,24 @@ export default function ProductList({
           </div>
         ))}
       </div>
+
+      {/* Photo Lightbox */}
+      {lightboxOpen && (
+        <PhotoLightbox
+          images={lightboxImages}
+          currentIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={(index) => setLightboxIndex(index)}
+        />
+      )}
+    </>
     );
   }
 
   return (
-    <div className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
+    <>
+      <div className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -128,17 +193,26 @@ export default function ProductList({
             <tr key={product.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  {product.photo_url ? (
-                    <div className="relative h-10 w-10">
-                      <Image
-                        src={product.photo_url}
+                  {productImages[product.id]?.length > 0 ? (
+                    <div 
+                      className="relative h-10 w-10 cursor-pointer"
+                      onClick={() => openLightbox(product.id)}
+                    >
+                      <img
+                        src={productImages[product.id][0]}
                         alt={product.name}
-                        fill
-                        className="rounded-full object-cover"
+                        className="h-10 w-10 rounded-full object-cover hover:opacity-90 transition-opacity"
                       />
+                      {productImages[product.id].length > 1 && (
+                        <div className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {productImages[product.id].length}
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="h-10 w-10 rounded-full bg-gray-200" />
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <PhotoIcon className="h-5 w-5 text-gray-400" />
+                    </div>
                   )}
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">{product.name}</div>
@@ -199,5 +273,17 @@ export default function ProductList({
         </tbody>
       </table>
     </div>
+
+    {/* Photo Lightbox */}
+    {lightboxOpen && (
+      <PhotoLightbox
+        images={lightboxImages}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={(index) => setLightboxIndex(index)}
+      />
+    )}
+  </>
   );
 }

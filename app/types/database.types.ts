@@ -203,7 +203,7 @@ export type Database = {
           link: string | null
           name: string
           organization_clerk_id: string
-          photo_url: string | null
+          photo_urls: string[] | null
           price: number | null
           serial_number: string | null
           sku: string
@@ -221,7 +221,7 @@ export type Database = {
           link?: string | null
           name: string
           organization_clerk_id: string
-          photo_url?: string | null
+          photo_urls?: string[] | null
           price?: number | null
           serial_number?: string | null
           sku: string
@@ -239,7 +239,7 @@ export type Database = {
           link?: string | null
           name?: string
           organization_clerk_id?: string
-          photo_url?: string | null
+          photo_urls?: string[] | null
           price?: number | null
           serial_number?: string | null
           sku?: string
@@ -602,6 +602,14 @@ export type Database = {
         }
         Returns: Json
       }
+      debug_jwt_claims: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_org_id_from_path: {
+        Args: { object_name: string }
+        Returns: string
+      }
       get_product_total_inventory: {
         Args: { p_product_id: string }
         Returns: {
@@ -632,6 +640,15 @@ export type Database = {
           p_warehouse_id: string
         }
         Returns: Json
+      }
+      test_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          full_jwt: Json
+          is_admin: boolean
+          jwt_metadata: string
+          org_role: string
+        }[]
       }
       transfer_inventory: {
         Args: {

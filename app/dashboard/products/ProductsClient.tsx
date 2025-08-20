@@ -11,9 +11,10 @@ import ProductList from "./ProductList";
 
 interface ProductsClientProps {
   isAdmin: boolean;
+  organizationId: string;
 }
 
-export function ProductsClient({ isAdmin }: ProductsClientProps) {
+export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps) {
   const { data: products, isLoading } = useProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -141,6 +142,7 @@ export function ProductsClient({ isAdmin }: ProductsClientProps) {
             setEditingProduct(null);
           }}
           isAdmin={isAdmin}
+          organizationId={organizationId}
         />
       )}
     </div>

@@ -113,11 +113,11 @@ export const supabaseMock = createClientMock()
 export const mockCreateClient = vi.fn(() => supabaseMock)
 
 // Set up module mocks
-vi.mock('@/app/supabase/client', () => ({
+vi.mock('@/app/lib/supabase/client', () => ({
   createClient: mockCreateClient,
 }))
 
-vi.mock('@/app/supabase/server', () => ({
+vi.mock('@/app/lib/supabase/server', () => ({
   createClient: mockCreateClient,
 }))
 

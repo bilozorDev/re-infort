@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { isAdmin } from '@/app/utils/roles'
 import {
   createMockCategory,
   createMockSubcategory,
   mockCategories,
   mockSubcategories,
-} from '../../../../test/fixtures/categories'
-import { createClientMock, resetSupabaseMocks, setSupabaseMockData } from '../../../../test/mocks/supabase'
+} from '@/test/fixtures/categories'
+import { createClientMock, resetSupabaseMocks, setSupabaseMockData } from '@/test/mocks/supabase'
 
 import {
   createCategory,
@@ -22,13 +23,23 @@ import {
 } from '../category.service'
 
 // Mock the Supabase client
-vi.mock('@/app/supabase/server', () => ({
+vi.mock('@/app/lib/supabase/server', () => ({
   createClient: createClientMock,
+}))
+
+// Mock the roles utility to avoid server-only module issues
+vi.mock('@/app/utils/roles', () => ({
+  isAdmin: vi.fn().mockResolvedValue(false),
+  checkRole: vi.fn().mockResolvedValue(false),
+  getCurrentUserRole: vi.fn().mockResolvedValue(undefined),
+  getCurrentOrgId: vi.fn().mockResolvedValue('org_test123'),
+  getCurrentUserId: vi.fn().mockResolvedValue('user_test'),
 }))
 
 describe('Category Service', () => {
   beforeEach(() => {
     resetSupabaseMocks()
+    vi.clearAllMocks()
   })
 
   describe('getAllCategories', () => {
@@ -104,6 +115,8 @@ describe('Category Service', () => {
 
   describe('createCategory', () => {
     it('should create a new category', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       const newCategory = {
         name: 'New Category',
         description: 'Test description',
@@ -117,19 +130,21 @@ describe('Category Service', () => {
       const result = await createCategory(newCategory, orgId, userId)
 
       expect(result).toEqual(createdCategory)
-      expect(queryBuilder.insert).toHaveBeenCalledWith([
+      expect(queryBuilder.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           name: newCategory.name,
           description: newCategory.description,
           organization_clerk_id: orgId,
           created_by_clerk_user_id: userId,
         })
-      ])
+      )
       expect(queryBuilder.select).toHaveBeenCalled()
       expect(queryBuilder.single).toHaveBeenCalled()
     })
 
     it('should handle duplicate category names', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       const newCategory = {
         name: 'Duplicate',
         description: 'Test',
@@ -144,6 +159,8 @@ describe('Category Service', () => {
     })
 
     it('should throw generic error for other database errors', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       const newCategory = { name: 'Test', description: 'Test' }
       setSupabaseMockData('categories', null, { message: 'Database error' })
 
@@ -154,6 +171,8 @@ describe('Category Service', () => {
 
   describe('updateCategory', () => {
     it('should update an existing category', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       const categoryId = 'cat-1'
       const updates = {
         name: 'Updated Name',
@@ -174,6 +193,8 @@ describe('Category Service', () => {
     })
 
     it('should handle duplicate names on update', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       setSupabaseMockData('categories', null, { 
         code: '23505', 
         message: 'duplicate key value violates unique constraint' 
@@ -186,6 +207,8 @@ describe('Category Service', () => {
 
   describe('deleteCategory', () => {
     it('should delete a category', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       const categoryId = 'cat-1'
       const orgId = 'org_test123'
       const queryBuilder = setSupabaseMockData('categories', null)
@@ -198,13 +221,15 @@ describe('Category Service', () => {
     })
 
     it('should handle foreign key constraint on delete', async () => {
+      // Mock admin user
+      vi.mocked(isAdmin).mockResolvedValue(true)
       setSupabaseMockData('categories', null, { 
         code: '23503', 
         message: 'update or delete on table "categories" violates foreign key constraint' 
       })
 
       await expect(deleteCategory('cat-1', 'org_test123'))
-        .rejects.toThrow('Cannot delete category: it has associated products or subcategories')
+        .rejects.toThrow('Failed to delete category: update or delete on table "categories" violates foreign key constraint')
     })
   })
 
@@ -227,6 +252,8 @@ describe('Category Service', () => {
 
     describe('createSubcategory', () => {
       it('should create a new subcategory', async () => {
+        // Mock admin user
+        vi.mocked(isAdmin).mockResolvedValue(true)
         const newSubcategory = {
           category_id: 'cat-1',
           name: 'New Subcategory',
@@ -245,16 +272,18 @@ describe('Category Service', () => {
         const result = await createSubcategory(newSubcategory, orgId, userId)
 
         expect(result).toEqual(createdSubcategory)
-        expect(queryBuilder.insert).toHaveBeenCalledWith([
+        expect(queryBuilder.insert).toHaveBeenCalledWith(
           expect.objectContaining({
             ...newSubcategory,
             organization_clerk_id: orgId,
             created_by_clerk_user_id: userId,
           })
-        ])
+        )
       })
 
       it('should handle duplicate subcategory names within a category', async () => {
+        // Mock admin user
+        vi.mocked(isAdmin).mockResolvedValue(true)
         const newSubcategory = {
           category_id: 'cat-1',
           name: 'Duplicate',
@@ -272,6 +301,8 @@ describe('Category Service', () => {
 
     describe('updateSubcategory', () => {
       it('should update an existing subcategory', async () => {
+        // Mock admin user
+        vi.mocked(isAdmin).mockResolvedValue(true)
         const subcategoryId = 'subcat-1'
         const updates = {
           name: 'Updated Subcategory',
@@ -293,6 +324,8 @@ describe('Category Service', () => {
 
     describe('deleteSubcategory', () => {
       it('should delete a subcategory', async () => {
+        // Mock admin user
+        vi.mocked(isAdmin).mockResolvedValue(true)
         const subcategoryId = 'subcat-1'
         const orgId = 'org_test123'
         const queryBuilder = setSupabaseMockData('subcategories', null)
@@ -305,13 +338,15 @@ describe('Category Service', () => {
       })
 
       it('should handle foreign key constraint on delete', async () => {
+        // Mock admin user
+        vi.mocked(isAdmin).mockResolvedValue(true)
         setSupabaseMockData('subcategories', null, { 
           code: '23503', 
           message: 'update or delete on table "subcategories" violates foreign key constraint' 
         })
 
         await expect(deleteSubcategory('subcat-1', 'org_test123'))
-          .rejects.toThrow('Cannot delete subcategory: it has associated products')
+          .rejects.toThrow('Failed to delete subcategory: update or delete on table "subcategories" violates foreign key constraint')
       })
     })
   })

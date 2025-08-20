@@ -19,5 +19,5 @@ export default async function ProductsPage() {
 
   const userIsAdmin = await isAdmin();
 
-  return <ProductsClient isAdmin={userIsAdmin} />;
+  return <ProductsClient isAdmin={userIsAdmin} organizationId={orgId} />;
 }

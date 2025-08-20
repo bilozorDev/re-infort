@@ -6,7 +6,6 @@ import { useForm } from "@tanstack/react-form";
 import { Fragment, useEffect, useState } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
-import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { PhotoUpload } from "@/app/components/ui/PhotoUpload";
 import {
   useCategories,
@@ -15,8 +14,6 @@ import {
   useSubcategories,
 } from "@/app/hooks/use-categories";
 import { useCreateProduct, useProduct, useUpdateProduct } from "@/app/hooks/use-products";
-import { useSupabase } from "@/app/hooks/use-supabase";
-import { getSignedUrls } from "@/app/lib/services/storage.service";
 import { createProductSchema } from "@/app/lib/validations/product";
 
 interface ProductFormProps {
@@ -42,10 +39,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [signedPhotoUrls, setSignedPhotoUrls] = useState<string[]>([]);
-  const supabase = useSupabase();
+  const [activeMarkup, setActiveMarkup] = useState<number | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -92,26 +86,6 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
   // Subscribe to category_id changes to trigger subcategory fetch
   const [currentCategoryId, setCurrentCategoryId] = useState<string>("");
   
-  // Load signed URLs for photo lightbox
-  useEffect(() => {
-    const loadSignedUrls = async () => {
-      const photoUrls = form.store.state.values.photo_urls;
-      if (photoUrls && photoUrls.length > 0) {
-        try {
-          const urls = await getSignedUrls(supabase, photoUrls);
-          setSignedPhotoUrls(urls);
-        } catch (error) {
-          console.error("Failed to load signed URLs:", error);
-          setSignedPhotoUrls([]);
-        }
-      } else {
-        setSignedPhotoUrls([]);
-      }
-    };
-    
-    loadSignedUrls();
-  }, [form.store.state.values.photo_urls, supabase]);
-  
   // Watch for category_id changes
   useEffect(() => {
     const unsubscribe = form.store.subscribe(() => {
@@ -122,6 +96,31 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
     });
     return unsubscribe;
   }, [form.store, currentCategoryId]);
+
+  // Watch for cost and price changes to calculate active markup
+  useEffect(() => {
+    const unsubscribe = form.store.subscribe(() => {
+      const cost = parseFloat(form.store.state.values.cost);
+      const price = parseFloat(form.store.state.values.price);
+      
+      if (cost > 0 && price > 0) {
+        const markup = ((price - cost) / cost) * 100;
+        // Check if markup matches one of our preset values (with small tolerance for floating point)
+        if (Math.abs(markup - 10) < 0.01) {
+          setActiveMarkup(10);
+        } else if (Math.abs(markup - 15) < 0.01) {
+          setActiveMarkup(15);
+        } else if (Math.abs(markup - 20) < 0.01) {
+          setActiveMarkup(20);
+        } else {
+          setActiveMarkup(null);
+        }
+      } else {
+        setActiveMarkup(null);
+      }
+    });
+    return unsubscribe;
+  }, [form.store]);
 
   const { data: subcategories, isLoading: subcategoriesLoading } = useSubcategories(currentCategoryId || null);
 
@@ -628,55 +627,34 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                           </form.Field>
                           
                           {/* Markup Pills */}
-                          <form.Subscribe selector={(state) => [state.values.cost, state.values.price]}>
-                            {([cost, price]) => {
-                              const costValue = parseFloat(cost);
-                              const priceValue = parseFloat(price);
-                              
-                              // Calculate active markup
-                              let currentActiveMarkup: number | null = null;
-                              if (costValue > 0 && priceValue > 0) {
-                                const markup = ((priceValue - costValue) / costValue) * 100;
-                                if (Math.abs(markup - 10) < 0.01) {
-                                  currentActiveMarkup = 10;
-                                } else if (Math.abs(markup - 15) < 0.01) {
-                                  currentActiveMarkup = 15;
-                                } else if (Math.abs(markup - 20) < 0.01) {
-                                  currentActiveMarkup = 20;
-                                }
-                              }
+                          <div className="mt-2 flex gap-2">
+                            <span className="text-xs text-gray-500 mr-1 mt-1">Quick markup:</span>
+                            {[10, 15, 20].map((percentage) => {
+                              const cost = parseFloat(form.store.state.values.cost);
+                              const isDisabled = !cost || cost <= 0;
+                              const isActive = activeMarkup === percentage;
                               
                               return (
-                                <div className="mt-2 flex gap-2">
-                                  <span className="text-xs text-gray-500 mr-1 mt-1">Quick markup:</span>
-                                  {[10, 15, 20].map((percentage) => {
-                                    const isDisabled = !costValue || costValue <= 0;
-                                    const isActive = currentActiveMarkup === percentage;
-                                    
-                                    return (
-                                      <button
-                                        key={percentage}
-                                        type="button"
-                                        onClick={() => handleMarkupClick(percentage)}
-                                        disabled={isDisabled}
-                                        className={`
-                                          px-3 py-1 text-xs font-medium rounded-full transition-all duration-200
-                                          ${isActive 
-                                            ? 'bg-indigo-100 text-indigo-700' 
-                                            : isDisabled
-                                              ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900'
-                                          }
-                                        `}
-                                      >
-                                        {percentage}%
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                <button
+                                  key={percentage}
+                                  type="button"
+                                  onClick={() => handleMarkupClick(percentage)}
+                                  disabled={isDisabled}
+                                  className={`
+                                    px-3 py-1 text-xs font-medium rounded-full transition-all duration-200
+                                    ${isActive 
+                                      ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-500 ring-offset-1' 
+                                      : isDisabled
+                                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900'
+                                    }
+                                  `}
+                                >
+                                  {percentage}%
+                                </button>
                               );
-                            }}
-                          </form.Subscribe>
+                            })}
+                          </div>
                         </div>
                       </div>
 
@@ -704,10 +682,6 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                             disabled={isSubmitting || isUploadingPhotos}
                             onUploadStart={() => setIsUploadingPhotos(true)}
                             onUploadComplete={() => setIsUploadingPhotos(false)}
-                            onLightboxOpen={(index) => {
-                              setLightboxIndex(index);
-                              setLightboxOpen(true);
-                            }}
                           />
                         )}
                       </form.Field>
@@ -766,17 +740,6 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
           </DialogPanel>
         </div>
       </div>
-      
-      {/* Photo Lightbox */}
-      {lightboxOpen && signedPhotoUrls.length > 0 && (
-        <PhotoLightbox
-          images={signedPhotoUrls}
-          currentIndex={lightboxIndex}
-          isOpen={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
-          onNavigate={(index) => setLightboxIndex(index)}
-        />
-      )}
     </Dialog>
   );
 }

@@ -75,7 +75,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           <a
                             href={item.href}
                             className={classNames(
-                              pathname === item.href
+                              item.href === "/dashboard"
+                                ? pathname === item.href
+                                  ? "bg-gray-50 text-indigo-600"
+                                  : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                : pathname.startsWith(item.href)
                                 ? "bg-gray-50 text-indigo-600"
                                 : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
                               "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
@@ -84,7 +88,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <item.icon
                               aria-hidden="true"
                               className={classNames(
-                                pathname === item.href
+                                item.href === "/dashboard"
+                                  ? pathname === item.href
+                                    ? "text-indigo-600"
+                                    : "text-gray-400 group-hover:text-indigo-600"
+                                  : pathname.startsWith(item.href)
                                   ? "text-indigo-600"
                                   : "text-gray-400 group-hover:text-indigo-600",
                                 "size-6 shrink-0"
@@ -133,7 +141,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <a
                         href={item.href}
                         className={classNames(
-                          pathname.startsWith(item.href)
+                          item.href === "/dashboard"
+                            ? pathname === item.href
+                              ? "bg-gray-50 text-indigo-600"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                            : pathname.startsWith(item.href)
                             ? "bg-gray-50 text-indigo-600"
                             : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
                           "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
@@ -142,7 +154,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <item.icon
                           aria-hidden="true"
                           className={classNames(
-                            pathname.startsWith(item.href)
+                            item.href === "/dashboard"
+                              ? pathname === item.href
+                                ? "text-indigo-600"
+                                : "text-gray-400 group-hover:text-indigo-600"
+                              : pathname.startsWith(item.href)
                               ? "text-indigo-600"
                               : "text-gray-400 group-hover:text-indigo-600",
                             "size-6 shrink-0"
