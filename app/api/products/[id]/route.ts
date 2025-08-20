@@ -7,13 +7,14 @@ import {
   updateProduct,
 } from "@/app/lib/services/product.service";
 import { updateProductSchema } from "@/app/lib/validations/product";
+import { getCurrentOrgId } from "@/app/utils/roles";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const { orgId } = await auth();
+    const orgId = await getCurrentOrgId();
 
     if (!orgId) {
       return NextResponse.json({ error: "Organization not found" }, { status: 401 });
@@ -40,7 +41,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { orgId } = await auth();
+    const orgId = await getCurrentOrgId();
 
     if (!orgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -69,7 +70,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { orgId } = await auth();
+    const orgId = await getCurrentOrgId();
 
     if (!orgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -229,7 +229,7 @@ describe('Category Service', () => {
       })
 
       await expect(deleteCategory('cat-1', 'org_test123'))
-        .rejects.toThrow('Failed to delete category: update or delete on table "categories" violates foreign key constraint')
+        .rejects.toThrow('Cannot delete category with existing dependencies')
     })
   })
 
@@ -346,7 +346,7 @@ describe('Category Service', () => {
         })
 
         await expect(deleteSubcategory('subcat-1', 'org_test123'))
-          .rejects.toThrow('Failed to delete subcategory: update or delete on table "subcategories" violates foreign key constraint')
+          .rejects.toThrow('Cannot delete subcategory with existing dependencies')
       })
     })
   })
