@@ -132,7 +132,7 @@ export async function updateCategory(
   return data;
 }
 
-export async function deleteCategory(id: string, organizationId: string): Promise<void> {
+export async function deleteCategory(id: string, organizationId: string, force: boolean = false): Promise<void> {
   // Check if user is admin
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
@@ -141,6 +141,8 @@ export async function deleteCategory(id: string, organizationId: string): Promis
 
   const supabase = await createClient();
 
+  // If force delete, the database CASCADE will handle subcategories
+  // and SET NULL will handle product references
   const { error } = await supabase
     .from("categories")
     .delete()
@@ -148,8 +150,9 @@ export async function deleteCategory(id: string, organizationId: string): Promis
     .eq("organization_clerk_id", organizationId);
 
   if (error) {
-    if (error.message.includes("products")) {
-      throw new Error("Cannot delete category with existing products");
+    // If not forcing and there's a foreign key violation, provide a clear message
+    if (!force && error.code === "23503") {
+      throw new Error("Cannot delete category with existing dependencies");
     }
     throw new Error(`Failed to delete category: ${error.message}`);
   }
@@ -284,7 +287,7 @@ export async function updateSubcategory(
   return data;
 }
 
-export async function deleteSubcategory(id: string, organizationId: string): Promise<void> {
+export async function deleteSubcategory(id: string, organizationId: string, force: boolean = false): Promise<void> {
   // Check if user is admin
   const userIsAdmin = await isAdmin();
   if (!userIsAdmin) {
@@ -293,6 +296,7 @@ export async function deleteSubcategory(id: string, organizationId: string): Pro
 
   const supabase = await createClient();
 
+  // If force delete, SET NULL will handle product references
   const { error } = await supabase
     .from("subcategories")
     .delete()
@@ -300,8 +304,9 @@ export async function deleteSubcategory(id: string, organizationId: string): Pro
     .eq("organization_clerk_id", organizationId);
 
   if (error) {
-    if (error.message.includes("products")) {
-      throw new Error("Cannot delete subcategory with existing products");
+    // If not forcing and there's a foreign key violation, provide a clear message
+    if (!force && error.code === "23503") {
+      throw new Error("Cannot delete subcategory with existing dependencies");
     }
     throw new Error(`Failed to delete subcategory: ${error.message}`);
   }

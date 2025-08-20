@@ -91,28 +91,35 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check for existing products
-    const supabase = await createClient();
-    
-    const { count: productCount } = await supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("subcategory_id", params.id)
-      .eq("organization_clerk_id", orgId);
+    // Check if this is a force delete
+    const url = new URL(request.url);
+    const forceDelete = url.searchParams.get("force") === "true";
 
-    // Return count so frontend can show appropriate warning
-    if (productCount) {
-      return NextResponse.json(
-        { 
-          error: "Subcategory has products",
-          product_count: productCount || 0,
-          message: `This subcategory is assigned to ${productCount} products. Deleting will unassign these products.`
-        },
-        { status: 409 }
-      );
+    if (!forceDelete) {
+      // Check for existing products
+      const supabase = await createClient();
+      
+      const { count: productCount } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("subcategory_id", params.id)
+        .eq("organization_clerk_id", orgId);
+
+      // Return count so frontend can show appropriate warning
+      if (productCount) {
+        return NextResponse.json(
+          { 
+            error: "Subcategory has products",
+            product_count: productCount || 0,
+            message: `This subcategory is assigned to ${productCount} products. Deleting will unassign these products.`
+          },
+          { status: 409 }
+        );
+      }
     }
 
-    await deleteSubcategory(params.id, orgId);
+    // Proceed with deletion (force or no dependencies)
+    await deleteSubcategory(params.id, orgId, forceDelete);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

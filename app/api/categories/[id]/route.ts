@@ -98,35 +98,42 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check for existing subcategories and products
-    const supabase = await createClient();
-    
-    const { count: subcategoryCount } = await supabase
-      .from("subcategories")
-      .select("*", { count: "exact", head: true })
-      .eq("category_id", params.id)
-      .eq("organization_clerk_id", orgId);
+    // Check if this is a force delete
+    const url = new URL(request.url);
+    const forceDelete = url.searchParams.get("force") === "true";
 
-    const { count: productCount } = await supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("category_id", params.id)
-      .eq("organization_clerk_id", orgId);
+    if (!forceDelete) {
+      // Check for existing subcategories and products
+      const supabase = await createClient();
+      
+      const { count: subcategoryCount } = await supabase
+        .from("subcategories")
+        .select("*", { count: "exact", head: true })
+        .eq("category_id", params.id)
+        .eq("organization_clerk_id", orgId);
 
-    // Return counts so frontend can show appropriate warning
-    if (subcategoryCount || productCount) {
-      return NextResponse.json(
-        { 
-          error: "Category has dependencies",
-          subcategory_count: subcategoryCount || 0,
-          product_count: productCount || 0,
-          message: `This category has ${subcategoryCount || 0} subcategories and ${productCount || 0} products. Deleting will remove all subcategories and unassign products.`
-        },
-        { status: 409 }
-      );
+      const { count: productCount } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("category_id", params.id)
+        .eq("organization_clerk_id", orgId);
+
+      // Return counts so frontend can show appropriate warning
+      if (subcategoryCount || productCount) {
+        return NextResponse.json(
+          { 
+            error: "Category has dependencies",
+            subcategory_count: subcategoryCount || 0,
+            product_count: productCount || 0,
+            message: `This category has ${subcategoryCount || 0} subcategories and ${productCount || 0} products. Deleting will remove all subcategories and unassign products.`
+          },
+          { status: 409 }
+        );
+      }
     }
 
-    await deleteCategory(params.id, orgId);
+    // Proceed with deletion (force or no dependencies)
+    await deleteCategory(params.id, orgId, forceDelete);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

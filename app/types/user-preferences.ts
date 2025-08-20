@@ -1,4 +1,4 @@
-import type { ColumnFiltersState, SortingState, ColumnVisibilityState } from "@tanstack/react-table";
+import type { ColumnFiltersState, SortingState, VisibilityState } from "@tanstack/react-table";
 
 export interface UserPreferences {
   id: string;
@@ -16,7 +16,7 @@ export interface TablePreferences {
 }
 
 export interface TablePreference {
-  columnVisibility?: ColumnVisibilityState;
+  columnVisibility?: VisibilityState;
   columnOrder?: string[];
   sorting?: SortingState;
   columnFilters?: ColumnFiltersState;

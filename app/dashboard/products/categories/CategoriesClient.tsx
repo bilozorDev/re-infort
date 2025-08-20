@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeftIcon, CubeIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ interface CategoriesClientProps {
 }
 
 export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
+  const queryClient = useQueryClient();
   const { data: categories, isLoading } = useAllCategories();
   const deleteCategory = useDeleteCategory();
   const deleteSubcategory = useDeleteSubcategory();
@@ -71,7 +73,11 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
 
     try {
       // Force delete by calling the API directly
-      const response = await fetch(`/api/categories/${deleteConfirm.item.id}?force=true`, {
+      const endpoint = deleteConfirm.type === "category" 
+        ? `/api/categories/${deleteConfirm.item.id}?force=true`
+        : `/api/subcategories/${deleteConfirm.item.id}?force=true`;
+      
+      const response = await fetch(endpoint, {
         method: "DELETE",
       });
 
@@ -81,8 +87,9 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
             ? "Category deleted successfully"
             : "Subcategory deleted successfully"
         );
-        // Manually refresh the data
-        window.location.reload();
+        // Refresh the data using React Query
+        await queryClient.invalidateQueries({ queryKey: ["categories"] });
+        await queryClient.invalidateQueries({ queryKey: ["subcategories"] });
       } else {
         const data = await response.json();
         toast.error(data.error || "Failed to delete");

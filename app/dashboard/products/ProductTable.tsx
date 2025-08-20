@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon,ChevronUpDownIcon, ChevronUpIcon, PencilIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, PencilIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,7 +12,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { useDeleteProduct } from "@/app/hooks/use-products";
@@ -27,6 +27,8 @@ import {
   getRowDensityStyles,
   getStatusBadgeStyles} from "@/app/lib/utils/table";
 import { type ProductWithCategory } from "@/app/types/product";
+
+import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
 
 interface ProductTableProps {
   products: ProductWithCategory[];
@@ -84,7 +86,13 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
   
   // Debounced save preferences
   const savePreferences = useMemo(
-    () => debounce((prefs: any) => {
+    () => debounce((prefs: {
+      columnVisibility: VisibilityState;
+      sorting: SortingState;
+      columnFilters: ColumnFiltersState;
+      density: "compact" | "normal" | "comfortable";
+      pageSize: 10 | 25 | 50 | 100;
+    }) => {
       updatePreferences(prefs);
     }, 500),
     [updatePreferences]
@@ -124,20 +132,20 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferences, isLoadingPreferences, isInitialLoad]);
   
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       deleteProduct.mutate(id);
     }
-  };
+  }, [deleteProduct]);
   
-  const openLightbox = (productId: string, index: number = 0) => {
+  const openLightbox = useCallback((productId: string, index: number = 0) => {
     const images = productImages[productId] || [];
     if (images.length > 0) {
       setLightboxImages(images);
       setLightboxIndex(index);
       setLightboxOpen(true);
     }
-  };
+  }, [productImages]);
   
   // Column definitions
   const columns = useMemo<ColumnDef<ProductWithCategory>[]>(
@@ -391,7 +399,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
         enableHiding: false,
       },
     ],
-    [productImages, isAdmin, onEdit, deleteProduct]
+    [productImages, isAdmin, onEdit, handleDelete, openLightbox]
   );
   
   const table = useReactTable({
@@ -416,6 +424,13 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
   
   return (
     <>
+      {/* Table controls */}
+      <div className="mb-4 flex justify-end">
+        <ColumnVisibilityMenu
+          table={table}
+        />
+      </div>
+      
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
