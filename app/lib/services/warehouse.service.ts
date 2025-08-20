@@ -1,5 +1,5 @@
 import { createClient } from '@/app/lib/supabase/server';
-import { Warehouse, CreateWarehouseInput, UpdateWarehouseInput } from '@/app/types/warehouse';
+import { type CreateWarehouseInput, type UpdateWarehouseInput,type Warehouse } from '@/app/types/warehouse';
 import { isAdmin } from '@/app/utils/roles';
 
 async function unsetDefaultWarehouses(

@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
-import { UserRole } from '@/types/globals'
+
+import { type UserRole } from '@/types/globals'
 
 /**
  * Check if the current user has a specific role
@@ -54,7 +55,8 @@ export async function isAdmin(): Promise<boolean> {
  */
 export async function getCurrentOrgId(): Promise<string | null> {
   const { sessionClaims } = await auth()
-  return sessionClaims?.org_id || null
+  // Organization ID is in o.id in Clerk's JWT structure
+  return (sessionClaims as any)?.o?.id || sessionClaims?.org_id || null
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Tables, TablesInsert, TablesUpdate } from './database.types';
+import { type Tables, type TablesInsert, type TablesUpdate } from './database.types';
 
 export type WarehouseType = 'office' | 'vehicle' | 'other';
 export type WarehouseStatus = 'active' | 'inactive';
