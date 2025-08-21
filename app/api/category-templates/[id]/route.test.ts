@@ -21,7 +21,7 @@ describe("Category Templates [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123");
-      const response = await GET(request, { params: { id: "template_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -33,7 +33,7 @@ describe("Category Templates [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123");
-      const response = await GET(request, { params: { id: "template_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -46,7 +46,7 @@ describe("Category Templates [id] API Route", () => {
       vi.mocked(getTemplateById).mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123");
-      const response = await GET(request, { params: { id: "template_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -86,7 +86,7 @@ describe("Category Templates [id] API Route", () => {
       vi.mocked(getTemplateById).mockResolvedValue(mockTemplate);
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123");
-      const response = await GET(request, { params: { id: "template_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -100,7 +100,7 @@ describe("Category Templates [id] API Route", () => {
       vi.mocked(getTemplateById).mockRejectedValue(new Error("Database error"));
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123");
-      const response = await GET(request, { params: { id: "template_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

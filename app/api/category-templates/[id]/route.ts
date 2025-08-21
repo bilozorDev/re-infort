@@ -5,9 +5,9 @@ import { getTemplateById } from "@/app/lib/services/category-template.service";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
@@ -22,7 +22,8 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const template = await getTemplateById(params.id);
+    const { id } = await params;
+    const template = await getTemplateById(id);
 
     if (!template) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
