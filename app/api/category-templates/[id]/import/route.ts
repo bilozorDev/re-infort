@@ -6,9 +6,9 @@ import type { ImportTemplateRequest } from "@/app/types/category-template";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    
+
     // Validate the request
     if (!body.selections || !body.selections.categories) {
       return NextResponse.json(
@@ -42,8 +42,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
+    const { id } = await params;
     const importRequest: ImportTemplateRequest = {
-      templateId: params.id,
+      templateId: id,
       importMode: body.importMode || "merge",
       selections: body.selections,
     };
@@ -57,9 +58,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
   } catch (error) {
     console.error("Error importing template:", error);
-    return NextResponse.json(
-      { error: "Failed to import template" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to import template" }, { status: 500 });
   }
 }

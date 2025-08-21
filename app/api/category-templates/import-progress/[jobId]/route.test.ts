@@ -1,14 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  cancelImport,
-  getImportProgress,
-} from "@/app/lib/services/category-template.service";
-import {
-  createAuthenticatedMock,
-  createUnauthenticatedMock,
-} from "@/app/test-utils/clerk-mocks";
+import { cancelImport, getImportProgress } from "@/app/lib/services/category-template.service";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 import { createMockImportProgress } from "@/app/test-utils/types";
 
 import { DELETE, GET } from "./route";
@@ -21,8 +15,10 @@ describe("Category Template Import Progress API Route", () => {
     it("should return 401 when user is not authenticated", async () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123");
-      const response = await GET(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123"
+      );
+      const response = await GET(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -33,8 +29,10 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getImportProgress).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123");
-      const response = await GET(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123"
+      );
+      const response = await GET(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -54,8 +52,10 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getImportProgress).mockResolvedValue(mockProgress);
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123");
-      const response = await GET(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123"
+      );
+      const response = await GET(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -67,8 +67,10 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getImportProgress).mockRejectedValue(new Error("Database error"));
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123");
-      const response = await GET(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123"
+      );
+      const response = await GET(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -80,10 +82,13 @@ describe("Category Template Import Progress API Route", () => {
     it("should return 401 when user is not authenticated", async () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123", {
-        method: "DELETE",
-      });
-      const response = await DELETE(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123",
+        {
+          method: "DELETE",
+        }
+      );
+      const response = await DELETE(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -94,10 +99,13 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(cancelImport).mockResolvedValue(false);
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123", {
-        method: "DELETE",
-      });
-      const response = await DELETE(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123",
+        {
+          method: "DELETE",
+        }
+      );
+      const response = await DELETE(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -108,10 +116,13 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(cancelImport).mockResolvedValue(true);
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123", {
-        method: "DELETE",
-      });
-      const response = await DELETE(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123",
+        {
+          method: "DELETE",
+        }
+      );
+      const response = await DELETE(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -123,10 +134,13 @@ describe("Category Template Import Progress API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(cancelImport).mockRejectedValue(new Error("Failed to cancel"));
 
-      const request = new Request("http://localhost:3000/api/category-templates/import-progress/job_123", {
-        method: "DELETE",
-      });
-      const response = await DELETE(request, { params: { jobId: "job_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/import-progress/job_123",
+        {
+          method: "DELETE",
+        }
+      );
+      const response = await DELETE(request, { params: Promise.resolve({ jobId: "job_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

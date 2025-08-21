@@ -2,10 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { importTemplate } from "@/app/lib/services/category-template.service";
-import {
-  createAuthenticatedMock,
-  createUnauthenticatedMock,
-} from "@/app/test-utils/clerk-mocks";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 import { POST } from "./route";
@@ -19,10 +16,13 @@ describe("Category Template Import API Route", () => {
     it("should return 401 when user is not authenticated", async () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -33,10 +33,13 @@ describe("Category Template Import API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -48,10 +51,13 @@ describe("Category Template Import API Route", () => {
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -66,28 +72,31 @@ describe("Category Template Import API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockResolvedValue(mockJobId);
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-        body: JSON.stringify({ 
-          selections: { categories: {} },
-          importMode: "merge"
-        }),
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            selections: { categories: {} },
+            importMode: "merge",
+          }),
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual({ 
+      expect(data).toEqual({
         jobId: mockJobId,
-        message: "Import started successfully"
+        message: "Import started successfully",
       });
       expect(importTemplate).toHaveBeenCalledWith(
         {
           templateId: "template_123",
           importMode: "merge",
-          selections: { categories: {} }
+          selections: { categories: {} },
         },
-        "org_123", 
+        "org_123",
         "user_123"
       );
     });
@@ -98,11 +107,14 @@ describe("Category Template Import API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Import already in progress"));
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-        body: JSON.stringify({ selections: { categories: {} } }),
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+          body: JSON.stringify({ selections: { categories: {} } }),
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -115,11 +127,14 @@ describe("Category Template Import API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Template not found"));
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-        body: JSON.stringify({ selections: { categories: {} } }),
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+          body: JSON.stringify({ selections: { categories: {} } }),
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -132,11 +147,14 @@ describe("Category Template Import API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Database error"));
 
-      const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
-        method: "POST",
-        body: JSON.stringify({ selections: { categories: {} } }),
-      });
-      const response = await POST(request, { params: { id: "template_123" } });
+      const request = new Request(
+        "http://localhost:3000/api/category-templates/template_123/import",
+        {
+          method: "POST",
+          body: JSON.stringify({ selections: { categories: {} } }),
+        }
+      );
+      const response = await POST(request, { params: Promise.resolve({ id: "template_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

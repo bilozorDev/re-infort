@@ -2,7 +2,7 @@
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { ChevronDownIcon, ChevronRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useCallback,useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useCategoryTemplate, useImportTemplate } from "@/app/hooks/use-category-templates";
@@ -35,7 +35,7 @@ export default function TemplateSelectionDialog({
 }: TemplateSelectionDialogProps) {
   const { data, isLoading } = useCategoryTemplate(templateId);
   const importTemplate = useImportTemplate();
-  
+
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set());
   const [selection, setSelection] = useState<SelectionState>({
@@ -57,7 +57,7 @@ export default function TemplateSelectionDialog({
         if (selection.categories.has(category.id)) {
           categoriesCount++;
         }
-        
+
         category.subcategories.forEach((subcategory) => {
           if (selection.subcategories.has(subcategory.id)) {
             subcategoriesCount++;
@@ -84,172 +84,181 @@ export default function TemplateSelectionDialog({
     return { categoriesCount, subcategoriesCount, featuresCount };
   }, [template, selection]);
 
-  const toggleCategory = useCallback((categoryId: string, category: TemplateCategoryWithSubcategories) => {
-    setSelection((prev) => {
-      const newSelection = {
-        categories: new Set(prev.categories),
-        subcategories: new Set(prev.subcategories),
-        features: new Set(prev.features),
-      };
+  const toggleCategory = useCallback(
+    (categoryId: string, category: TemplateCategoryWithSubcategories) => {
+      setSelection((prev) => {
+        const newSelection = {
+          categories: new Set(prev.categories),
+          subcategories: new Set(prev.subcategories),
+          features: new Set(prev.features),
+        };
 
-      if (prev.categories.has(categoryId)) {
-        // Deselect category and all its children
-        newSelection.categories.delete(categoryId);
-        
-        // Remove all subcategories
-        category.subcategories.forEach((sub) => {
-          newSelection.subcategories.delete(sub.id);
-          // Remove subcategory features
-          sub.features.forEach((f) => newSelection.features.delete(f.id));
-        });
-        
-        // Remove category features
-        category.features.forEach((f) => newSelection.features.delete(f.id));
-      } else {
-        // Select category and all its children
-        newSelection.categories.add(categoryId);
-        
-        // Add all subcategories
-        category.subcategories.forEach((sub) => {
-          newSelection.subcategories.add(sub.id);
-          // Add subcategory features
-          sub.features.forEach((f) => newSelection.features.add(f.id));
-        });
-        
-        // Add category features
-        category.features.forEach((f) => newSelection.features.add(f.id));
-      }
+        if (prev.categories.has(categoryId)) {
+          // Deselect category and all its children
+          newSelection.categories.delete(categoryId);
 
-      return newSelection;
-    });
-  }, []);
+          // Remove all subcategories
+          category.subcategories.forEach((sub) => {
+            newSelection.subcategories.delete(sub.id);
+            // Remove subcategory features
+            sub.features.forEach((f) => newSelection.features.delete(f.id));
+          });
 
-  const toggleSubcategory = useCallback((subcategoryId: string, subcategory: TemplateSubcategoryWithFeatures, categoryId: string) => {
-    setSelection((prev) => {
-      const newSelection = {
-        categories: new Set(prev.categories),
-        subcategories: new Set(prev.subcategories),
-        features: new Set(prev.features),
-      };
+          // Remove category features
+          category.features.forEach((f) => newSelection.features.delete(f.id));
+        } else {
+          // Select category and all its children
+          newSelection.categories.add(categoryId);
 
-      if (prev.subcategories.has(subcategoryId)) {
-        // Deselect subcategory and its features
-        newSelection.subcategories.delete(subcategoryId);
-        subcategory.features.forEach((f) => newSelection.features.delete(f.id));
-        
-        // Check if we should deselect the parent category
-        const category = template?.categories.find(c => c.id === categoryId);
-        if (category) {
-          const hasSelectedSubcategories = category.subcategories.some(
-            (sub) => sub.id !== subcategoryId && newSelection.subcategories.has(sub.id)
-          );
-          const hasSelectedCategoryFeatures = category.features.some(
-            (f) => newSelection.features.has(f.id)
-          );
-          
-          if (!hasSelectedSubcategories && !hasSelectedCategoryFeatures) {
-            newSelection.categories.delete(categoryId);
-          }
+          // Add all subcategories
+          category.subcategories.forEach((sub) => {
+            newSelection.subcategories.add(sub.id);
+            // Add subcategory features
+            sub.features.forEach((f) => newSelection.features.add(f.id));
+          });
+
+          // Add category features
+          category.features.forEach((f) => newSelection.features.add(f.id));
         }
-      } else {
-        // Select subcategory and its features
-        newSelection.subcategories.add(subcategoryId);
-        subcategory.features.forEach((f) => newSelection.features.add(f.id));
-        
-        // Also select the parent category if not already selected
-        newSelection.categories.add(categoryId);
-      }
 
-      return newSelection;
-    });
-  }, [template]);
+        return newSelection;
+      });
+    },
+    []
+  );
 
-  const toggleFeature = useCallback((featureId: string, parentId: string, parentType: "category" | "subcategory") => {
-    setSelection((prev) => {
-      const newSelection = {
-        categories: new Set(prev.categories),
-        subcategories: new Set(prev.subcategories),
-        features: new Set(prev.features),
-      };
+  const toggleSubcategory = useCallback(
+    (subcategoryId: string, subcategory: TemplateSubcategoryWithFeatures, categoryId: string) => {
+      setSelection((prev) => {
+        const newSelection = {
+          categories: new Set(prev.categories),
+          subcategories: new Set(prev.subcategories),
+          features: new Set(prev.features),
+        };
 
-      if (prev.features.has(featureId)) {
-        newSelection.features.delete(featureId);
-        
-        // Check if we should deselect the parent
-        if (parentType === "subcategory") {
-          const subcategory = template?.categories
-            .flatMap(c => c.subcategories)
-            .find(s => s.id === parentId);
-          
-          if (subcategory) {
-            const hasSelectedFeatures = subcategory.features.some(
-              (f) => f.id !== featureId && newSelection.features.has(f.id)
+        if (prev.subcategories.has(subcategoryId)) {
+          // Deselect subcategory and its features
+          newSelection.subcategories.delete(subcategoryId);
+          subcategory.features.forEach((f) => newSelection.features.delete(f.id));
+
+          // Check if we should deselect the parent category
+          const category = template?.categories.find((c) => c.id === categoryId);
+          if (category) {
+            const hasSelectedSubcategories = category.subcategories.some(
+              (sub) => sub.id !== subcategoryId && newSelection.subcategories.has(sub.id)
             );
-            
-            if (!hasSelectedFeatures) {
-              newSelection.subcategories.delete(parentId);
-              
-              // Check parent category
-              const category = template?.categories.find(c => 
-                c.subcategories.some(s => s.id === parentId)
+            const hasSelectedCategoryFeatures = category.features.some((f) =>
+              newSelection.features.has(f.id)
+            );
+
+            if (!hasSelectedSubcategories && !hasSelectedCategoryFeatures) {
+              newSelection.categories.delete(categoryId);
+            }
+          }
+        } else {
+          // Select subcategory and its features
+          newSelection.subcategories.add(subcategoryId);
+          subcategory.features.forEach((f) => newSelection.features.add(f.id));
+
+          // Also select the parent category if not already selected
+          newSelection.categories.add(categoryId);
+        }
+
+        return newSelection;
+      });
+    },
+    [template]
+  );
+
+  const toggleFeature = useCallback(
+    (featureId: string, parentId: string, parentType: "category" | "subcategory") => {
+      setSelection((prev) => {
+        const newSelection = {
+          categories: new Set(prev.categories),
+          subcategories: new Set(prev.subcategories),
+          features: new Set(prev.features),
+        };
+
+        if (prev.features.has(featureId)) {
+          newSelection.features.delete(featureId);
+
+          // Check if we should deselect the parent
+          if (parentType === "subcategory") {
+            const subcategory = template?.categories
+              .flatMap((c) => c.subcategories)
+              .find((s) => s.id === parentId);
+
+            if (subcategory) {
+              const hasSelectedFeatures = subcategory.features.some(
+                (f) => f.id !== featureId && newSelection.features.has(f.id)
               );
-              
-              if (category) {
-                const hasSelectedSubcategories = category.subcategories.some(
-                  (sub) => newSelection.subcategories.has(sub.id)
+
+              if (!hasSelectedFeatures) {
+                newSelection.subcategories.delete(parentId);
+
+                // Check parent category
+                const category = template?.categories.find((c) =>
+                  c.subcategories.some((s) => s.id === parentId)
                 );
-                const hasSelectedCategoryFeatures = category.features.some(
-                  (f) => newSelection.features.has(f.id)
-                );
-                
-                if (!hasSelectedSubcategories && !hasSelectedCategoryFeatures) {
-                  newSelection.categories.delete(category.id);
+
+                if (category) {
+                  const hasSelectedSubcategories = category.subcategories.some((sub) =>
+                    newSelection.subcategories.has(sub.id)
+                  );
+                  const hasSelectedCategoryFeatures = category.features.some((f) =>
+                    newSelection.features.has(f.id)
+                  );
+
+                  if (!hasSelectedSubcategories && !hasSelectedCategoryFeatures) {
+                    newSelection.categories.delete(category.id);
+                  }
                 }
+              }
+            }
+          } else {
+            // It's a category feature
+            const category = template?.categories.find((c) => c.id === parentId);
+
+            if (category) {
+              const hasSelectedFeatures = category.features.some(
+                (f) => f.id !== featureId && newSelection.features.has(f.id)
+              );
+              const hasSelectedSubcategories = category.subcategories.some((sub) =>
+                newSelection.subcategories.has(sub.id)
+              );
+
+              if (!hasSelectedFeatures && !hasSelectedSubcategories) {
+                newSelection.categories.delete(parentId);
               }
             }
           }
         } else {
-          // It's a category feature
-          const category = template?.categories.find(c => c.id === parentId);
-          
-          if (category) {
-            const hasSelectedFeatures = category.features.some(
-              (f) => f.id !== featureId && newSelection.features.has(f.id)
-            );
-            const hasSelectedSubcategories = category.subcategories.some(
-              (sub) => newSelection.subcategories.has(sub.id)
-            );
-            
-            if (!hasSelectedFeatures && !hasSelectedSubcategories) {
-              newSelection.categories.delete(parentId);
-            }
-          }
-        }
-      } else {
-        newSelection.features.add(featureId);
-        
-        // Also select the parent
-        if (parentType === "subcategory") {
-          newSelection.subcategories.add(parentId);
-          // Find and select the parent category
-          const category = template?.categories.find(c => 
-            c.subcategories.some(s => s.id === parentId)
-          );
-          if (category) {
-            newSelection.categories.add(category.id);
-          }
-        } else {
-          newSelection.categories.add(parentId);
-        }
-      }
+          newSelection.features.add(featureId);
 
-      return newSelection;
-    });
-  }, [template]);
+          // Also select the parent
+          if (parentType === "subcategory") {
+            newSelection.subcategories.add(parentId);
+            // Find and select the parent category
+            const category = template?.categories.find((c) =>
+              c.subcategories.some((s) => s.id === parentId)
+            );
+            if (category) {
+              newSelection.categories.add(category.id);
+            }
+          } else {
+            newSelection.categories.add(parentId);
+          }
+        }
+
+        return newSelection;
+      });
+    },
+    [template]
+  );
 
   const selectAll = useCallback(() => {
     if (!template) return;
-    
+
     const newSelection: SelectionState = {
       categories: new Set(),
       subcategories: new Set(),
@@ -259,7 +268,7 @@ export default function TemplateSelectionDialog({
     template.categories.forEach((category) => {
       newSelection.categories.add(category.id);
       category.features.forEach((f) => newSelection.features.add(f.id));
-      
+
       category.subcategories.forEach((subcategory) => {
         newSelection.subcategories.add(subcategory.id);
         subcategory.features.forEach((f) => newSelection.features.add(f.id));
@@ -327,7 +336,7 @@ export default function TemplateSelectionDialog({
         templateId,
         request: importRequest,
       });
-      
+
       onImportStart(result.jobId);
     } catch {
       // Error is handled by the mutation
@@ -351,17 +360,13 @@ export default function TemplateSelectionDialog({
     return (
       (someSubcategoriesSelected && !allSubcategoriesSelected) ||
       (someCategoryFeaturesSelected && !allCategoryFeaturesSelected) ||
-      (category.subcategories.some((sub) => isSubcategoryPartiallySelected(sub)))
+      category.subcategories.some((sub) => isSubcategoryPartiallySelected(sub))
     );
   };
 
   const isSubcategoryPartiallySelected = (subcategory: TemplateSubcategoryWithFeatures) => {
-    const allFeaturesSelected = subcategory.features.every((f) =>
-      selection.features.has(f.id)
-    );
-    const someFeaturesSelected = subcategory.features.some((f) =>
-      selection.features.has(f.id)
-    );
+    const allFeaturesSelected = subcategory.features.every((f) => selection.features.has(f.id));
+    const someFeaturesSelected = subcategory.features.some((f) => selection.features.has(f.id));
 
     return someFeaturesSelected && !allFeaturesSelected;
   };
@@ -434,7 +439,7 @@ export default function TemplateSelectionDialog({
                               }
                               setExpandedCategories(newExpanded);
                             }}
-                            className="mr-1 p-1"
+                            className="mr-1 p-0.5 mt-0.5"
                           >
                             {expandedCategories.has(category.id) ? (
                               <ChevronDownIcon className="h-4 w-4 text-gray-500" />
@@ -442,25 +447,28 @@ export default function TemplateSelectionDialog({
                               <ChevronRightIcon className="h-4 w-4 text-gray-500" />
                             )}
                           </button>
-                          
+
                           <input
                             type="checkbox"
                             checked={selection.categories.has(category.id)}
                             onChange={() => toggleCategory(category.id, category)}
-                            className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                            className="mr-2 mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                             ref={(input) => {
                               if (input) {
                                 input.indeterminate = isPartiallySelected(category);
                               }
                             }}
                           />
-                          
+
                           <div className="flex-1">
-                            <label className="font-medium text-gray-900">
+                            <label
+                              className="font-medium text-gray-900 cursor-pointer"
+                              onClick={() => toggleCategory(category.id, category)}
+                            >
                               {category.name}
                             </label>
                             {category.description && (
-                              <p className="text-xs text-gray-500">{category.description}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">{category.description}</p>
                             )}
                           </div>
                         </div>
@@ -475,20 +483,29 @@ export default function TemplateSelectionDialog({
                                   Category Features:
                                 </div>
                                 {category.features.map((feature) => (
-                                  <div key={feature.id} className="flex items-center ml-4 mb-1">
+                                  <div key={feature.id} className="flex items-start ml-4 mb-1">
                                     <input
                                       type="checkbox"
                                       checked={selection.features.has(feature.id)}
-                                      onChange={() => toggleFeature(feature.id, category.id, "category")}
-                                      className="mr-2 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                      onChange={() =>
+                                        toggleFeature(feature.id, category.id, "category")
+                                      }
+                                      className="mr-2 mt-0.5 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                     />
-                                    <label className="text-sm text-gray-700">
+                                    <label
+                                      className="text-sm text-gray-700 cursor-pointer"
+                                      onClick={() =>
+                                        toggleFeature(feature.id, category.id, "category")
+                                      }
+                                    >
                                       {feature.name}
                                       {feature.is_required && (
                                         <span className="ml-1 text-xs text-red-500">*</span>
                                       )}
                                       {feature.unit && (
-                                        <span className="ml-1 text-xs text-gray-400">({feature.unit})</span>
+                                        <span className="ml-1 text-xs text-gray-400">
+                                          ({feature.unit})
+                                        </span>
                                       )}
                                     </label>
                                   </div>
@@ -510,7 +527,7 @@ export default function TemplateSelectionDialog({
                                       }
                                       setExpandedSubcategories(newExpanded);
                                     }}
-                                    className="mr-1 p-1"
+                                    className="mr-1 p-0.5"
                                   >
                                     {expandedSubcategories.has(subcategory.id) ? (
                                       <ChevronDownIcon className="h-3 w-3 text-gray-400" />
@@ -518,53 +535,84 @@ export default function TemplateSelectionDialog({
                                       <ChevronRightIcon className="h-3 w-3 text-gray-400" />
                                     )}
                                   </button>
-                                  
+
                                   <input
                                     type="checkbox"
                                     checked={selection.subcategories.has(subcategory.id)}
-                                    onChange={() => toggleSubcategory(subcategory.id, subcategory, category.id)}
-                                    className="mr-2 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                    onChange={() =>
+                                      toggleSubcategory(subcategory.id, subcategory, category.id)
+                                    }
+                                    className="mr-2 mt-0.5 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                     ref={(input) => {
                                       if (input) {
-                                        input.indeterminate = isSubcategoryPartiallySelected(subcategory);
+                                        input.indeterminate =
+                                          isSubcategoryPartiallySelected(subcategory);
                                       }
                                     }}
                                   />
-                                  
+
                                   <div className="flex-1">
-                                    <label className="text-sm font-medium text-gray-700">
+                                    <label
+                                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                                      onClick={() =>
+                                        toggleSubcategory(subcategory.id, subcategory, category.id)
+                                      }
+                                    >
                                       {subcategory.name}
                                     </label>
                                     {subcategory.description && (
-                                      <p className="text-xs text-gray-500">{subcategory.description}</p>
+                                      <p className="text-xs text-gray-500 mt-0.5">
+                                        {subcategory.description}
+                                      </p>
                                     )}
                                   </div>
                                 </div>
 
                                 {/* Subcategory Features */}
-                                {expandedSubcategories.has(subcategory.id) && subcategory.features.length > 0 && (
-                                  <div className="ml-7 mt-1">
-                                    {subcategory.features.map((feature) => (
-                                      <div key={feature.id} className="flex items-center ml-4 mb-1">
-                                        <input
-                                          type="checkbox"
-                                          checked={selection.features.has(feature.id)}
-                                          onChange={() => toggleFeature(feature.id, subcategory.id, "subcategory")}
-                                          className="mr-2 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                        />
-                                        <label className="text-xs text-gray-600">
-                                          {feature.name}
-                                          {feature.is_required && (
-                                            <span className="ml-1 text-xs text-red-500">*</span>
-                                          )}
-                                          {feature.unit && (
-                                            <span className="ml-1 text-xs text-gray-400">({feature.unit})</span>
-                                          )}
-                                        </label>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
+                                {expandedSubcategories.has(subcategory.id) &&
+                                  subcategory.features.length > 0 && (
+                                    <div className="ml-7 mt-1">
+                                      {subcategory.features.map((feature) => (
+                                        <div
+                                          key={feature.id}
+                                          className="flex items-start ml-4 mb-1"
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selection.features.has(feature.id)}
+                                            onChange={() =>
+                                              toggleFeature(
+                                                feature.id,
+                                                subcategory.id,
+                                                "subcategory"
+                                              )
+                                            }
+                                            className="mr-2 mt-0.5 h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                          />
+                                          <label
+                                            className="text-xs text-gray-600 cursor-pointer"
+                                            onClick={() =>
+                                              toggleFeature(
+                                                feature.id,
+                                                subcategory.id,
+                                                "subcategory"
+                                              )
+                                            }
+                                          >
+                                            {feature.name}
+                                            {feature.is_required && (
+                                              <span className="ml-1 text-xs text-red-500">*</span>
+                                            )}
+                                            {feature.unit && (
+                                              <span className="ml-1 text-xs text-gray-400">
+                                                ({feature.unit})
+                                              </span>
+                                            )}
+                                          </label>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                               </div>
                             ))}
                           </div>

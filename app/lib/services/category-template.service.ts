@@ -100,29 +100,31 @@ export async function getTemplateById(id: string): Promise<CategoryTemplateWithS
   }
 
   // Build the structured response
-  const structuredCategories: TemplateCategoryWithSubcategories[] = (categories || []).map((category) => {
-    const categorySubcategories = (subcategories || [])
-      .filter((sub) => sub.template_category_id === category.id)
-      .map((subcategory) => {
-        const subcategoryFeatures = (features || []).filter(
-          (f) => f.template_subcategory_id === subcategory.id
-        );
-        return {
-          ...subcategory,
-          features: subcategoryFeatures,
-        } as TemplateSubcategoryWithFeatures;
-      });
+  const structuredCategories: TemplateCategoryWithSubcategories[] = (categories || []).map(
+    (category) => {
+      const categorySubcategories = (subcategories || [])
+        .filter((sub) => sub.template_category_id === category.id)
+        .map((subcategory) => {
+          const subcategoryFeatures = (features || []).filter(
+            (f) => f.template_subcategory_id === subcategory.id
+          );
+          return {
+            ...subcategory,
+            features: subcategoryFeatures,
+          } as TemplateSubcategoryWithFeatures;
+        });
 
-    const categoryFeatures = (features || []).filter(
-      (f) => f.template_category_id === category.id && !f.template_subcategory_id
-    );
+      const categoryFeatures = (features || []).filter(
+        (f) => f.template_category_id === category.id && !f.template_subcategory_id
+      );
 
-    return {
-      ...category,
-      subcategories: categorySubcategories,
-      features: categoryFeatures,
-    };
-  });
+      return {
+        ...category,
+        subcategories: categorySubcategories,
+        features: categoryFeatures,
+      };
+    }
+  );
 
   return {
     ...template,
@@ -215,6 +217,10 @@ async function importTemplateAsync(
       errors: [],
     };
 
+    // Helper function to add delay between operations to avoid rate limits
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const RATE_LIMIT_DELAY = 100; // 100ms between operations
+
     // Import each selected category
     for (const catSelection of request.selections.categories) {
       const templateCategory = template.categories.find(
@@ -248,6 +254,9 @@ async function importTemplateAsync(
         result.categoriesCreated++;
         progress.completedItems++;
 
+        // Add delay to avoid rate limits
+        await delay(RATE_LIMIT_DELAY);
+
         // Import category-level features if selected
         if (catSelection.includeFeatures && catSelection.featureIds) {
           for (const featureId of catSelection.featureIds) {
@@ -272,6 +281,9 @@ async function importTemplateAsync(
               await createFeatureDefinition(featureData, orgId, userId);
               result.featuresCreated++;
               progress.completedItems++;
+
+              // Add delay to avoid rate limits
+              await delay(RATE_LIMIT_DELAY);
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : "Unknown error";
               progress.errors.push({
@@ -324,10 +336,15 @@ async function importTemplateAsync(
             result.subcategoriesCreated++;
             progress.completedItems++;
 
+            // Add delay to avoid rate limits
+            await delay(RATE_LIMIT_DELAY);
+
             // Import subcategory-level features if selected
             if (subSelection.includeFeatures && subSelection.featureIds) {
               for (const featureId of subSelection.featureIds) {
-                const templateFeature = templateSubcategory.features.find((f) => f.id === featureId);
+                const templateFeature = templateSubcategory.features.find(
+                  (f) => f.id === featureId
+                );
                 if (!templateFeature) continue;
 
                 progress.currentItem = `Feature: ${templateFeature.name}`;
@@ -424,9 +441,12 @@ async function importTemplateAsync(
     updateProgress(progress);
 
     // Clean up progress after 5 minutes
-    setTimeout(() => {
-      importProgressMap.delete(jobId);
-    }, 5 * 60 * 1000);
+    setTimeout(
+      () => {
+        importProgressMap.delete(jobId);
+      },
+      5 * 60 * 1000
+    );
   } catch (error) {
     progress.status = "error";
     progress.errors.push({
