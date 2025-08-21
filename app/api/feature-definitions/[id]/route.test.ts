@@ -7,6 +7,10 @@ import {
   getFeatureDefinitionById,
   updateFeatureDefinition,
 } from "@/app/lib/services/feature-definition.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import { createMockFeatureDefinition } from "@/app/test-utils/types";
 import type { FeatureDefinition } from "@/app/types/features";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
@@ -30,7 +34,7 @@ const createRequest = (method: string, body?: unknown): NextRequest => {
 describe("Feature Definitions [id] API Route", () => {
   describe("GET /api/feature-definitions/[id]", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
       const response = await GET(request, { params: { id: "def_123" } });
@@ -41,7 +45,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
@@ -56,13 +60,13 @@ describe("Feature Definitions [id] API Route", () => {
       const mockDefinition = createMockFeatureDefinition({
         id: "def_123",
         name: "Color",
-        data_type: "text",
+        input_type: "text",
         is_required: false,
         display_order: 1,
         organization_clerk_id: "org_123",
       });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getFeatureDefinitionById).mockResolvedValue(mockDefinition as FeatureDefinition);
 
@@ -76,7 +80,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getFeatureDefinitionById).mockRejectedValue(new Error("Database error"));
 
@@ -93,7 +97,7 @@ describe("Feature Definitions [id] API Route", () => {
     const updateData = { name: "Updated Color", display_order: 2 };
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PUT", updateData);
       const response = await PUT(request, { params: { id: "def_123" } });
@@ -104,7 +108,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should return 403 when user is not admin", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("PUT", updateData);
@@ -116,7 +120,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
@@ -136,7 +140,7 @@ describe("Feature Definitions [id] API Route", () => {
         organization_clerk_id: "org_123",
       });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(updateFeatureDefinition).mockResolvedValue(mockUpdated as FeatureDefinition);
@@ -152,7 +156,7 @@ describe("Feature Definitions [id] API Route", () => {
 
 
     it("should handle duplicate name error", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(updateFeatureDefinition).mockRejectedValue(
@@ -168,7 +172,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(updateFeatureDefinition).mockRejectedValue(new Error("Database error"));
@@ -184,7 +188,7 @@ describe("Feature Definitions [id] API Route", () => {
 
   describe("DELETE /api/feature-definitions/[id]", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
       const response = await DELETE(request, { params: { id: "def_123" } });
@@ -195,7 +199,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should return 403 when user is not admin", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("DELETE");
@@ -207,7 +211,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
@@ -220,7 +224,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should delete feature definition successfully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(deleteFeatureDefinition).mockResolvedValue(undefined);
@@ -235,7 +239,7 @@ describe("Feature Definitions [id] API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(deleteFeatureDefinition).mockRejectedValue(new Error("Database error"));

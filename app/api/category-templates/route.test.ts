@@ -2,6 +2,10 @@ import { auth } from "@clerk/nextjs/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { getTemplates } from "@/app/lib/services/category-template.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import { createMockCategoryTemplate } from "@/app/test-utils/types";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
@@ -14,7 +18,7 @@ vi.mock("@/app/utils/roles");
 describe("Category Templates API Route", () => {
   describe("GET /api/category-templates", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const response = await GET();
 
@@ -24,7 +28,7 @@ describe("Category Templates API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const response = await GET();
@@ -46,9 +50,8 @@ describe("Category Templates API Route", () => {
         }),
       ];
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
-      // @ts-expect-error - Mock templates may not have all fields
       vi.mocked(getTemplates).mockResolvedValue(mockTemplates);
 
       const response = await GET();
@@ -60,7 +63,7 @@ describe("Category Templates API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getTemplates).mockRejectedValue(new Error("Database error"));
 

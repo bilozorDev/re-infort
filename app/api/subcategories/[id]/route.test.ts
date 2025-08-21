@@ -8,7 +8,11 @@ import {
   updateSubcategory,
 } from "@/app/lib/services/category.service";
 import { createClient } from "@/app/lib/supabase/server";
-import type { MockAuthObject } from "@/app/test-utils/types";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
+import { createMockSubcategory } from "@/app/test-utils/types";
 
 import { DELETE,GET, PATCH } from "./route";
 
@@ -18,7 +22,7 @@ vi.mock("@/app/lib/supabase/server");
 
 const createRequest = (method: string, body?: unknown, url?: string): NextRequest => {
   const requestUrl = url || "http://localhost:3000/api/subcategories/sub_123";
-  const init: RequestInit = { method };
+  const init: any = { method };
   if (body) {
     init.body = JSON.stringify(body);
     init.headers = { "Content-Type": "application/json" };
@@ -45,12 +49,12 @@ describe("Subcategories [id] API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSupabaseClient = createMockSupabaseClient();
-    vi.mocked(createClient).mockResolvedValue(mockSupabaseClient);
+    vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any);
   });
 
   describe("GET /api/subcategories/[id]", () => {
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
       const response = await GET(request, { params: { id: "sub_123" } });
@@ -61,7 +65,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should return 404 when subcategory is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getSubcategoryById).mockResolvedValue(null);
 
       const request = createRequest("GET");
@@ -73,14 +77,14 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should return subcategory with product count successfully", async () => {
-      const mockSubcategory = {
+      const mockSubcategory = createMockSubcategory({
         id: "sub_123",
         name: "Laptops",
         category_id: "cat_123",
         organization_clerk_id: "org_123",
-      };
+      });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getSubcategoryById).mockResolvedValue(mockSubcategory);
       
       // Mock product count
@@ -100,7 +104,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getSubcategoryById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
@@ -116,7 +120,7 @@ describe("Subcategories [id] API Route", () => {
     const updateData = { name: "Gaming Laptops" };
 
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PATCH", updateData);
       const response = await PATCH(request, { params: { id: "sub_123" } });
@@ -127,14 +131,14 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should update subcategory successfully", async () => {
-      const mockUpdated = {
+      const mockUpdated = createMockSubcategory({
         id: "sub_123",
         name: "Gaming Laptops",
         category_id: "cat_123",
         organization_clerk_id: "org_123",
-      };
+      });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateSubcategory).mockResolvedValue(mockUpdated);
 
       const request = createRequest("PATCH", updateData);
@@ -146,7 +150,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle admin error with 403", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateSubcategory).mockRejectedValue(
         new Error("Only administrators can update subcategories")
       );
@@ -160,7 +164,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle duplicate name error with 409", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateSubcategory).mockRejectedValue(
         new Error("Subcategory with this name already exists")
       );
@@ -174,7 +178,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle generic errors with 400", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateSubcategory).mockRejectedValue(new Error("Validation error"));
 
       const request = createRequest("PATCH", updateData);
@@ -188,7 +192,7 @@ describe("Subcategories [id] API Route", () => {
 
   describe("DELETE /api/subcategories/[id]", () => {
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
       const response = await DELETE(request, { params: { id: "sub_123" } });
@@ -199,7 +203,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should return 409 when subcategory has products", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       
       // Mock product count
       mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
@@ -215,7 +219,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should delete subcategory successfully when no products", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(deleteSubcategory).mockResolvedValue(undefined);
       
       // Mock no products
@@ -232,7 +236,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should force delete when force=true", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(deleteSubcategory).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE", null, "http://localhost:3000/api/subcategories/sub_123?force=true");
@@ -245,7 +249,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle admin error with 403", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       
       // Mock no products
       mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
@@ -264,7 +268,7 @@ describe("Subcategories [id] API Route", () => {
     });
 
     it("should handle generic errors with 400", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       
       // Mock no products
       mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)

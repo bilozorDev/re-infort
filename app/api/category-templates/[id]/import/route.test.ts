@@ -2,6 +2,10 @@ import { auth } from "@clerk/nextjs/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { importTemplate } from "@/app/lib/services/category-template.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 import { POST } from "./route";
@@ -13,7 +17,7 @@ vi.mock("@/app/utils/roles");
 describe("Category Template Import API Route", () => {
   describe("POST /api/category-templates/[id]/import", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
         method: "POST",
@@ -26,7 +30,7 @@ describe("Category Template Import API Route", () => {
     });
 
     it("should return 403 when user is not admin", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = new Request("http://localhost:3000/api/category-templates/template_123/import", {
@@ -40,7 +44,7 @@ describe("Category Template Import API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
@@ -57,7 +61,7 @@ describe("Category Template Import API Route", () => {
     it("should import template successfully", async () => {
       const mockJobId = "job_123";
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockResolvedValue(mockJobId);
@@ -89,7 +93,7 @@ describe("Category Template Import API Route", () => {
     });
 
     it("should handle import in progress error", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Import already in progress"));
@@ -106,7 +110,7 @@ describe("Category Template Import API Route", () => {
     });
 
     it("should handle template not found error", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Template not found"));
@@ -123,7 +127,7 @@ describe("Category Template Import API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(importTemplate).mockRejectedValue(new Error("Database error"));

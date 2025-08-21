@@ -6,6 +6,10 @@ import {
   getProductFeatures,
   upsertProductFeatures,
 } from "@/app/lib/services/product-features.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import type { ProductFeature } from "@/app/types/features";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
@@ -28,7 +32,7 @@ const createRequest = (method: string, body?: unknown): NextRequest => {
 describe("Product Features API Route", () => {
   describe("GET /api/products/[id]/features", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
       const response = await GET(request, { params: { id: "prod_123" } });
@@ -39,7 +43,7 @@ describe("Product Features API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
@@ -66,7 +70,7 @@ describe("Product Features API Route", () => {
         },
       ];
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getProductFeatures).mockResolvedValue(mockFeatures as ProductFeature[]);
 
@@ -80,7 +84,7 @@ describe("Product Features API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getProductFeatures).mockRejectedValue(new Error("Database error"));
 
@@ -102,7 +106,7 @@ describe("Product Features API Route", () => {
     };
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("POST", featuresData);
       const response = await POST(request, { params: { id: "prod_123" } });
@@ -114,7 +118,7 @@ describe("Product Features API Route", () => {
 
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("POST", featuresData);
@@ -126,7 +130,7 @@ describe("Product Features API Route", () => {
     });
 
     it("should handle empty features array", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(upsertProductFeatures).mockResolvedValue([]);
 
@@ -155,7 +159,7 @@ describe("Product Features API Route", () => {
         },
       ];
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(upsertProductFeatures).mockResolvedValue(mockUpdatedFeatures as ProductFeature[]);
 
@@ -173,7 +177,7 @@ describe("Product Features API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(upsertProductFeatures).mockRejectedValue(new Error("Database error"));
 

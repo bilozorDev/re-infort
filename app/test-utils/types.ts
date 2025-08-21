@@ -6,6 +6,7 @@ import type {
   ImportProgress 
 } from "@/app/types/category-template";
 import type { Database } from "@/app/types/database.types";
+import type { UserPreferences } from "@/app/types/user-preferences";
 
 // Custom session claims interface for Clerk auth
 export interface MockCustomSessionClaims {
@@ -188,6 +189,21 @@ export function createMockImportProgress(overrides?: Partial<ImportProgress>): I
     errors: [],
     startTime: Date.now(),
     estimatedTimeRemaining: null,
+    ...overrides,
+  };
+}
+
+// Helper to create mock user preferences
+export function createMockUserPreferences(overrides?: Partial<UserPreferences>): UserPreferences {
+  return {
+    id: "pref_123",
+    clerk_user_id: "user_123",
+    organization_clerk_id: "org_123",
+    table_preferences: {},
+    ui_preferences: {},
+    feature_settings: {},
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }

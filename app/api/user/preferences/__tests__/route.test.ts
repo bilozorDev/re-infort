@@ -6,7 +6,10 @@ import {
   getUserPreferences,
   upsertUserPreferences,
 } from "@/app/lib/services/user-preferences.service";
-import type { MockAuthObject } from "@/app/test-utils/types";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import type { UserPreferences } from "@/app/types/user-preferences";
 
 import { GET, PATCH } from "../route";
@@ -23,7 +26,7 @@ describe("User Preferences API Route", () => {
 
   describe("GET /api/user/preferences", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const response = await GET();
 
@@ -33,7 +36,7 @@ describe("User Preferences API Route", () => {
     });
 
     it("should return empty preferences when none exist", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getUserPreferences).mockResolvedValue(null);
 
       const response = await GET();
@@ -55,7 +58,7 @@ describe("User Preferences API Route", () => {
         feature_settings: { notifications: true }
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getUserPreferences).mockResolvedValue(mockPreferences as UserPreferences);
 
       const response = await GET();
@@ -67,7 +70,7 @@ describe("User Preferences API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getUserPreferences).mockRejectedValue(new Error("Database error"));
 
       const response = await GET();
@@ -96,7 +99,7 @@ describe("User Preferences API Route", () => {
     }
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createPatchRequest(validPreferencesData);
       const response = await PATCH(request);
@@ -113,7 +116,7 @@ describe("User Preferences API Route", () => {
         updated_at: new Date().toISOString(),
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123", orgId: "org_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(upsertUserPreferences).mockResolvedValue(mockUpdatedPreferences as UserPreferences);
 
       const request = createPatchRequest(validPreferencesData);
@@ -130,7 +133,7 @@ describe("User Preferences API Route", () => {
     });
 
     it("should handle service errors during update", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123", orgId: "org_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(upsertUserPreferences).mockRejectedValue(new Error("Database error"));
 
       const request = createPatchRequest(validPreferencesData);

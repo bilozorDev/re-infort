@@ -6,7 +6,7 @@ import {
   getProductById,
   updateProduct,
 } from "@/app/lib/services/product.service";
-import { createMockProduct, type MockAuthObject } from "@/app/test-utils/types";
+import { createMockProduct } from "@/app/test-utils/types";
 import type { ProductWithCategory } from "@/app/types/product";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
@@ -145,7 +145,7 @@ describe("Products [id] API Route", () => {
 
     it("should delete product successfully", async () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
-      vi.mocked(deleteProduct).mockResolvedValue({ success: true });
+      vi.mocked(deleteProduct).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE");
       const response = await DELETE(request, { params: { id: "prod_123" } });

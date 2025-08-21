@@ -3,6 +3,10 @@ import { NextRequest } from "next/server";
 import { beforeEach,describe, expect, it, vi } from "vitest";
 
 import { createWarehouse, getAllWarehouses } from "@/app/lib/services/warehouse.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import type { Warehouse } from "@/app/types/warehouse";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
@@ -20,7 +24,7 @@ describe("Warehouses API Route", () => {
 
   describe("GET /api/warehouses", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new NextRequest("http://localhost:3000/api/warehouses");
       const response = await GET(request);
@@ -31,7 +35,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = new NextRequest("http://localhost:3000/api/warehouses");
@@ -68,7 +72,7 @@ describe("Warehouses API Route", () => {
         },
       ];
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getAllWarehouses).mockResolvedValue(mockWarehouses as Warehouse[]);
 
@@ -82,7 +86,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getAllWarehouses).mockRejectedValue(new Error("Database error"));
 
@@ -120,7 +124,7 @@ describe("Warehouses API Route", () => {
     }
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createPostRequest(validWarehouseData);
       const response = await POST(request);
@@ -131,7 +135,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should return 403 when user is not admin", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createPostRequest(validWarehouseData);
@@ -145,7 +149,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
@@ -169,7 +173,7 @@ describe("Warehouses API Route", () => {
         updated_at: new Date().toISOString(),
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createWarehouse).mockResolvedValue(mockCreatedWarehouse as Warehouse);
@@ -196,7 +200,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should return 400 for invalid warehouse data", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
 
@@ -216,7 +220,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should handle duplicate warehouse name error", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       
@@ -232,7 +236,7 @@ describe("Warehouses API Route", () => {
     });
 
     it("should handle service errors during creation", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createWarehouse).mockRejectedValue(new Error("Database error"));

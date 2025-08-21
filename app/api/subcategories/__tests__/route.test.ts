@@ -6,6 +6,10 @@ import {
   createSubcategory,
   getSubcategoriesByCategory,
 } from "@/app/lib/services/category.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import type { Subcategory } from "@/app/types/product";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
@@ -23,7 +27,7 @@ describe("Subcategories API Route", () => {
 
   describe("GET /api/subcategories", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new NextRequest("http://localhost:3000/api/subcategories?categoryId=cat_123");
       const response = await GET(request);
@@ -34,7 +38,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = new NextRequest("http://localhost:3000/api/subcategories?categoryId=cat_123");
@@ -46,7 +50,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should return 400 when categoryId is not provided", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
 
       const request = new NextRequest("http://localhost:3000/api/subcategories");
@@ -63,7 +67,7 @@ describe("Subcategories API Route", () => {
         { id: "sub2", name: "Subcategory 2", category_id: "cat_123" },
       ];
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getSubcategoriesByCategory).mockResolvedValue(mockSubcategories as Subcategory[]);
 
@@ -77,7 +81,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getSubcategoriesByCategory).mockRejectedValue(
         new Error("Database error")
@@ -110,7 +114,7 @@ describe("Subcategories API Route", () => {
     }
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createPostRequest(validSubcategoryData);
       const response = await POST(request);
@@ -121,7 +125,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should return 403 when user is not admin", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createPostRequest(validSubcategoryData);
@@ -135,7 +139,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should return 404 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
@@ -154,12 +158,12 @@ describe("Subcategories API Route", () => {
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
         status: "active",
-        position: 0,
+        display_order: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createSubcategory).mockResolvedValue(mockCreatedSubcategory as Subcategory);
@@ -173,7 +177,7 @@ describe("Subcategories API Route", () => {
     });
 
     it("should handle service errors during creation", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createSubcategory).mockRejectedValue(new Error("Database error"));

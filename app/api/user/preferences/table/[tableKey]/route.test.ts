@@ -5,6 +5,10 @@ import {
   getDefaultTablePreferences, 
   resetTablePreferences,
   updateTablePreferences} from "@/app/lib/services/user-preferences.service";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import { isAdmin } from "@/app/utils/roles";
 
 import { DELETE, GET,PATCH } from "./route";
@@ -22,7 +26,7 @@ describe("User Table Preferences API Route", () => {
     };
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new Request(
         "http://localhost:3000/api/user/preferences/table/products",
@@ -47,7 +51,7 @@ describe("User Table Preferences API Route", () => {
         products_table: tablePreferences,
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateTablePreferences).mockResolvedValue(mockUpdatedPreferences);
 
       const request = new Request(
@@ -72,7 +76,7 @@ describe("User Table Preferences API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(updateTablePreferences).mockRejectedValue(new Error("Database error"));
 
       const request = new Request(
@@ -94,7 +98,7 @@ describe("User Table Preferences API Route", () => {
 
   describe("DELETE /api/user/preferences/table/[tableKey]", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new Request(
         "http://localhost:3000/api/user/preferences/table/products",
@@ -117,7 +121,7 @@ describe("User Table Preferences API Route", () => {
         products_table: null,
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(resetTablePreferences).mockResolvedValue(mockResetPreferences);
 
       const request = new Request(
@@ -136,7 +140,7 @@ describe("User Table Preferences API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(resetTablePreferences).mockRejectedValue(new Error("Database error"));
 
       const request = new Request(
@@ -156,7 +160,7 @@ describe("User Table Preferences API Route", () => {
 
   describe("GET /api/user/preferences/table/[tableKey]", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = new Request(
         "http://localhost:3000/api/user/preferences/table/products",
@@ -178,7 +182,7 @@ describe("User Table Preferences API Route", () => {
         columnSizes: {},
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(false);
       vi.mocked(getDefaultTablePreferences).mockReturnValue(mockDefaults);
 
@@ -203,7 +207,7 @@ describe("User Table Preferences API Route", () => {
         columnSizes: {},
       };
 
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getDefaultTablePreferences).mockReturnValue(mockDefaults);
 
@@ -223,7 +227,7 @@ describe("User Table Preferences API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ userId: "user_123", orgId: "org_123", sessionClaims: null });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockRejectedValue(new Error("Auth error"));
 
       const request = new Request(

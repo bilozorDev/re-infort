@@ -3,7 +3,10 @@ import { NextRequest } from "next/server";
 import { beforeEach,describe, expect, it, vi } from "vitest";
 
 import { createProduct, getAllProducts } from "@/app/lib/services/product.service";
-import type { MockAuthObject } from "@/app/test-utils/types";
+import {
+  createAuthenticatedMock,
+  createUnauthenticatedMock,
+} from "@/app/test-utils/clerk-mocks";
 import type { Product } from "@/app/types/product";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
@@ -82,7 +85,7 @@ describe("Products API Route", () => {
     }
 
     it("should return 401 when user is not authenticated or org not found", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createPostRequest(validProductData);
@@ -101,7 +104,7 @@ describe("Products API Route", () => {
         created_by_clerk_user_id: "user_123",
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createProduct).mockResolvedValue(mockCreatedProduct as Product);
 
@@ -114,7 +117,7 @@ describe("Products API Route", () => {
     });
 
     it("should handle service errors during creation", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as any);
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(createProduct).mockRejectedValue(new Error("Database error"));
 

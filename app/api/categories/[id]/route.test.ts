@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 
 import {
   deleteCategory,
@@ -51,7 +52,7 @@ describe("Categories [id] API Route", () => {
 
   describe("GET /api/categories/[id]", () => {
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
       const response = await GET(request, { params: { id: "cat_123" } });
@@ -62,7 +63,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should return 404 when category is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(getCategoryById).mockResolvedValue(null);
 
       const request = createRequest("GET");
@@ -80,7 +81,7 @@ describe("Categories [id] API Route", () => {
         organization_clerk_id: "org_123",
       });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(getCategoryById).mockResolvedValue(mockCategory);
       
       // Mock supabase counts - chain returns { count: number }
@@ -106,7 +107,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle service errors gracefully", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(getCategoryById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
@@ -122,7 +123,7 @@ describe("Categories [id] API Route", () => {
     const updateData = { name: "Updated Electronics" };
 
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PATCH", updateData);
       const response = await PATCH(request, { params: { id: "cat_123" } });
@@ -139,7 +140,7 @@ describe("Categories [id] API Route", () => {
         organization_clerk_id: "org_123",
       });
 
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(updateCategory).mockResolvedValue(mockUpdatedCategory);
 
       const request = createRequest("PATCH", updateData);
@@ -151,7 +152,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle admin error with 403", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(updateCategory).mockRejectedValue(
         new Error("Only administrators can update categories")
       );
@@ -165,7 +166,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle duplicate name error with 409", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(updateCategory).mockRejectedValue(
         new Error("Category with this name already exists")
       );
@@ -179,7 +180,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle generic errors with 400", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(updateCategory).mockRejectedValue(new Error("Validation error"));
 
       const request = createRequest("PATCH", updateData);
@@ -193,7 +194,7 @@ describe("Categories [id] API Route", () => {
 
   describe("DELETE /api/categories/[id]", () => {
     it("should return 401 when organization is not found", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null });
+      vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
       const response = await DELETE(request, { params: { id: "cat_123" } });
@@ -204,7 +205,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should return 409 when category has dependencies", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       
       // Mock supabase counts showing dependencies
       let callCount = 0;
@@ -226,7 +227,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should delete category successfully when no dependencies", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(deleteCategory).mockResolvedValue(undefined);
       
       // Mock supabase counts showing no dependencies
@@ -248,7 +249,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should force delete when force=true", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       vi.mocked(deleteCategory).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE", null, "http://localhost:3000/api/categories/cat_123?force=true");
@@ -261,7 +262,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle admin error with 403", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       
       // Mock no dependencies
       let callCount = 0;
@@ -285,7 +286,7 @@ describe("Categories [id] API Route", () => {
     });
 
     it("should handle generic errors with 400", async () => {
-      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123" });
+      vi.mocked(auth).mockResolvedValue(createAuthenticatedMock('user_123', 'org_123'));
       
       // Mock no dependencies
       let callCount = 0;
