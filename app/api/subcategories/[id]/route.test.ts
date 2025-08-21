@@ -1,0 +1,283 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest } from "next/server";
+import { beforeEach,describe, expect, it, vi } from "vitest";
+
+import {
+  deleteSubcategory,
+  getSubcategoryById,
+  updateSubcategory,
+} from "@/app/lib/services/category.service";
+import { createClient } from "@/app/lib/supabase/server";
+import type { MockAuthObject } from "@/app/test-utils/types";
+
+import { DELETE,GET, PATCH } from "./route";
+
+vi.mock("@clerk/nextjs/server");
+vi.mock("@/app/lib/services/category.service");
+vi.mock("@/app/lib/supabase/server");
+
+const createRequest = (method: string, body?: unknown, url?: string): NextRequest => {
+  const requestUrl = url || "http://localhost:3000/api/subcategories/sub_123";
+  const init: RequestInit = { method };
+  if (body) {
+    init.body = JSON.stringify(body);
+    init.headers = { "Content-Type": "application/json" };
+  }
+  return new NextRequest(requestUrl, init);
+};
+
+const createMockSupabaseClient = () => {
+  const client = {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+  };
+  
+  // Make eq chainable and return final result
+  client.eq = vi.fn().mockImplementation(() => client);
+  
+  return client;
+};
+
+describe("Subcategories [id] API Route", () => {
+  let mockSupabaseClient: ReturnType<typeof createMockSupabaseClient>;
+  
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSupabaseClient = createMockSupabaseClient();
+    vi.mocked(createClient).mockResolvedValue(mockSupabaseClient);
+  });
+
+  describe("GET /api/subcategories/[id]", () => {
+    it("should return 401 when organization is not found", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+
+      const request = createRequest("GET");
+      const response = await GET(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Organization not found" });
+    });
+
+    it("should return 404 when subcategory is not found", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(getSubcategoryById).mockResolvedValue(null);
+
+      const request = createRequest("GET");
+      const response = await GET(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Subcategory not found" });
+    });
+
+    it("should return subcategory with product count successfully", async () => {
+      const mockSubcategory = {
+        id: "sub_123",
+        name: "Laptops",
+        category_id: "cat_123",
+        organization_clerk_id: "org_123",
+      };
+
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(getSubcategoryById).mockResolvedValue(mockSubcategory);
+      
+      // Mock product count
+      mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
+                         .mockReturnValueOnce({ count: 5 }); // products
+
+      const request = createRequest("GET");
+      const response = await GET(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({
+        ...mockSubcategory,
+        product_count: 5,
+      });
+      expect(getSubcategoryById).toHaveBeenCalledWith("sub_123", "org_123");
+    });
+
+    it("should handle service errors gracefully", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(getSubcategoryById).mockRejectedValue(new Error("Database error"));
+
+      const request = createRequest("GET");
+      const response = await GET(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Database error" });
+    });
+  });
+
+  describe("PATCH /api/subcategories/[id]", () => {
+    const updateData = { name: "Gaming Laptops" };
+
+    it("should return 401 when organization is not found", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+
+      const request = createRequest("PATCH", updateData);
+      const response = await PATCH(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Unauthorized" });
+    });
+
+    it("should update subcategory successfully", async () => {
+      const mockUpdated = {
+        id: "sub_123",
+        name: "Gaming Laptops",
+        category_id: "cat_123",
+        organization_clerk_id: "org_123",
+      };
+
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(updateSubcategory).mockResolvedValue(mockUpdated);
+
+      const request = createRequest("PATCH", updateData);
+      const response = await PATCH(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual(mockUpdated);
+    });
+
+    it("should handle admin error with 403", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(updateSubcategory).mockRejectedValue(
+        new Error("Only administrators can update subcategories")
+      );
+
+      const request = createRequest("PATCH", updateData);
+      const response = await PATCH(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(403);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Only administrators can update subcategories" });
+    });
+
+    it("should handle duplicate name error with 409", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(updateSubcategory).mockRejectedValue(
+        new Error("Subcategory with this name already exists")
+      );
+
+      const request = createRequest("PATCH", updateData);
+      const response = await PATCH(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(409);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Subcategory with this name already exists" });
+    });
+
+    it("should handle generic errors with 400", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(updateSubcategory).mockRejectedValue(new Error("Validation error"));
+
+      const request = createRequest("PATCH", updateData);
+      const response = await PATCH(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Validation error" });
+    });
+  });
+
+  describe("DELETE /api/subcategories/[id]", () => {
+    it("should return 401 when organization is not found", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: null, userId: null, sessionClaims: null });
+
+      const request = createRequest("DELETE");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Unauthorized" });
+    });
+
+    it("should return 409 when subcategory has products", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      
+      // Mock product count
+      mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
+                         .mockReturnValueOnce({ count: 5 }); // products
+
+      const request = createRequest("DELETE");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(409);
+      const data = await response.json();
+      expect(data.error).toBe("Subcategory has products");
+      expect(data.product_count).toBe(5);
+    });
+
+    it("should delete subcategory successfully when no products", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(deleteSubcategory).mockResolvedValue(undefined);
+      
+      // Mock no products
+      mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
+                         .mockReturnValueOnce({ count: 0 }); // products
+
+      const request = createRequest("DELETE");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({ success: true });
+      expect(deleteSubcategory).toHaveBeenCalledWith("sub_123", "org_123", false);
+    });
+
+    it("should force delete when force=true", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      vi.mocked(deleteSubcategory).mockResolvedValue(undefined);
+
+      const request = createRequest("DELETE", null, "http://localhost:3000/api/subcategories/sub_123?force=true");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({ success: true });
+      expect(deleteSubcategory).toHaveBeenCalledWith("sub_123", "org_123", true);
+    });
+
+    it("should handle admin error with 403", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      
+      // Mock no products
+      mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
+                         .mockReturnValueOnce({ count: 0 });
+      
+      vi.mocked(deleteSubcategory).mockRejectedValue(
+        new Error("Only administrators can delete subcategories")
+      );
+
+      const request = createRequest("DELETE");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(403);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Only administrators can delete subcategories" });
+    });
+
+    it("should handle generic errors with 400", async () => {
+      (vi.mocked(auth) as any).mockResolvedValue({ orgId: "org_123", userId: "user_123", sessionClaims: null });
+      
+      // Mock no products
+      mockSupabaseClient.eq.mockReturnValueOnce(mockSupabaseClient)
+                         .mockReturnValueOnce({ count: 0 });
+      
+      vi.mocked(deleteSubcategory).mockRejectedValue(new Error("Database error"));
+
+      const request = createRequest("DELETE");
+      const response = await DELETE(request, { params: { id: "sub_123" } });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data).toEqual({ error: "Database error" });
+    });
+  });
+});

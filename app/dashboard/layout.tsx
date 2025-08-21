@@ -4,6 +4,7 @@ import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import {
+  ArchiveBoxIcon,
   Bars3Icon,
   BellIcon,
   BuildingOfficeIcon,
@@ -21,6 +22,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
   { name: "Products", href: "/dashboard/products", icon: CubeIcon },
+  { name: "Inventory", href: "/dashboard/inventory", icon: ArchiveBoxIcon },
   { name: "Warehouses", href: "/dashboard/warehouses", icon: BuildingOfficeIcon },
   { name: "Team", href: "/dashboard/team", icon: UsersIcon },
   { name: "Projects", href: "/dashboard/projects", icon: FolderIcon },

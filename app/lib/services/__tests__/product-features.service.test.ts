@@ -7,7 +7,6 @@ import {
   createProductFeature,
   deleteProductFeature,
   getProductFeatures,
-  getProductsWithFeatures,
   updateProductFeature,
   upsertProductFeatures,
 } from '../product-features.service'
@@ -129,7 +128,7 @@ describe('Product Features Service', () => {
 
       const queryBuilder = setSupabaseMockData('product_features', createdFeature)
 
-      const result = await createProductFeature(productId, input, orgId)
+      await createProductFeature(productId, input, orgId)
 
       expect(queryBuilder.insert).toHaveBeenCalledWith({
         ...input,

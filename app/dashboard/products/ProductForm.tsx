@@ -1154,7 +1154,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
                 <h4 className="text-sm font-medium text-gray-900">Category-Specific Features</h4>
                 <p className="text-sm text-gray-600">
                   These are predefined features that appear based on the category and subcategory you select. 
-                  For example, electronics might have "Screen Size" or "Battery Life".
+                  For example, electronics might have &ldquo;Screen Size&rdquo; or &ldquo;Battery Life&rdquo;.
                 </p>
               </div>
               <div>
@@ -1180,7 +1180,7 @@ export default function ProductForm({ productId, isOpen, onClose, isAdmin, organ
               </li>
               <li className="flex">
                 <span className="mr-2 font-medium">3.</span>
-                <span>Click "Add Custom Feature" to include additional specifications</span>
+                <span>Click &ldquo;Add Custom Feature&rdquo; to include additional specifications</span>
               </li>
               <li className="flex">
                 <span className="mr-2 font-medium">4.</span>

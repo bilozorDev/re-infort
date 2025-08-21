@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -79,7 +80,7 @@ describe('Storage Service', () => {
       mockStorage.upload.mockResolvedValue({ data: mockUploadData, error: null })
 
       const onProgress = vi.fn()
-      const result = await uploadProductImage(mockSupabase as any, file, 'org123', 'product456', onProgress)
+      const result = await uploadProductImage(mockSupabase as unknown as SupabaseClient, file, 'org123', 'product456', onProgress)
 
       expect(mockStorage.from).toHaveBeenCalledWith('product-images')
       expect(mockStorage.upload).toHaveBeenCalledWith(
@@ -96,14 +97,14 @@ describe('Storage Service', () => {
       const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
       Object.defineProperty(file, 'size', { value: 6 * 1024 * 1024 })
 
-      await expect(uploadProductImage(mockSupabase as any, file, 'org123', 'product456'))
+      await expect(uploadProductImage(mockSupabase as unknown as SupabaseClient, file, 'org123', 'product456'))
         .rejects.toThrow('File size must be less than 5MB')
     })
 
     it('should reject unsupported file types', async () => {
       const file = new File(['test'], 'test.gif', { type: 'image/gif' })
 
-      await expect(uploadProductImage(mockSupabase as any, file, 'org123', 'product456'))
+      await expect(uploadProductImage(mockSupabase as unknown as SupabaseClient, file, 'org123', 'product456'))
         .rejects.toThrow('Only JPEG, PNG, WebP, and AVIF images are allowed')
     })
 
@@ -113,7 +114,7 @@ describe('Storage Service', () => {
       
       mockStorage.upload.mockResolvedValue({ data: null, error: { message: 'Upload failed' } })
 
-      await expect(uploadProductImage(mockSupabase as any, file, 'org123', 'product456'))
+      await expect(uploadProductImage(mockSupabase as unknown as SupabaseClient, file, 'org123', 'product456'))
         .rejects.toThrow('Upload failed: Upload failed')
     })
   })
@@ -123,7 +124,7 @@ describe('Storage Service', () => {
       const filePath = 'org123/product456/image.jpg'
       mockStorage.remove.mockResolvedValue({ error: null })
 
-      await deleteProductImage(mockSupabase as any, filePath)
+      await deleteProductImage(mockSupabase as unknown as SupabaseClient, filePath)
 
       expect(mockStorage.from).toHaveBeenCalledWith('product-images')
       expect(mockStorage.remove).toHaveBeenCalledWith([filePath])
@@ -133,7 +134,7 @@ describe('Storage Service', () => {
       const filePath = 'org123/product456/image.jpg'
       mockStorage.remove.mockResolvedValue({ error: { message: 'Delete failed' } })
 
-      await expect(deleteProductImage(mockSupabase as any, filePath))
+      await expect(deleteProductImage(mockSupabase as unknown as SupabaseClient, filePath))
         .rejects.toThrow('Delete failed: Delete failed')
     })
   })
@@ -147,7 +148,7 @@ describe('Storage Service', () => {
         error: null 
       })
 
-      const result = await getSignedUrl(mockSupabase as any, filePath)
+      const result = await getSignedUrl(mockSupabase as unknown as SupabaseClient, filePath)
 
       expect(mockStorage.from).toHaveBeenCalledWith('product-images')
       expect(mockStorage.createSignedUrl).toHaveBeenCalledWith(filePath, 3600)
@@ -161,7 +162,7 @@ describe('Storage Service', () => {
         error: { message: 'URL creation failed' } 
       })
 
-      await expect(getSignedUrl(mockSupabase as any, filePath))
+      await expect(getSignedUrl(mockSupabase as unknown as SupabaseClient, filePath))
         .rejects.toThrow('Failed to get signed URL: URL creation failed')
     })
   })
@@ -176,7 +177,7 @@ describe('Storage Service', () => {
         .mockResolvedValueOnce({ data: { signedUrl: mockUrls[1] }, error: null })
         .mockResolvedValueOnce({ data: { signedUrl: mockUrls[2] }, error: null })
 
-      const result = await getSignedUrls(mockSupabase as any, filePaths)
+      const result = await getSignedUrls(mockSupabase as unknown as SupabaseClient, filePaths)
 
       expect(result).toEqual(mockUrls)
       expect(mockStorage.createSignedUrl).toHaveBeenCalledTimes(3)
@@ -190,7 +191,7 @@ describe('Storage Service', () => {
         .mockResolvedValueOnce({ data: null, error: { message: 'Failed' } })
         .mockResolvedValueOnce({ data: { signedUrl: 'url3' }, error: null })
 
-      const result = await getSignedUrls(mockSupabase as any, filePaths)
+      const result = await getSignedUrls(mockSupabase as unknown as SupabaseClient, filePaths)
 
       expect(result).toEqual(['url1', 'url3'])
     })
@@ -202,7 +203,7 @@ describe('Storage Service', () => {
       const mockBlob = new Blob(['image data'])
       mockStorage.download.mockResolvedValue({ data: mockBlob, error: null })
 
-      const result = await downloadImage(mockSupabase as any, filePath)
+      const result = await downloadImage(mockSupabase as unknown as SupabaseClient, filePath)
 
       expect(mockStorage.from).toHaveBeenCalledWith('product-images')
       expect(mockStorage.download).toHaveBeenCalledWith(filePath)
@@ -213,7 +214,7 @@ describe('Storage Service', () => {
       const filePath = 'org123/product456/image.jpg'
       mockStorage.download.mockResolvedValue({ data: null, error: { message: 'Download failed' } })
 
-      await expect(downloadImage(mockSupabase as any, filePath))
+      await expect(downloadImage(mockSupabase as unknown as SupabaseClient, filePath))
         .rejects.toThrow('Download failed: Download failed')
     })
   })
@@ -231,7 +232,7 @@ describe('Storage Service', () => {
       mockStorage.list.mockResolvedValue({ data: allFiles, error: null })
       mockStorage.remove.mockResolvedValue({ error: null })
 
-      await cleanupOrphanedImages(mockSupabase as any, orgId, activeImagePaths)
+      await cleanupOrphanedImages(mockSupabase as unknown as SupabaseClient, orgId, activeImagePaths)
 
       expect(mockStorage.list).toHaveBeenCalledWith(orgId, { limit: 1000, offset: 0 })
       expect(mockStorage.remove).toHaveBeenCalledWith(['org123/product3/orphaned.jpg'])
@@ -244,7 +245,7 @@ describe('Storage Service', () => {
 
       mockStorage.list.mockResolvedValue({ data: allFiles, error: null })
 
-      await cleanupOrphanedImages(mockSupabase as any, orgId, activeImagePaths)
+      await cleanupOrphanedImages(mockSupabase as unknown as SupabaseClient, orgId, activeImagePaths)
 
       expect(mockStorage.remove).not.toHaveBeenCalled()
     })
@@ -256,7 +257,7 @@ describe('Storage Service', () => {
       mockStorage.list.mockResolvedValue({ data: null, error: { message: 'List failed' } })
 
       // Should not throw
-      await cleanupOrphanedImages(mockSupabase as any, orgId, activeImagePaths)
+      await cleanupOrphanedImages(mockSupabase as unknown as SupabaseClient, orgId, activeImagePaths)
 
       expect(mockStorage.remove).not.toHaveBeenCalled()
     })

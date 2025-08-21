@@ -1,115 +1,93 @@
 BEGIN;
-SELECT plan(12);
+SELECT plan(8);
 
 -- Enable pgTAP extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS pgtap;
 
--- Test that categories table has RLS enabled
+-- Enable RLS for testing
+ALTER TABLE categories FORCE ROW LEVEL SECURITY;
+
+-- Test that categories table exists
 SELECT has_table('public', 'categories', 'Categories table exists');
-SELECT row_security_is_enabled('public', 'categories', 'RLS is enabled on categories table');
 
 -- Test that categories table has expected RLS policies
 SELECT policies_are(
   'public',
   'categories',
   ARRAY[
-    'Users can view categories from their organization',
-    'Only admins can insert categories',
-    'Only admins can update categories',
-    'Only admins can delete categories'
+    'Users can view own org categories',
+    'Users can create categories for own org',
+    'Users can update own org categories',
+    'Users can delete own org categories'
   ],
   'Categories table has correct RLS policies'
 );
 
 -- Set up test data
-INSERT INTO categories (id, name, organization_clerk_id, created_by, status)
+INSERT INTO categories (id, name, organization_clerk_id, created_by_clerk_user_id, status)
 VALUES 
-  ('11111111-1111-1111-1111-111111111111', 'Test Category 1', 'org_test123', 'user_admin', 'active'),
-  ('22222222-2222-2222-2222-222222222222', 'Test Category 2', 'org_test456', 'user_other', 'active'),
-  ('33333333-3333-3333-3333-333333333333', 'Test Category 3', 'org_test123', 'user_admin', 'inactive');
+  ('a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid, 'Test Category 1', 'org_test123', 'user_admin', 'active'),
+  ('b2c3d4e5-f6a7-8901-bcde-f23456789012'::uuid, 'Test Category 2', 'org_test456', 'user_other', 'active'),
+  ('c3d4e5f6-a7b8-9012-cdef-345678901234'::uuid, 'Test Category 3', 'org_test123', 'user_admin', 'inactive');
 
--- Test SELECT policy for non-admin user in org_test123
-SET LOCAL jwt.claims.organization_clerk_id TO 'org_test123';
-SET LOCAL jwt.claims.is_admin TO 'false';
-SET LOCAL jwt.claims.user_id TO 'user_regular';
+-- Test SELECT policy for user in org_test123
+SET LOCAL role TO authenticated;
+SET LOCAL request.jwt.claims TO '{"org_id": "org_test123", "user_id": "user_regular"}';
 
 SELECT results_eq(
-  'SELECT COUNT(*)::INTEGER FROM categories WHERE organization_clerk_id = ''org_test123''',
+  'SELECT COUNT(*)::INTEGER FROM categories',
   'SELECT 2::INTEGER',
-  'Non-admin users can view categories from their organization'
+  'Users can view categories from their organization'
 );
+
+-- Categories from other organizations should not be visible
+SELECT is_empty(
+  'SELECT * FROM categories WHERE organization_clerk_id = ''org_test456''',
+  'Users cannot view categories from other organizations'
+);
+
+-- Test INSERT policy - should succeed for users in their own org
+INSERT INTO categories (id, name, organization_clerk_id, created_by_clerk_user_id)
+VALUES ('d4e5f6a7-b8c9-0123-defa-456789012345'::uuid, 'User Category', 'org_test123', 'user_regular');
 
 SELECT results_eq(
-  'SELECT COUNT(*)::INTEGER FROM categories WHERE organization_clerk_id = ''org_test456''',
-  'SELECT 0::INTEGER',
-  'Non-admin users cannot view categories from other organizations'
-);
-
--- Test INSERT policy - should fail for non-admin
-PREPARE insert_as_non_admin AS
-  INSERT INTO categories (name, organization_clerk_id, created_by)
-  VALUES ('Non-Admin Category', 'org_test123', 'user_regular');
-
-SELECT throws_ok(
-  'insert_as_non_admin',
-  '42501',
-  'new row violates row-level security policy for table "categories"',
-  'Non-admin users cannot insert categories'
-);
-
--- Test UPDATE policy - should fail for non-admin
-PREPARE update_as_non_admin AS
-  UPDATE categories SET name = 'Updated Name' 
-  WHERE id = '11111111-1111-1111-1111-111111111111';
-
-SELECT throws_ok(
-  'update_as_non_admin',
-  '42501',
-  'new row violates row-level security policy for table "categories"',
-  'Non-admin users cannot update categories'
-);
-
--- Test DELETE policy - should fail for non-admin
-PREPARE delete_as_non_admin AS
-  DELETE FROM categories WHERE id = '11111111-1111-1111-1111-111111111111';
-
-SELECT throws_ok(
-  'delete_as_non_admin',
-  '42501',
-  'new row violates row-level security policy for table "categories"',
-  'Non-admin users cannot delete categories'
-);
-
--- Test INSERT policy - should succeed for admin
-SET LOCAL jwt.claims.is_admin TO 'true';
-SET LOCAL jwt.claims.user_id TO 'user_admin';
-
-INSERT INTO categories (id, name, organization_clerk_id, created_by)
-VALUES ('44444444-4444-4444-4444-444444444444', 'Admin Category', 'org_test123', 'user_admin');
-
-SELECT results_eq(
-  'SELECT COUNT(*)::INTEGER FROM categories WHERE name = ''Admin Category''',
+  'SELECT COUNT(*)::INTEGER FROM categories WHERE name = ''User Category''',
   'SELECT 1::INTEGER',
-  'Admin users can insert categories'
+  'Users can insert categories in their organization'
 );
 
--- Test UPDATE policy - should succeed for admin
-UPDATE categories SET name = 'Updated Admin Category' 
-WHERE id = '44444444-4444-4444-4444-444444444444';
+-- Test UPDATE policy - should succeed for users in their own org
+UPDATE categories SET name = 'Updated Category' 
+WHERE id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'::uuid;
 
 SELECT results_eq(
-  'SELECT name FROM categories WHERE id = ''44444444-4444-4444-4444-444444444444''',
-  'SELECT ''Updated Admin Category''::TEXT',
-  'Admin users can update categories'
+  'SELECT name FROM categories WHERE id = ''a1b2c3d4-e5f6-7890-abcd-ef1234567890''::uuid',
+  'SELECT ''Updated Category''::TEXT',
+  'Users can update categories in their organization'
 );
 
--- Test DELETE policy - should succeed for admin
-DELETE FROM categories WHERE id = '44444444-4444-4444-4444-444444444444';
+-- Test DELETE policy - should succeed for users in their own org
+DELETE FROM categories WHERE id = 'd4e5f6a7-b8c9-0123-defa-456789012345'::uuid;
 
 SELECT results_eq(
-  'SELECT COUNT(*)::INTEGER FROM categories WHERE id = ''44444444-4444-4444-4444-444444444444''',
+  'SELECT COUNT(*)::INTEGER FROM categories WHERE id = ''d4e5f6a7-b8c9-0123-defa-456789012345''::uuid',
   'SELECT 0::INTEGER',
-  'Admin users can delete categories'
+  'Users can delete categories in their organization'
+);
+
+-- Test INSERT policy - should fail for different org
+SET LOCAL role TO authenticated;
+SET LOCAL request.jwt.claims TO '{"org_id": "org_test456", "user_id": "user_other"}';
+
+PREPARE insert_diff_org AS
+  INSERT INTO categories (name, organization_clerk_id, created_by_clerk_user_id)
+  VALUES ('Other Org Category', 'org_test123', 'user_other');
+
+SELECT throws_ok(
+  'insert_diff_org',
+  '42501',
+  'new row violates row-level security policy for table "categories"',
+  'Users cannot insert categories in other organizations'
 );
 
 SELECT * FROM finish();

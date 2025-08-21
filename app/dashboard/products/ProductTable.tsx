@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, EyeIcon, PhotoIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,6 +12,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";

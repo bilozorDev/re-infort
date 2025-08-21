@@ -1,8 +1,15 @@
 BEGIN;
-SELECT plan(18);
+SELECT plan(19);
 
 -- Enable pgTAP extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS pgtap;
+
+-- Enable RLS for testing
+ALTER TABLE categories FORCE ROW LEVEL SECURITY;
+ALTER TABLE products FORCE ROW LEVEL SECURITY;
+ALTER TABLE warehouses FORCE ROW LEVEL SECURITY;
+ALTER TABLE inventory FORCE ROW LEVEL SECURITY;
+ALTER TABLE stock_movements FORCE ROW LEVEL SECURITY;
 
 -- Test function existence and signatures
 SELECT has_function('public', 'adjust_inventory', 
@@ -31,30 +38,29 @@ SELECT has_function('public', 'release_reservation',
 );
 
 -- Set up test data
-SET LOCAL jwt.claims.org_id TO 'org_test123';
-SET LOCAL jwt.claims.sub TO 'user_test';
+SET LOCAL request.jwt.claims TO '{"org_id": "org_test123", "sub": "user_test"}';
 
 -- Insert test categories, products, and warehouses
-INSERT INTO categories (id, name, organization_clerk_id, created_by)
-VALUES ('c1111111-1111-1111-1111-111111111111', 'Test Category', 'org_test123', 'user_test');
+INSERT INTO categories (id, name, organization_clerk_id, created_by_clerk_user_id)
+VALUES ('b4c5d6e7-f8a9-0123-bcde-456789012345'::uuid, 'Test Category', 'org_test123', 'user_test');
 
-INSERT INTO products (id, name, sku, category_id, organization_clerk_id, created_by)
+INSERT INTO products (id, name, sku, category_id, organization_clerk_id, created_by_clerk_user_id)
 VALUES 
-  ('p1111111-1111-1111-1111-111111111111', 'Test Product 1', 'SKU001', 'c1111111-1111-1111-1111-111111111111', 'org_test123', 'user_test'),
-  ('p2222222-2222-2222-2222-222222222222', 'Test Product 2', 'SKU002', 'c1111111-1111-1111-1111-111111111111', 'org_test123', 'user_test');
+  ('c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid, 'Test Product 1', 'SKU001', 'b4c5d6e7-f8a9-0123-bcde-456789012345'::uuid, 'org_test123', 'user_test'),
+  ('d6e7f8a9-b0c1-2345-defa-678901234567'::uuid, 'Test Product 2', 'SKU002', 'b4c5d6e7-f8a9-0123-bcde-456789012345'::uuid, 'org_test123', 'user_test');
 
-INSERT INTO warehouses (id, name, organization_clerk_id, created_by)
+INSERT INTO warehouses (id, name, type, address, city, state_province, postal_code, country, organization_clerk_id, created_by_clerk_user_id)
 VALUES 
-  ('w1111111-1111-1111-1111-111111111111', 'Warehouse A', 'org_test123', 'user_test'),
-  ('w2222222-2222-2222-2222-222222222222', 'Warehouse B', 'org_test123', 'user_test');
+  ('e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 'Warehouse A', 'office', '123 Test St', 'Test City', 'Test State', '12345', 'US', 'org_test123', 'user_test'),
+  ('f8a9b0c1-d2e3-4567-fabc-890123456789'::uuid, 'Warehouse B', 'office', '456 Test Ave', 'Test City', 'Test State', '12345', 'US', 'org_test123', 'user_test');
 
 -- Test adjust_inventory function - add stock
 SELECT lives_ok(
   $$SELECT adjust_inventory(
-    'p1111111-1111-1111-1111-111111111111'::uuid, 
-    'w1111111-1111-1111-1111-111111111111'::uuid, 
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid, 
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     100, 
-    'purchase', 
+    'receipt', 
     'Initial stock'
   )$$,
   'adjust_inventory can add stock to inventory'
@@ -62,7 +68,7 @@ SELECT lives_ok(
 
 -- Verify inventory was created with correct quantity
 SELECT results_eq(
-  'SELECT quantity FROM inventory WHERE product_id = ''p1111111-1111-1111-1111-111111111111'' AND warehouse_id = ''w1111111-1111-1111-1111-111111111111''',
+  'SELECT quantity FROM inventory WHERE product_id = ''c5d6e7f8-a9b0-1234-cdef-567890123456''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
   'SELECT 100::INTEGER',
   'Inventory quantity is correct after adding stock'
 );
@@ -70,8 +76,8 @@ SELECT results_eq(
 -- Test adjust_inventory function - remove stock
 SELECT lives_ok(
   $$SELECT adjust_inventory(
-    'p1111111-1111-1111-1111-111111111111'::uuid, 
-    'w1111111-1111-1111-1111-111111111111'::uuid, 
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid, 
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     -30, 
     'sale', 
     'Test sale'
@@ -81,7 +87,7 @@ SELECT lives_ok(
 
 -- Verify inventory quantity was updated
 SELECT results_eq(
-  'SELECT quantity FROM inventory WHERE product_id = ''p1111111-1111-1111-1111-111111111111'' AND warehouse_id = ''w1111111-1111-1111-1111-111111111111''',
+  'SELECT quantity FROM inventory WHERE product_id = ''c5d6e7f8-a9b0-1234-cdef-567890123456''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
   'SELECT 70::INTEGER',
   'Inventory quantity is correct after removing stock'
 );
@@ -89,8 +95,8 @@ SELECT results_eq(
 -- Test adjust_inventory with insufficient stock (should fail)
 SELECT throws_ok(
   $$SELECT adjust_inventory(
-    'p1111111-1111-1111-1111-111111111111'::uuid, 
-    'w1111111-1111-1111-1111-111111111111'::uuid, 
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid, 
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     -100, 
     'sale', 
     'Too much'
@@ -103,18 +109,18 @@ SELECT throws_ok(
 -- Test transfer_inventory function
 -- First add stock to source warehouse
 SELECT adjust_inventory(
-  'p2222222-2222-2222-2222-222222222222'::uuid, 
-  'w1111111-1111-1111-1111-111111111111'::uuid, 
+  'd6e7f8a9-b0c1-2345-defa-678901234567'::uuid, 
+  'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
   50, 
-  'purchase', 
+  'receipt', 
   'Stock for transfer test'
 );
 
 SELECT lives_ok(
   $$SELECT transfer_inventory(
-    'p2222222-2222-2222-2222-222222222222'::uuid,
-    'w1111111-1111-1111-1111-111111111111'::uuid,
-    'w2222222-2222-2222-2222-222222222222'::uuid,
+    'd6e7f8a9-b0c1-2345-defa-678901234567'::uuid,
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
+    'f8a9b0c1-d2e3-4567-fabc-890123456789'::uuid,
     20,
     'Internal transfer'
   )$$,
@@ -123,14 +129,14 @@ SELECT lives_ok(
 
 -- Verify source warehouse quantity reduced
 SELECT results_eq(
-  'SELECT quantity FROM inventory WHERE product_id = ''p2222222-2222-2222-2222-222222222222'' AND warehouse_id = ''w1111111-1111-1111-1111-111111111111''',
+  'SELECT quantity FROM inventory WHERE product_id = ''d6e7f8a9-b0c1-2345-defa-678901234567''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
   'SELECT 30::INTEGER',
   'Source warehouse quantity reduced after transfer'
 );
 
 -- Verify destination warehouse quantity increased
 SELECT results_eq(
-  'SELECT quantity FROM inventory WHERE product_id = ''p2222222-2222-2222-2222-222222222222'' AND warehouse_id = ''w2222222-2222-2222-2222-222222222222''',
+  'SELECT quantity FROM inventory WHERE product_id = ''d6e7f8a9-b0c1-2345-defa-678901234567''::uuid AND warehouse_id = ''f8a9b0c1-d2e3-4567-fabc-890123456789''::uuid',
   'SELECT 20::INTEGER',
   'Destination warehouse quantity increased after transfer'
 );
@@ -138,8 +144,8 @@ SELECT results_eq(
 -- Test reserve_inventory function
 SELECT lives_ok(
   $$SELECT reserve_inventory(
-    'p1111111-1111-1111-1111-111111111111'::uuid,
-    'w1111111-1111-1111-1111-111111111111'::uuid,
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     25,
     'ORDER-123'
   )$$,
@@ -148,7 +154,7 @@ SELECT lives_ok(
 
 -- Verify reserved quantity
 SELECT results_eq(
-  'SELECT reserved_quantity FROM inventory WHERE product_id = ''p1111111-1111-1111-1111-111111111111'' AND warehouse_id = ''w1111111-1111-1111-1111-111111111111''',
+  'SELECT reserved_quantity FROM inventory WHERE product_id = ''c5d6e7f8-a9b0-1234-cdef-567890123456''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
   'SELECT 25::INTEGER',
   'Reserved quantity is correct after reservation'
 );
@@ -156,8 +162,8 @@ SELECT results_eq(
 -- Test reserve_inventory with insufficient available stock (should fail)
 SELECT throws_ok(
   $$SELECT reserve_inventory(
-    'p1111111-1111-1111-1111-111111111111'::uuid,
-    'w1111111-1111-1111-1111-111111111111'::uuid,
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     50,
     'ORDER-456'
   )$$,
@@ -169,8 +175,8 @@ SELECT throws_ok(
 -- Test release_reservation function
 SELECT lives_ok(
   $$SELECT release_reservation(
-    'p1111111-1111-1111-1111-111111111111'::uuid,
-    'w1111111-1111-1111-1111-111111111111'::uuid,
+    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
+    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     10
   )$$,
   'release_reservation can release reserved stock'
@@ -178,7 +184,7 @@ SELECT lives_ok(
 
 -- Verify reserved quantity reduced
 SELECT results_eq(
-  'SELECT reserved_quantity FROM inventory WHERE product_id = ''p1111111-1111-1111-1111-111111111111'' AND warehouse_id = ''w1111111-1111-1111-1111-111111111111''',
+  'SELECT reserved_quantity FROM inventory WHERE product_id = ''c5d6e7f8-a9b0-1234-cdef-567890123456''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
   'SELECT 15::INTEGER',
   'Reserved quantity is correct after release'
 );
@@ -186,7 +192,7 @@ SELECT results_eq(
 -- Test get_product_total_inventory function
 SELECT results_eq(
   $$SELECT total_quantity, warehouse_count 
-    FROM get_product_total_inventory('p2222222-2222-2222-2222-222222222222'::uuid)$$,
+    FROM get_product_total_inventory('d6e7f8a9-b0c1-2345-defa-678901234567'::uuid)$$,
   $$SELECT 50::INTEGER, 2::INTEGER$$,
   'get_product_total_inventory returns correct totals'
 );

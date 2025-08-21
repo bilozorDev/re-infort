@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   createMockProduct,
-  createMockProductWithCategory,
   mockProducts,
   mockProductsWithCategory,
 } from '@/test/fixtures/products'

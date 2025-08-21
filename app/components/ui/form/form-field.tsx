@@ -77,12 +77,16 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
   const childType = children.type;
   const isCheckbox = childType && 
     (typeof childType === 'function' && 
-     ((childType as any).displayName === 'Checkbox' || 
+     ((childType as React.ComponentType & { displayName?: string }).displayName === 'Checkbox' || 
       childType.name === 'Checkbox')) ||
     (children.props && (children.props as Record<string, unknown>).type === 'checkbox');
   
+  interface CheckboxChildProps extends ChildProps {
+    checked?: boolean;
+  }
+  
   if (isCheckbox) {
-    (childProps as any).checked = field.state.value;
+    (childProps as CheckboxChildProps).checked = field.state.value as boolean;
   }
 
   // Merge with existing props to preserve things like disabled, placeholder, etc.

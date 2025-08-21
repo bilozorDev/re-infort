@@ -1,0 +1,199 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { useSupabase } from "./use-supabase";
+
+export interface StockMovement {
+  id: string;
+  movement_type: string;
+  product_id: string;
+  product_name: string;
+  product_sku: string;
+  from_warehouse_id: string | null;
+  from_warehouse_name: string | null;
+  to_warehouse_id: string | null;
+  to_warehouse_name: string | null;
+  quantity: number;
+  reference_number: string | null;
+  reference_type: string | null;
+  reason: string | null;
+  notes: string | null;
+  unit_cost: number | null;
+  total_cost: number | null;
+  status: string;
+  created_at: string;
+  created_by_clerk_user_id: string;
+}
+
+interface MovementFilters {
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  warehouseId?: string;
+  status?: string;
+}
+
+// Hook to get stock movements for a product
+export function useStockMovements(productId?: string, filters?: MovementFilters) {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["stock-movements", productId, filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("stock_movements_details")
+        .select("*");
+
+      // Apply product filter if provided
+      if (productId) {
+        query = query.eq("product_id", productId);
+      }
+
+      // Apply type filter
+      if (filters?.type) {
+        query = query.eq("movement_type", filters.type);
+      }
+
+      // Apply date filters
+      if (filters?.startDate) {
+        query = query.gte("created_at", filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte("created_at", filters.endDate);
+      }
+
+      // Apply warehouse filter
+      if (filters?.warehouseId) {
+        query = query.or(
+          `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
+        );
+      }
+
+      // Apply status filter
+      if (filters?.status) {
+        query = query.eq("status", filters.status);
+      }
+
+      // Order by created_at descending
+      query = query.order("created_at", { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as StockMovement[];
+    },
+  });
+}
+
+// Hook to get recent movements for a product (for activity feed)
+export function useRecentMovements(productId: string, limit: number = 5) {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["recent-movements", productId, limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stock_movements_details")
+        .select("*")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data as StockMovement[];
+    },
+    enabled: !!productId,
+  });
+}
+
+// Hook to get all movements for organization (for global inventory page)
+export function useOrganizationMovements(filters?: MovementFilters) {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["organization-movements", filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("stock_movements_details")
+        .select("*");
+
+      // Apply filters
+      if (filters?.type) {
+        query = query.eq("movement_type", filters.type);
+      }
+      if (filters?.startDate) {
+        query = query.gte("created_at", filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte("created_at", filters.endDate);
+      }
+      if (filters?.warehouseId) {
+        query = query.or(
+          `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
+        );
+      }
+      if (filters?.status) {
+        query = query.eq("status", filters.status);
+      }
+
+      // Order by created_at descending
+      query = query.order("created_at", { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as StockMovement[];
+    },
+  });
+}
+
+// Hook to get movement statistics
+export function useMovementStatistics(period: string = "30d") {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["movement-statistics", period],
+    queryFn: async () => {
+      // Parse period
+      const days = parseInt(period.replace("d", ""));
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Get all movements for the period
+      const { data: movements, error } = await supabase
+        .from("stock_movements")
+        .select("*")
+        .gte("created_at", startDate.toISOString());
+
+      if (error) throw error;
+
+      // Calculate statistics
+      const totalMovements = movements?.length || 0;
+      const movementsByType = movements?.reduce((acc: Record<string, number>, m) => {
+        acc[m.movement_type] = (acc[m.movement_type] || 0) + 1;
+        return acc;
+      }, {});
+
+      const totalQuantityMoved = movements?.reduce((sum, m) => sum + m.quantity, 0) || 0;
+      const avgMovementSize = totalMovements > 0 ? totalQuantityMoved / totalMovements : 0;
+
+      // Get top products by movement
+      const productMovements = movements?.reduce((acc: Record<string, { count: number; quantity: number }>, m) => {
+        if (!acc[m.product_id]) {
+          acc[m.product_id] = { count: 0, quantity: 0 };
+        }
+        acc[m.product_id].count++;
+        acc[m.product_id].quantity += m.quantity;
+        return acc;
+      }, {});
+
+      return {
+        totalMovements,
+        movementsByType,
+        totalQuantityMoved,
+        avgMovementSize,
+        productMovements,
+        period,
+      };
+    },
+  });
+}

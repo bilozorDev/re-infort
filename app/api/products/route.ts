@@ -6,10 +6,11 @@ import {
   getAllProducts,
 } from "@/app/lib/services/product.service";
 import { createProductSchema } from "@/app/lib/validations/product";
+import { getCurrentOrgId } from "@/app/utils/roles";
 
 export async function GET() {
   try {
-    const { orgId } = await auth();
+    const orgId = await getCurrentOrgId();
 
     if (!orgId) {
       return NextResponse.json({ error: "Organization not found" }, { status: 401 });
@@ -29,7 +30,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { orgId, userId } = await auth();
+    const { userId } = await auth();
+    const orgId = await getCurrentOrgId();
 
     if (!orgId || !userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

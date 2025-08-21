@@ -5,7 +5,6 @@ import { mockCreateClient, resetSupabaseMocks, setSupabaseMockData } from '@/tes
 import {
   cancelImport,
   getImportProgress,
-  getTemplateById,
   getTemplates,
   importTemplate,
 } from '../category-template.service'
@@ -50,7 +49,7 @@ const mockTemplates = [
   },
 ]
 
-const mockTemplateWithStructure = {
+const _mockTemplateWithStructure = {
   ...mockTemplates[0],
   categories: [
     {

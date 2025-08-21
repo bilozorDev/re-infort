@@ -15,6 +15,7 @@ vi.mock('@supabase/ssr', () => ({
 
 import { useAuth } from '@clerk/nextjs'
 import { createBrowserClient } from '@supabase/ssr'
+
 import { useSupabase } from '../use-supabase'
 
 describe('useSupabase', () => {

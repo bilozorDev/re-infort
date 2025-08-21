@@ -75,7 +75,7 @@ export function useImportTemplate() {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate categories to show the newly imported items
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["subcategories"] });

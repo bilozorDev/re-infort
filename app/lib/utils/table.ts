@@ -4,7 +4,7 @@ import { twMerge } from "tailwind-merge";
 /**
  * Debounce function for delayed execution
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

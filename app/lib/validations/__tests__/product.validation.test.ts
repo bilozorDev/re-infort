@@ -6,11 +6,7 @@ import {
   createProductFeatureSchema,
   createProductSchema,
   createSubcategorySchema,
-  updateCategorySchema,
-  updateFeatureDefinitionSchema,
-  updateProductFeatureSchema,
   updateProductSchema,
-  updateSubcategorySchema,
 } from '../product'
 
 describe('Product Validation Schemas', () => {
