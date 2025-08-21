@@ -113,16 +113,16 @@ export function ProductToolbar({
 
               {/* Right side - View Controls */}
               <div className="flex items-center gap-x-4">
+                {/* Column Visibility (only in list view) */}
+                {viewMode === "list" && table && (
+                  <ColumnVisibilityMenu table={table} />
+                )}
+
                 {/* View Toggle */}
                 <ProductViewToggle
                   viewMode={viewMode}
                   onViewModeChange={onViewModeChange}
                 />
-
-                {/* Column Visibility (only in list view) */}
-                {viewMode === "list" && table && (
-                  <ColumnVisibilityMenu table={table} />
-                )}
               </div>
             </div>
           </div>
