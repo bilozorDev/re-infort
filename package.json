@@ -66,11 +66,13 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
-      "prettier --write",
-      "bash -c 'tsc --noEmit'"
+      "prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
+    ],
+    "**/*.{ts,tsx}": [
+      "sh -c 'npm run typecheck'"
     ]
   }
 }
