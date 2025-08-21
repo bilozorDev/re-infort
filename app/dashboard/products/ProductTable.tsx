@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { useDeleteProduct } from "@/app/hooks/use-products";
 import { useSupabase } from "@/app/hooks/use-supabase";
@@ -456,7 +457,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
   
   
   return (
-    <>
+    <ErrorBoundary level="section" resetKeys={[products.length]}>
       <div className="mt-4 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -527,6 +528,6 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           onNavigate={(index) => setLightboxIndex(index)}
         />
       )}
-    </>
+    </ErrorBoundary>
   );
 }

@@ -61,11 +61,15 @@ export function useStockMovements(productId?: string, filters?: MovementFilters)
         query = query.lte("created_at", filters.endDate);
       }
 
-      // Apply warehouse filter
+      // Apply warehouse filter safely
       if (filters?.warehouseId) {
-        query = query.or(
-          `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
-        );
+        // Validate warehouseId is a valid UUID to prevent injection
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(filters.warehouseId)) {
+          query = query.or(
+            `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
+          );
+        }
       }
 
       // Apply status filter
@@ -127,9 +131,13 @@ export function useOrganizationMovements(filters?: MovementFilters) {
         query = query.lte("created_at", filters.endDate);
       }
       if (filters?.warehouseId) {
-        query = query.or(
-          `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
-        );
+        // Validate warehouseId is a valid UUID to prevent injection
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(filters.warehouseId)) {
+          query = query.or(
+            `from_warehouse_id.eq.${filters.warehouseId},to_warehouse_id.eq.${filters.warehouseId}`
+          );
+        }
       }
       if (filters?.status) {
         query = query.eq("status", filters.status);

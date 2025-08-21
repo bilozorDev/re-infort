@@ -3,17 +3,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { retry } from "@/app/lib/utils/retry";
 import { type ProductWithCategory } from "@/app/types/product";
 
 export function useProducts() {
   return useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const response = await fetch("/api/products");
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
-      }
-      return response.json() as Promise<ProductWithCategory[]>;
+      return retry(async () => {
+        const response = await fetch("/api/products");
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        return response.json() as Promise<ProductWithCategory[]>;
+      }, {
+        maxAttempts: 3,
+        onRetry: (error, attempt) => {
+          console.warn(`Retrying products fetch (attempt ${attempt}):`, error);
+        },
+      });
     },
   });
 }

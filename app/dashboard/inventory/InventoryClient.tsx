@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+
 import { DashboardView } from "./views/DashboardView";
 import { MovementsView } from "./views/MovementsView";
 import { ReportsView } from "./views/ReportsView";
@@ -57,18 +59,20 @@ export function InventoryClient({ isAdmin, organizationId }: InventoryClientProp
 
       {/* Tab Content */}
       <div className="mt-6">
-        {activeTab === "dashboard" && (
-          <DashboardView isAdmin={isAdmin} organizationId={organizationId} />
-        )}
-        {activeTab === "stock-levels" && (
-          <StockLevelsView isAdmin={isAdmin} organizationId={organizationId} />
-        )}
-        {activeTab === "movements" && (
-          <MovementsView isAdmin={isAdmin} />
-        )}
-        {activeTab === "reports" && (
-          <ReportsView organizationId={organizationId} />
-        )}
+        <ErrorBoundary level="section" resetKeys={[activeTab]}>
+          {activeTab === "dashboard" && (
+            <DashboardView isAdmin={isAdmin} organizationId={organizationId} />
+          )}
+          {activeTab === "stock-levels" && (
+            <StockLevelsView isAdmin={isAdmin} organizationId={organizationId} />
+          )}
+          {activeTab === "movements" && (
+            <MovementsView isAdmin={isAdmin} />
+          )}
+          {activeTab === "reports" && (
+            <ReportsView organizationId={organizationId} />
+          )}
+        </ErrorBoundary>
       </div>
     </div>
   );
