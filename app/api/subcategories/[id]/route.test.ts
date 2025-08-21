@@ -22,16 +22,22 @@ vi.mock("@/app/lib/supabase/server");
 
 const createRequest = (method: string, body?: unknown, url?: string): NextRequest => {
   const requestUrl = url || "http://localhost:3000/api/subcategories/sub_123";
-  const init: any = { method };
-  if (body) {
-    init.body = JSON.stringify(body);
-    init.headers = { "Content-Type": "application/json" };
-  }
+  const init = { 
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  };
   return new NextRequest(requestUrl, init);
 };
 
-const createMockSupabaseClient = () => {
-  const client = {
+interface MockSupabaseClient {
+  from: ReturnType<typeof vi.fn>;
+  select: ReturnType<typeof vi.fn>;
+  eq: ReturnType<typeof vi.fn>;
+}
+
+const createMockSupabaseClient = (): MockSupabaseClient => {
+  const client: MockSupabaseClient = {
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -49,7 +55,8 @@ describe("Subcategories [id] API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSupabaseClient = createMockSupabaseClient();
-    vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any);
+    // Type assertion needed due to partial mock implementation
+    vi.mocked(createClient).mockResolvedValue(mockSupabaseClient as unknown as Awaited<ReturnType<typeof createClient>>);
   });
 
   describe("GET /api/subcategories/[id]", () => {

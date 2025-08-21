@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { vi } from "vitest";
 
+import type * as RolesModule from "@/app/utils/roles";
+
 /**
  * Creates a mock NextRequest object for testing
  */
@@ -64,7 +66,7 @@ export function mockGetCurrentOrgId(orgId: string | null = "org_test123") {
   const mock = vi.fn().mockResolvedValue(orgId);
   
   vi.mock("@/app/utils/roles", async () => {
-    const actual = await vi.importActual<typeof import("@/app/utils/roles")>(
+    const actual = await vi.importActual<typeof RolesModule>(
       "@/app/utils/roles"
     );
     return {
@@ -83,7 +85,7 @@ export function mockIsAdmin(isAdmin: boolean = true) {
   const mock = vi.fn().mockResolvedValue(isAdmin);
   
   vi.mock("@/app/utils/roles", async () => {
-    const actual = await vi.importActual<typeof import("@/app/utils/roles")>(
+    const actual = await vi.importActual<typeof RolesModule>(
       "@/app/utils/roles"
     );
     return {

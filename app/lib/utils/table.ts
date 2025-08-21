@@ -4,7 +4,8 @@ import { twMerge } from "tailwind-merge";
 /**
  * Debounce function for delayed execution
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -120,7 +121,7 @@ export function getStatusBadgeStyles(status: string): string {
 /**
  * Fuzzy filter function for global search
  */
-export function fuzzyFilter(value: string, searchValue: string): boolean {
+export function fuzzyFilter(value: string | number | null | undefined, searchValue: string): boolean {
   if (!searchValue) return true;
   if (!value) return false;
   

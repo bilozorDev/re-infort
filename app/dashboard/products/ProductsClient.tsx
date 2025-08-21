@@ -1,11 +1,13 @@
 "use client";
 
 import { Cog6ToothIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { type Table } from "@tanstack/react-table";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useAllCategories } from "@/app/hooks/use-categories";
 import { useProducts } from "@/app/hooks/use-products";
+import { type ProductWithCategory } from "@/app/types/product";
 
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
@@ -23,7 +25,7 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [tableInstance, setTableInstance] = useState<unknown>(null);
+  const [tableInstance, setTableInstance] = useState<Table<ProductWithCategory> | undefined>(undefined);
   const [filters, setFilters] = useState<FilterState>({
     status: [],
     categories: [],
@@ -58,14 +60,10 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
     }
 
     // Apply stock level filter
+    // TODO: Implement stock level filtering using inventory data
     if (filters.stockLevel.length > 0) {
-      filtered = filtered.filter((p) => {
-        const quantity = p.quantity || 0;
-        if (filters.stockLevel.includes("in_stock") && quantity > 10) return true;
-        if (filters.stockLevel.includes("low_stock") && quantity > 0 && quantity <= 10) return true;
-        if (filters.stockLevel.includes("out_of_stock") && quantity === 0) return true;
-        return false;
-      });
+      // Stock level filtering needs to be implemented with inventory data
+      // For now, don't filter by stock level as product.quantity doesn't exist
     }
 
     return filtered;
@@ -156,7 +154,7 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
           isAdmin={isAdmin}
           globalFilter={searchTerm}
           onViewModeChange={setViewMode}
-          onTableReady={setTableInstance}
+          onTableReady={(table) => setTableInstance(table as Table<ProductWithCategory>)}
         />
       )}
 

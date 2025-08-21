@@ -2,6 +2,7 @@
 
 import { CloudArrowUpIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PhotoIcon } from "@heroicons/react/24/solid";
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 import { useSupabase } from "@/app/hooks/use-supabase";
@@ -194,7 +195,7 @@ export function PhotoUpload({
       // Reset input to allow selecting the same file again
       e.target.value = "";
     },
-    [disabled, value.length, maxPhotos, handleFiles]
+    [disabled, handleFiles]
   );
 
   const handleDelete = async (index: number) => {
@@ -239,9 +240,11 @@ export function PhotoUpload({
               className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
             >
               {previewUrls[path] ? (
-                <img
+                <Image
                   src={previewUrls[path]}
                   alt={`Product ${index + 1}`}
+                  width={300}
+                  height={300}
                   className="h-full w-full object-cover cursor-pointer transition-transform hover:scale-105"
                   onClick={() => onLightboxOpen?.(index)}
                 />

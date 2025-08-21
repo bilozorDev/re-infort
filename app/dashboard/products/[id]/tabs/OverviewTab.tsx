@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
@@ -115,9 +116,11 @@ export function OverviewTab({ product, isAdmin }: OverviewTabProps) {
                     }}
                     className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-75 transition-opacity"
                   >
-                    <img
+                    <Image
                       src={image}
                       alt={`${product.name} - Image ${index + 1}`}
+                      width={150}
+                      height={150}
                       className="w-full h-full object-cover"
                     />
                   </button>

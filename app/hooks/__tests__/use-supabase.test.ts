@@ -72,15 +72,15 @@ describe('useSupabase', () => {
     renderHook(() => useSupabase())
 
     // Get the fetch function that was passed to createBrowserClient
-    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0][2]
-    const customFetch = clientConfig.global.fetch
+    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0]?.[2]
+    const customFetch = clientConfig?.global?.fetch
 
     // Mock the global fetch
     const mockGlobalFetch = vi.fn().mockResolvedValue({ ok: true })
     global.fetch = mockGlobalFetch
 
     // Test the custom fetch
-    await customFetch('https://api.example.com', {
+    await customFetch?.('https://api.example.com', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -105,15 +105,15 @@ describe('useSupabase', () => {
     renderHook(() => useSupabase())
 
     // Get the fetch function that was passed to createBrowserClient
-    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0][2]
-    const customFetch = clientConfig.global.fetch
+    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0]?.[2]
+    const customFetch = clientConfig?.global?.fetch
 
     // Mock the global fetch
     const mockGlobalFetch = vi.fn().mockResolvedValue({ ok: true })
     global.fetch = mockGlobalFetch
 
     // Test the custom fetch without token
-    await customFetch('https://api.example.com', {
+    await customFetch?.('https://api.example.com', {
       method: 'GET',
     })
 
@@ -137,15 +137,15 @@ describe('useSupabase', () => {
     renderHook(() => useSupabase())
 
     // Get the fetch function that was passed to createBrowserClient
-    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0][2]
-    const customFetch = clientConfig.global.fetch
+    const clientConfig = vi.mocked(createBrowserClient).mock.calls[0]?.[2]
+    const customFetch = clientConfig?.global?.fetch
 
     // Mock the global fetch
     const mockGlobalFetch = vi.fn().mockResolvedValue({ ok: true })
     global.fetch = mockGlobalFetch
 
     // Test the custom fetch with no options
-    await customFetch('https://api.example.com')
+    await customFetch?.('https://api.example.com')
 
     expect(mockGlobalFetch).toHaveBeenCalledWith('https://api.example.com', {
       headers: expect.objectContaining({

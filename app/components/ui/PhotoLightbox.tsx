@@ -8,6 +8,7 @@ import {
   MagnifyingGlassPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import { Fragment, useCallback, useEffect, useState } from "react";
 
 interface PhotoLightboxProps {
@@ -200,9 +201,11 @@ export function PhotoLightbox({
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                 >
-                  <img
+                  <Image
                     src={images[activeIndex]}
                     alt={`Image ${activeIndex + 1}`}
+                    width={1920}
+                    height={1080}
                     className="max-h-[90vh] max-w-[90vw] select-none object-contain transition-transform duration-200"
                     style={{
                       transform: `scale(${zoom}) translate(${position.x / zoom}px, ${
@@ -211,6 +214,7 @@ export function PhotoLightbox({
                       cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default",
                     }}
                     draggable={false}
+                    priority
                   />
                 </div>
 
@@ -253,9 +257,11 @@ export function PhotoLightbox({
                               : "border-transparent opacity-70 hover:opacity-100"
                           }`}
                         >
-                          <img
+                          <Image
                             src={image}
                             alt={`Thumbnail ${index + 1}`}
+                            width={64}
+                            height={64}
                             className="h-full w-full object-cover"
                           />
                         </button>

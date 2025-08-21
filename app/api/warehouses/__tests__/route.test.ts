@@ -26,8 +26,7 @@ describe("Warehouses API Route", () => {
     it("should return 401 when user is not authenticated", async () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
-      const request = new NextRequest("http://localhost:3000/api/warehouses");
-      const response = await GET(request);
+      const response = await GET();
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -38,8 +37,7 @@ describe("Warehouses API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
-      const request = new NextRequest("http://localhost:3000/api/warehouses");
-      const response = await GET(request);
+      const response = await GET();
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -76,8 +74,7 @@ describe("Warehouses API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getAllWarehouses).mockResolvedValue(mockWarehouses as Warehouse[]);
 
-      const request = new NextRequest("http://localhost:3000/api/warehouses");
-      const response = await GET(request);
+      const response = await GET();
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -90,8 +87,7 @@ describe("Warehouses API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
       vi.mocked(getAllWarehouses).mockRejectedValue(new Error("Database error"));
 
-      const request = new NextRequest("http://localhost:3000/api/warehouses");
-      const response = await GET(request);
+      const response = await GET();
 
       expect(response.status).toBe(500);
       const data = await response.json();

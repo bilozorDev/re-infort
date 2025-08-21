@@ -57,9 +57,22 @@ describe("Warehouses [id] API Route", () => {
       const mockWarehouse = {
         id: "wh_123",
         name: "Main Warehouse",
-        location: "New York",
+        address: "123 Main St",
+        city: "New York",
+        state_province: "NY",
+        postal_code: "10001",
+        country: "US",
+        phone: null,
+        email: null,
+        type: "office" as const,
+        status: "active" as const,
         capacity: 10000,
+        is_default: false,
+        notes: null,
         organization_clerk_id: "org_123",
+        created_by_clerk_user_id: "user_123",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
@@ -132,8 +145,22 @@ describe("Warehouses [id] API Route", () => {
       const mockUpdated = {
         id: "wh_123",
         name: "Updated Warehouse",
+        address: "123 Updated St",
         city: "New York",
+        state_province: "NY",
+        postal_code: "10001",
+        country: "US",
+        phone: null,
+        email: null,
+        type: "office" as const,
+        status: "active" as const,
+        capacity: 15000,
+        is_default: false,
+        notes: null,
         organization_clerk_id: "org_123",
+        created_by_clerk_user_id: "user_123",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));

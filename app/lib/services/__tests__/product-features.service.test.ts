@@ -317,7 +317,10 @@ describe('Product Features Service', () => {
             }
           }
           return {}
-        })
+        }),
+        auth: { getUser: vi.fn(), getSession: vi.fn(), signIn: vi.fn(), signOut: vi.fn(), onAuthStateChange: vi.fn() },
+        rpc: vi.fn(),
+        storage: { from: vi.fn() }
       }
       
       mockCreateClient.mockReturnValue(mockSupabase)

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   cn,
@@ -175,7 +175,10 @@ describe('Table Utils', () => {
 
     it('should return true for mobile user agents', () => {
       global.window.innerWidth = 1024
-      global.navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)'
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)',
+        configurable: true
+      })
       expect(isMobileDevice()).toBe(true)
     })
 
@@ -188,12 +191,18 @@ describe('Table Utils', () => {
     })
 
     it('should detect Android devices', () => {
-      global.navigator.userAgent = 'Mozilla/5.0 (Linux; Android 10; SM-G973F)'
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Linux; Android 10; SM-G973F)',
+        configurable: true
+      })
       expect(isMobileDevice()).toBe(true)
     })
 
     it('should detect iPad devices', () => {
-      global.navigator.userAgent = 'Mozilla/5.0 (iPad; CPU OS 14_7_1 like Mac OS X)'
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPad; CPU OS 14_7_1 like Mac OS X)',
+        configurable: true
+      })
       expect(isMobileDevice()).toBe(true)
     })
   })

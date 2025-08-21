@@ -1,6 +1,7 @@
 "use client";
 
 import { PencilIcon, PhotoIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
@@ -118,9 +119,11 @@ export default function ProductList({
                 className="relative w-full h-48 cursor-pointer group"
                 onClick={() => openLightbox(product.id)}
               >
-                <img
+                <Image
                   src={productImages[product.id][0]}
                   alt={product.name}
+                  width={300}
+                  height={192}
                   className="w-full h-full object-cover rounded-t-lg group-hover:opacity-90 transition-opacity"
                 />
                 {productImages[product.id].length > 1 && (

@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 
 import {
   deleteCategory,
@@ -9,7 +8,8 @@ import {
   updateCategory,
 } from "@/app/lib/services/category.service";
 import { createClient } from "@/app/lib/supabase/server";
-import { createMockCategory, type MockAuthObject } from "@/app/test-utils/types";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
+import { createMockCategory } from "@/app/test-utils/types";
 
 import { DELETE, GET, PATCH } from "./route";
 

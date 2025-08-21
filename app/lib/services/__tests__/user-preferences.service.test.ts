@@ -124,13 +124,16 @@ describe('User Preferences Service', () => {
 
       // Mock the Supabase client directly
       const mockSupabase = {
+        from: vi.fn(),
+        auth: { getUser: vi.fn(), getSession: vi.fn(), signIn: vi.fn(), signOut: vi.fn(), onAuthStateChange: vi.fn() },
         rpc: vi.fn().mockResolvedValue({ 
           data: updatedTablePrefs, 
           error: null 
-        })
+        }),
+        storage: { from: vi.fn() }
       }
       
-      mockCreateClient.mockReturnValue(mockSupabase)
+      mockCreateClient.mockResolvedValue(mockSupabase)
 
       const result = await updateTablePreferences(userId, tableKey, preferences)
 
@@ -146,13 +149,16 @@ describe('User Preferences Service', () => {
       const preferences = createMockTablePreference()
       
       const mockSupabase = {
+        from: vi.fn(),
+        auth: { getUser: vi.fn(), getSession: vi.fn(), signIn: vi.fn(), signOut: vi.fn(), onAuthStateChange: vi.fn() },
         rpc: vi.fn().mockResolvedValue({ 
           data: null, 
           error: { message: 'RPC error' } 
-        })
+        }),
+        storage: { from: vi.fn() }
       }
       
-      mockCreateClient.mockReturnValue(mockSupabase)
+      mockCreateClient.mockResolvedValue(mockSupabase)
 
       await expect(updateTablePreferences('user_test', 'products', preferences))
         .rejects.toThrow()
@@ -200,10 +206,26 @@ describe('User Preferences Service', () => {
             }
           }
           return {}
-        })
+        }),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+          getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+          signIn: vi.fn().mockResolvedValue({ data: null, error: null }),
+          signOut: vi.fn().mockResolvedValue({ error: null }),
+          onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+        storage: {
+          from: vi.fn(() => ({
+            upload: vi.fn().mockResolvedValue({ data: { path: 'test/path' }, error: null }),
+            download: vi.fn().mockResolvedValue({ data: new Blob(), error: null }),
+            remove: vi.fn().mockResolvedValue({ data: [], error: null }),
+            getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://test.url' } }),
+          })),
+        },
       }
       
-      mockCreateClient.mockReturnValue(mockSupabase)
+      mockCreateClient.mockResolvedValue(mockSupabase)
 
       const result = await resetTablePreferences(userId, tableKey)
 
@@ -238,10 +260,26 @@ describe('User Preferences Service', () => {
             }
           }
           return {}
-        })
+        }),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+          getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+          signIn: vi.fn().mockResolvedValue({ data: null, error: null }),
+          signOut: vi.fn().mockResolvedValue({ error: null }),
+          onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+        storage: {
+          from: vi.fn(() => ({
+            upload: vi.fn().mockResolvedValue({ data: { path: 'test/path' }, error: null }),
+            download: vi.fn().mockResolvedValue({ data: new Blob(), error: null }),
+            remove: vi.fn().mockResolvedValue({ data: [], error: null }),
+            getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://test.url' } }),
+          })),
+        },
       }
       
-      mockCreateClient.mockReturnValue(mockSupabase)
+      mockCreateClient.mockResolvedValue(mockSupabase)
 
       const result = await resetTablePreferences(userId, tableKey)
 

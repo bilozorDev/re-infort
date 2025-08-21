@@ -52,10 +52,14 @@ describe("User Preferences API Route", () => {
 
     it("should return user preferences successfully", async () => {
       const mockPreferences = {
-        user_clerk_id: "user_123",
+        id: "pref_123",
+        clerk_user_id: "user_123",
+        organization_clerk_id: "org_123",
         table_preferences: { products: { pageSize: 20 } },
         ui_preferences: { theme: "dark" },
-        feature_settings: { notifications: true }
+        feature_settings: { notifications: true },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
@@ -111,8 +115,13 @@ describe("User Preferences API Route", () => {
 
     it("should update preferences successfully", async () => {
       const mockUpdatedPreferences = {
-        user_clerk_id: "user_123",
-        ...validPreferencesData,
+        id: "pref_123",
+        clerk_user_id: "user_123",
+        organization_clerk_id: "org_123",
+        table_preferences: {},
+        ui_preferences: validPreferencesData,
+        feature_settings: {},
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 

@@ -135,6 +135,7 @@ describe('Category Template Service', () => {
     it('should start import process and return job ID', async () => {
       const request = {
         templateId: 'template-1',
+        importMode: 'merge' as const,
         selections: {
           categories: [
             {
@@ -169,6 +170,7 @@ describe('Category Template Service', () => {
     it('should return progress for existing job', async () => {
       const request = {
         templateId: 'template-1',
+        importMode: 'merge' as const,
         selections: { categories: [] },
       }
 
@@ -195,6 +197,7 @@ describe('Category Template Service', () => {
     it('should cancel importing job', async () => {
       const request = {
         templateId: 'template-1',
+        importMode: 'merge' as const,
         selections: { categories: [] },
       }
 

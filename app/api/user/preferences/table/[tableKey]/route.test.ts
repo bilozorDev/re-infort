@@ -9,6 +9,7 @@ import {
   createAuthenticatedMock,
   createUnauthenticatedMock,
 } from "@/app/test-utils/clerk-mocks";
+import type { TablePreference } from "@/app/types/user-preferences";
 import { isAdmin } from "@/app/utils/roles";
 
 import { DELETE, GET,PATCH } from "./route";
@@ -37,7 +38,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await PATCH(request, { params: { tableKey: "products" } });
+      const response = await PATCH(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -46,9 +47,7 @@ describe("User Table Preferences API Route", () => {
 
     it("should update table preferences successfully", async () => {
       const mockUpdatedPreferences = {
-        id: "pref_123",
-        user_clerk_id: "user_123",
-        products_table: tablePreferences,
+        products: tablePreferences,
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
@@ -63,7 +62,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await PATCH(request, { params: { tableKey: "products" } });
+      const response = await PATCH(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -88,7 +87,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await PATCH(request, { params: { tableKey: "products" } });
+      const response = await PATCH(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -107,7 +106,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await DELETE(request, { params: { tableKey: "products" } });
+      const response = await DELETE(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -115,14 +114,12 @@ describe("User Table Preferences API Route", () => {
     });
 
     it("should reset table preferences successfully", async () => {
-      const mockResetPreferences = {
-        id: "pref_123",
-        user_clerk_id: "user_123",
-        products_table: null,
+      const mockResetPreferences: Record<string, TablePreference | null> = {
+        products: null,
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
-      vi.mocked(resetTablePreferences).mockResolvedValue(mockResetPreferences);
+      vi.mocked(resetTablePreferences).mockResolvedValue(mockResetPreferences as Record<string, TablePreference>);
 
       const request = new Request(
         "http://localhost:3000/api/user/preferences/table/products",
@@ -131,7 +128,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await DELETE(request, { params: { tableKey: "products" } });
+      const response = await DELETE(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -150,7 +147,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await DELETE(request, { params: { tableKey: "products" } });
+      const response = await DELETE(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -169,7 +166,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await GET(request, { params: { tableKey: "products" } });
+      const response = await GET(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -193,7 +190,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await GET(request, { params: { tableKey: "products" } });
+      const response = await GET(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -218,7 +215,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await GET(request, { params: { tableKey: "products" } });
+      const response = await GET(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -237,7 +234,7 @@ describe("User Table Preferences API Route", () => {
         }
       );
 
-      const response = await GET(request, { params: { tableKey: "products" } });
+      const response = await GET(request, { params: Promise.resolve({ tableKey: "products" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

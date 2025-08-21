@@ -12,6 +12,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -83,14 +84,16 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
   }, [products, supabase]);
   
   // Debounced save preferences
+  type PreferencesType = {
+    columnVisibility: VisibilityState;
+    sorting: SortingState;
+    columnFilters: ColumnFiltersState;
+    density: "compact" | "normal" | "comfortable";
+    pageSize: 10 | 25 | 50 | 100;
+  };
+
   const savePreferences = useMemo(
-    () => debounce((prefs: {
-      columnVisibility: VisibilityState;
-      sorting: SortingState;
-      columnFilters: ColumnFiltersState;
-      density: "compact" | "normal" | "comfortable";
-      pageSize: 10 | 25 | 50 | 100;
-    }) => {
+    () => debounce<(prefs: PreferencesType) => void>((prefs: PreferencesType) => {
       updatePreferences(prefs);
     }, 500),
     [updatePreferences]
@@ -160,9 +163,11 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
                 className="relative h-10 w-10 cursor-pointer"
                 onClick={() => openLightbox(row.original.id)}
               >
-                <img
+                <Image
                   src={images[0]}
                   alt={row.original.name}
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-lg object-cover hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2 transition-all"
                 />
                 {images.length > 1 && (

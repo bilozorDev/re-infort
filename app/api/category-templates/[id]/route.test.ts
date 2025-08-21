@@ -79,10 +79,6 @@ describe("Category Templates [id] API Route", () => {
             features: [] 
           },
         ],
-        features: [
-          { name: "Brand", data_type: "string", is_required: true },
-          { name: "Model", data_type: "string", is_required: true },
-        ],
       });
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
