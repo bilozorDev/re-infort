@@ -1,13 +1,15 @@
 "use client";
 
-import { Cog6ToothIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useAllCategories } from "@/app/hooks/use-categories";
 import { useProducts } from "@/app/hooks/use-products";
 
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
+import { type FilterState, ProductToolbar } from "./ProductToolbar";
 
 interface ProductsClientProps {
   isAdmin: boolean;
@@ -16,13 +18,67 @@ interface ProductsClientProps {
 
 export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps) {
   const { data: products, isLoading } = useProducts();
+  const { data: categories } = useAllCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [tableInstance, setTableInstance] = useState<unknown>(null);
+  const [filters, setFilters] = useState<FilterState>({
+    status: [],
+    categories: [],
+    priceRange: {},
+    stockLevel: [],
+  });
 
-  // Note: Filtering is now handled inside ProductTable via globalFilter
-  // We pass all products and let TanStack Table handle the filtering
+  // Filter products based on active filters
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    
+    let filtered = [...products];
+
+    // Apply status filter
+    if (filters.status.length > 0) {
+      filtered = filtered.filter((p) => filters.status.includes(p.status || "active"));
+    }
+
+    // Apply category filter
+    if (filters.categories.length > 0) {
+      filtered = filtered.filter((p) => p.category_id && filters.categories.includes(p.category_id));
+    }
+
+    // Apply price range filter
+    if (filters.priceRange.min !== undefined || filters.priceRange.max !== undefined) {
+      filtered = filtered.filter((p) => {
+        const price = p.price || 0;
+        const min = filters.priceRange.min ?? 0;
+        const max = filters.priceRange.max ?? Infinity;
+        return price >= min && price <= max;
+      });
+    }
+
+    // Apply stock level filter
+    if (filters.stockLevel.length > 0) {
+      filtered = filtered.filter((p) => {
+        const quantity = p.quantity || 0;
+        if (filters.stockLevel.includes("in_stock") && quantity > 10) return true;
+        if (filters.stockLevel.includes("low_stock") && quantity > 0 && quantity <= 10) return true;
+        if (filters.stockLevel.includes("out_of_stock") && quantity === 0) return true;
+        return false;
+      });
+    }
+
+    return filtered;
+  }, [products, filters]);
+
+  // Prepare categories for filter
+  const availableCategories = useMemo(() => {
+    if (!categories) return [];
+    return categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+    }));
+  }, [categories]);
 
   return (
     <div className="space-y-6">
@@ -52,45 +108,17 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 max-w-lg">
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            </div>
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full rounded-md border-0 py-1.5 pl-10 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              placeholder="Search products..."
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setViewMode("list")}
-            className={`rounded px-3 py-1 text-sm ${
-              viewMode === "list"
-                ? "bg-gray-200 text-gray-900"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            List
-          </button>
-          <button
-            onClick={() => setViewMode("grid")}
-            className={`rounded px-3 py-1 text-sm ${
-              viewMode === "grid"
-                ? "bg-gray-200 text-gray-900"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Grid
-          </button>
-        </div>
-      </div>
+      {/* Product Toolbar with Filters and View Controls */}
+      <ProductToolbar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        filters={filters}
+        onFiltersChange={setFilters}
+        availableCategories={availableCategories}
+        table={tableInstance}
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -122,12 +150,13 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
         </div>
       ) : (
         <ProductList
-          products={products || []}
+          products={filteredProducts}
           viewMode={viewMode}
           onEdit={setEditingProduct}
           isAdmin={isAdmin}
           globalFilter={searchTerm}
           onViewModeChange={setViewMode}
+          onTableReady={setTableInstance}
         />
       )}
 

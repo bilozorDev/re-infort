@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, EyeIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -26,16 +27,15 @@ import {
   formatDate } from "@/app/lib/utils/table";
 import { type ProductWithCategory } from "@/app/types/product";
 
-import { ColumnVisibilityMenu } from "./ColumnVisibilityMenu";
-
 interface ProductTableProps {
   products: ProductWithCategory[];
   onEdit: (id: string) => void;
   isAdmin: boolean;
   globalFilter: string;
+  onTableReady?: (table: unknown) => void;
 }
 
-export function ProductTable({ products, onEdit, isAdmin, globalFilter }: ProductTableProps) {
+export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableReady }: ProductTableProps) {
   const supabase = useSupabase();
   const deleteProduct = useDeleteProduct();
   const { preferences, updatePreferences, isLoading: isLoadingPreferences } = useTablePreferences("products", isAdmin);
@@ -391,7 +391,15 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
         header: "Actions",
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-2">
+              <Link
+                href={`/dashboard/products/${row.original.id}`}
+                className="text-gray-400 hover:text-gray-600 p-1"
+                title="View details"
+              >
+                <EyeIcon className="h-5 w-5" />
+                <span className="sr-only">View {row.original.name}</span>
+              </Link>
               <button
                 onClick={() => onEdit(row.original.id)}
                 className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
@@ -433,18 +441,18 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter }: Produc
     getFilteredRowModel: getFilteredRowModel(),
     enableMultiSort: true,
   });
+
+  // Pass the table instance to parent component
+  useEffect(() => {
+    if (onTableReady) {
+      onTableReady(table);
+    }
+  }, [table, onTableReady]);
   
   
   return (
     <>
-      {/* Table controls */}
-      <div className="mb-4 flex justify-end">
-        <ColumnVisibilityMenu
-          table={table}
-        />
-      </div>
-      
-      <div className="mt-8 flow-root">
+      <div className="mt-4 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <table className="relative min-w-full divide-y divide-gray-300">

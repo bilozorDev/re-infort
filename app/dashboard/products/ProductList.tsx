@@ -18,6 +18,7 @@ interface ProductListProps {
   isAdmin: boolean;
   globalFilter?: string;
   onViewModeChange?: (mode: "list" | "grid") => void;
+  onTableReady?: (table: unknown) => void;
 }
 
 export default function ProductList({
@@ -26,6 +27,7 @@ export default function ProductList({
   onEdit,
   isAdmin,
   globalFilter = "",
+  onTableReady,
 }: ProductListProps) {
   const supabase = useSupabase();
   const deleteProduct = useDeleteProduct();
@@ -94,6 +96,7 @@ export default function ProductList({
             onEdit={onEdit}
             isAdmin={isAdmin}
             globalFilter={globalFilter}
+            onTableReady={onTableReady}
           />
         </div>
       </div>
