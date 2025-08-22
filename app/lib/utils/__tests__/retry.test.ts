@@ -11,7 +11,7 @@ import {
 describe("Retry Utils", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
@@ -138,6 +138,7 @@ describe("Retry Utils", () => {
 
       const retryPromise = retry(mockFn, { maxAttempts: 2, initialDelay: 100 });
 
+      // Advance timers and wait for promise to settle
       await vi.advanceTimersByTimeAsync(200);
 
       await expect(retryPromise).rejects.toEqual(connectionError);
@@ -150,6 +151,7 @@ describe("Retry Utils", () => {
 
       const retryPromise = retry(mockFn, { maxAttempts: 2, initialDelay: 100 });
 
+      // Advance timers and wait for promise to settle
       await vi.advanceTimersByTimeAsync(200);
 
       await expect(retryPromise).rejects.toEqual(timeoutError);
