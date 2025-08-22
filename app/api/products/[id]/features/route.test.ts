@@ -6,10 +6,7 @@ import {
   getProductFeatures,
   upsertProductFeatures,
 } from "@/app/lib/services/product-features.service";
-import {
-  createAuthenticatedMock,
-  createUnauthenticatedMock,
-} from "@/app/test-utils/clerk-mocks";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 import type { ProductFeature } from "@/app/types/features";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
@@ -21,10 +18,10 @@ vi.mock("@/app/utils/roles");
 
 const createRequest = (method: string, body?: unknown): NextRequest => {
   const url = "http://localhost:3000/api/products/prod_123/features";
-  const init = { 
-    method, 
-    headers: body ? { "Content-Type": "application/json" } : undefined, 
-    body: body ? JSON.stringify(body) : undefined 
+  const init = {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
   };
   return new NextRequest(url, init);
 };
@@ -35,7 +32,7 @@ describe("Product Features API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -47,7 +44,7 @@ describe("Product Features API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -75,7 +72,7 @@ describe("Product Features API Route", () => {
       vi.mocked(getProductFeatures).mockResolvedValue(mockFeatures as ProductFeature[]);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -89,7 +86,7 @@ describe("Product Features API Route", () => {
       vi.mocked(getProductFeatures).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -109,20 +106,19 @@ describe("Product Features API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("POST", featuresData);
-      const response = await POST(request, { params: { id: "prod_123" } });
+      const response = await POST(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
       expect(data).toEqual({ error: "Unauthorized" });
     });
 
-
     it("should return 404 when organization is not found", async () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("POST", featuresData);
-      const response = await POST(request, { params: { id: "prod_123" } });
+      const response = await POST(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -135,7 +131,7 @@ describe("Product Features API Route", () => {
       vi.mocked(upsertProductFeatures).mockResolvedValue([]);
 
       const request = createRequest("POST", {});
-      const response = await POST(request, { params: { id: "prod_123" } });
+      const response = await POST(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -164,7 +160,7 @@ describe("Product Features API Route", () => {
       vi.mocked(upsertProductFeatures).mockResolvedValue(mockUpdatedFeatures as ProductFeature[]);
 
       const request = createRequest("POST", featuresData);
-      const response = await POST(request, { params: { id: "prod_123" } });
+      const response = await POST(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -182,7 +178,7 @@ describe("Product Features API Route", () => {
       vi.mocked(upsertProductFeatures).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("POST", featuresData);
-      const response = await POST(request, { params: { id: "prod_123" } });
+      const response = await POST(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

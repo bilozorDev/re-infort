@@ -24,6 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
 import { Fragment, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import InfoDrawer from "@/app/components/ui/InfoDrawer";
@@ -119,11 +120,27 @@ export default function ProductForm({
       status: "active" as "active" | "inactive" | "discontinued",
     },
     onSubmit: async ({ value }) => {
-      console.log("Form submitted - currentStep:", currentStep);
       // Only allow submission from the last step
       if (currentStep !== steps.length - 1) {
-        console.warn("Form submission blocked - not on final step");
         return;
+      }
+
+      // Validate required features before submission
+      if (featureDefinitions) {
+        const requiredFeatures = featureDefinitions.filter((def) => def.is_required);
+        const missingFeatures = requiredFeatures.filter((reqFeature) => {
+          const value = productFeatures[reqFeature.id];
+          return !value || value.trim() === "";
+        });
+
+        if (missingFeatures.length > 0) {
+          // Show error toast with missing features
+          const missingNames = missingFeatures.map((f) => f.name).join(", ");
+          toast.error(`Please fill in required features: ${missingNames}`);
+          // Go back to features step
+          setCurrentStep(2);
+          return;
+        }
       }
 
       try {
@@ -243,26 +260,58 @@ export default function ProductForm({
   const { data: existingFeatures } = useProductFeatures(productId || "");
   const updateProductFeatures = useUpdateProductFeatures();
 
-  // Update form when product data loads
+  // Reset form when modal opens/closes or productId changes
   useEffect(() => {
-    if (product) {
-      form.reset({
-        name: product.name || "",
-        sku: product.sku || "",
-        description: product.description || "",
-        category_id: product.category_id || "",
-        subcategory_id: product.subcategory_id || "",
-        cost: product.cost?.toString() || "",
-        price: product.price?.toString() || "",
-        photo_urls: product.photo_urls || [],
-        link: product.link || "",
-        serial_number: product.serial_number || "",
-        status: product.status as "active" | "inactive" | "discontinued",
-      });
+    if (!isOpen) {
+      // Reset everything when modal closes
+      setCurrentStep(0);
+      setShowNewCategory(false);
+      setShowNewSubcategory(false);
+      setNewCategoryName("");
+      setNewSubcategoryName("");
+      setProductFeatures({});
+      setCustomFeatures([]);
+      return;
+    }
+
+    if (productId && product) {
+      // Load existing product data
+      form.setFieldValue("name", product.name || "");
+      form.setFieldValue("sku", product.sku || "");
+      form.setFieldValue("description", product.description || "");
+      form.setFieldValue("category_id", product.category_id || "");
+      form.setFieldValue("subcategory_id", product.subcategory_id || "");
+      form.setFieldValue("cost", product.cost?.toString() || "");
+      form.setFieldValue("price", product.price?.toString() || "");
+      form.setFieldValue("photo_urls", product.photo_urls || []);
+      form.setFieldValue("link", product.link || "");
+      form.setFieldValue("serial_number", product.serial_number || "");
+      form.setFieldValue(
+        "status",
+        (product.status || "active") as "active" | "inactive" | "discontinued"
+      );
+
       // Also update the current category ID for subcategory fetching
       setCurrentCategoryId(product.category_id || "");
+    } else if (!productId) {
+      // Reset to empty form for new product
+      form.reset({
+        name: "",
+        sku: "",
+        description: "",
+        category_id: "",
+        subcategory_id: "",
+        cost: "",
+        price: "",
+        photo_urls: [],
+        link: "",
+        serial_number: "",
+        status: "active",
+      });
+      setCurrentCategoryId("");
     }
-  }, [product, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, product, productId]);
 
   // Load existing features when editing
   useEffect(() => {
@@ -360,6 +409,16 @@ export default function ProductForm({
       case 1:
         return true;
       case 2:
+        // Check if all required features are filled
+        if (featureDefinitions) {
+          const requiredFeatures = featureDefinitions.filter((def) => def.is_required);
+          for (const reqFeature of requiredFeatures) {
+            const value = productFeatures[reqFeature.id];
+            if (!value || value.trim() === "") {
+              return false;
+            }
+          }
+        }
         return true;
       case 3:
         return true;
@@ -972,6 +1031,47 @@ export default function ProductForm({
                     {/* Step 3: Features & Specifications */}
                     {currentStep === 2 && (
                       <div className="space-y-6">
+                        {/* Warning for missing required features */}
+                        {featureDefinitions &&
+                          (() => {
+                            const requiredFeatures = featureDefinitions.filter(
+                              (def) => def.is_required
+                            );
+                            const missingFeatures = requiredFeatures.filter((reqFeature) => {
+                              const value = productFeatures[reqFeature.id];
+                              return !value || value.trim() === "";
+                            });
+
+                            if (missingFeatures.length > 0) {
+                              return (
+                                <div className="rounded-md bg-yellow-50 p-4">
+                                  <div className="flex">
+                                    <div className="flex-shrink-0">
+                                      <InformationCircleIcon
+                                        className="h-5 w-5 text-yellow-400"
+                                        aria-hidden="true"
+                                      />
+                                    </div>
+                                    <div className="ml-3">
+                                      <h3 className="text-sm font-medium text-yellow-800">
+                                        Required features missing
+                                      </h3>
+                                      <div className="mt-2 text-sm text-yellow-700">
+                                        <p>Please fill in the following required features:</p>
+                                        <ul className="list-disc list-inside mt-1">
+                                          {missingFeatures.map((feature) => (
+                                            <li key={feature.id}>{feature.name}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
                         {/* Features Header with Info */}
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-gray-900">Product Features</h3>
@@ -1012,7 +1112,13 @@ export default function ProductForm({
                                             [definition.id]: e.target.value,
                                           })
                                         }
-                                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                                        className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 ${
+                                          definition.is_required &&
+                                          (!productFeatures[definition.id] ||
+                                            productFeatures[definition.id].trim() === "")
+                                            ? "outline-red-300 focus:outline-red-600"
+                                            : "outline-gray-300 focus:outline-indigo-600"
+                                        } placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6`}
                                         required={definition.is_required}
                                       >
                                         <option value="">Select {definition.name}</option>

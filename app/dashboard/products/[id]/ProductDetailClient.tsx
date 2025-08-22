@@ -1,12 +1,13 @@
 "use client";
 
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { useProduct } from "@/app/hooks/use-products";
 
+import ProductForm from "../ProductForm";
 import { AnalyticsTab } from "./tabs/AnalyticsTab";
 import { InventoryTab } from "./tabs/InventoryTab";
 import { MovementsTab } from "./tabs/MovementsTab";
@@ -35,6 +36,7 @@ export function ProductDetailClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: product, isLoading, error } = useProduct(productId);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const activeTab = (searchParams.get("tab") as TabValue) || "overview";
 
@@ -122,24 +124,33 @@ export function ProductDetailClient({
       {/* Product title and SKU */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                product.status === "active"
+                  ? "bg-green-100 text-green-800"
+                  : product.status === "inactive"
+                    ? "bg-gray-100 text-gray-800"
+                    : product.status === "draft"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+              }`}
+            >
+              {product.status}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-gray-500">SKU: {product.sku}</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              product.status === "active"
-                ? "bg-green-100 text-green-800"
-                : product.status === "inactive"
-                  ? "bg-gray-100 text-gray-800"
-                  : product.status === "draft"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
-            }`}
+        {isAdmin && (
+          <button
+            onClick={() => setShowEditForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {product.status}
-          </span>
-        </div>
+            <PencilIcon className="h-4 w-4 mr-2" />
+            Edit
+          </button>
+        )}
       </div>
 
       {/* Tab Navigation */}
@@ -170,6 +181,17 @@ export function ProductDetailClient({
         {activeTab === "movements" && <MovementsTab productId={productId} />}
         {activeTab === "analytics" && <AnalyticsTab productId={productId} />}
       </div>
+
+      {/* Edit Product Modal */}
+      {showEditForm && (
+        <ProductForm
+          productId={productId}
+          isOpen={showEditForm}
+          onClose={() => setShowEditForm(false)}
+          isAdmin={isAdmin}
+          organizationId={organizationId}
+        />
+      )}
     </div>
   );
 }

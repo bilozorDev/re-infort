@@ -7,10 +7,7 @@ import {
 } from "@/app/lib/services/product-features.service";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -22,7 +19,8 @@ export async function GET(
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const features = await getProductFeatures(params.id, orgId);
+    const { id } = await params;
+    const features = await getProductFeatures(id, orgId);
 
     return NextResponse.json(features);
   } catch (error) {
@@ -34,10 +32,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -50,7 +45,8 @@ export async function POST(
     }
 
     const body = await request.json();
-    const features = await upsertProductFeatures(params.id, body.features || [], orgId);
+    const { id } = await params;
+    const features = await upsertProductFeatures(id, body.features || [], orgId);
 
     return NextResponse.json(features);
   } catch (error) {
