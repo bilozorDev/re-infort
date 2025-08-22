@@ -11,6 +11,7 @@ import {
   MinusIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
+import React from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import { StockAdjustmentModal } from "@/app/dashboard/products/[id]/components/StockAdjustmentModal";
@@ -391,8 +392,8 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {inventory?.items.map((item: OrganizationInventoryItem) => (
-                    <>
-                      <tr key={item.product_id} className="hover:bg-gray-50">
+                    <React.Fragment key={item.product_id}>
+                      <tr className="hover:bg-gray-50">
                         <td className="px-2">
                           <button
                             onClick={() => toggleRowExpansion(item.product_id)}
@@ -549,7 +550,7 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

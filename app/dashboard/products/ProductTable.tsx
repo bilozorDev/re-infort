@@ -1,6 +1,12 @@
 "use client";
 
-import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon, EyeIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  ChevronUpDownIcon,
+  ChevronUpIcon,
+  EyeIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -18,15 +24,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
+import { Tooltip } from "@/app/components/ui/Tooltip";
+import { useAllProductsInventory } from "@/app/hooks/use-inventory";
 import { useDeleteProduct } from "@/app/hooks/use-products";
 import { useSupabase } from "@/app/hooks/use-supabase";
 import { useTablePreferences } from "@/app/hooks/use-user-preferences";
 import { getSignedUrls } from "@/app/lib/services/storage.service";
-import { 
-  cn,
-  debounce,
-  formatCurrency, 
-  formatDate } from "@/app/lib/utils/table";
+import { cn, debounce, formatCurrency, formatDate } from "@/app/lib/utils/table";
 import { type ProductWithCategory } from "@/app/types/product";
 
 interface ProductTableProps {
@@ -37,17 +41,31 @@ interface ProductTableProps {
   onTableReady?: (table: unknown) => void;
 }
 
-export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableReady }: ProductTableProps) {
+export function ProductTable({
+  products,
+  onEdit,
+  isAdmin,
+  globalFilter,
+  onTableReady,
+}: ProductTableProps) {
   const supabase = useSupabase();
   const deleteProduct = useDeleteProduct();
-  const { preferences, updatePreferences, isLoading: isLoadingPreferences } = useTablePreferences("products", isAdmin);
-  
-  // Image handling states
+  const {
+    preferences,
+    updatePreferences,
+    isLoading: isLoadingPreferences,
+  } = useTablePreferences("products", isAdmin);
+
+  // Fetch inventory data for all products
+  const productIds = useMemo(() => products.map((p) => p.id), [products]);
+  const { data: inventoryMap } = useAllProductsInventory(productIds);
+
+  // Image handling states - MUST be before any conditional returns
   const [productImages, setProductImages] = useState<Record<string, string[]>>({});
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  
+
   // Table states
   const [sorting, setSorting] = useState<SortingState>(preferences?.sorting || []);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -56,12 +74,12 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     preferences?.columnFilters || []
   );
-  
+
   // Load signed URLs for all products
   useEffect(() => {
     const loadAllImages = async () => {
       const imageMap: Record<string, string[]> = {};
-      
+
       for (const product of products) {
         if (product.photo_urls && product.photo_urls.length > 0) {
           try {
@@ -75,7 +93,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           imageMap[product.id] = [];
         }
       }
-      
+
       setProductImages(imageMap);
     };
 
@@ -83,7 +101,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
       loadAllImages();
     }
   }, [products, supabase]);
-  
+
   // Debounced save preferences
   type PreferencesType = {
     columnVisibility: VisibilityState;
@@ -94,15 +112,16 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
   };
 
   const savePreferences = useMemo(
-    () => debounce<(prefs: PreferencesType) => void>((prefs: PreferencesType) => {
-      updatePreferences(prefs);
-    }, 500),
+    () =>
+      debounce<(prefs: PreferencesType) => void>((prefs: PreferencesType) => {
+        updatePreferences(prefs);
+      }, 500),
     [updatePreferences]
   );
-  
+
   // Track if this is the first load to avoid saving on initial mount
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  
+
   // Update preferences when state changes (but not on initial load)
   useEffect(() => {
     if (!isLoadingPreferences && !isInitialLoad) {
@@ -116,7 +135,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility, sorting, columnFilters, isInitialLoad, isLoadingPreferences]);
-  
+
   // Apply preferences when they load (only once)
   useEffect(() => {
     if (preferences && !isLoadingPreferences && isInitialLoad) {
@@ -133,22 +152,28 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferences, isLoadingPreferences, isInitialLoad]);
-  
-  const handleDelete = useCallback(async (id: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      deleteProduct.mutate(id);
-    }
-  }, [deleteProduct]);
-  
-  const openLightbox = useCallback((productId: string, index: number = 0) => {
-    const images = productImages[productId] || [];
-    if (images.length > 0) {
-      setLightboxImages(images);
-      setLightboxIndex(index);
-      setLightboxOpen(true);
-    }
-  }, [productImages]);
-  
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (confirm("Are you sure you want to delete this product?")) {
+        deleteProduct.mutate(id);
+      }
+    },
+    [deleteProduct]
+  );
+
+  const openLightbox = useCallback(
+    (productId: string, index: number = 0) => {
+      const images = productImages[productId] || [];
+      if (images.length > 0) {
+        setLightboxImages(images);
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+      }
+    },
+    [productImages]
+  );
+
   // Column definitions
   const columns = useMemo<ColumnDef<ProductWithCategory>[]>(
     () => [
@@ -160,7 +185,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           const images = productImages[row.original.id] || [];
           if (images.length > 0) {
             return (
-              <div 
+              <div
                 className="relative h-10 w-10 cursor-pointer"
                 onClick={() => openLightbox(row.original.id)}
               >
@@ -246,7 +271,9 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           );
         },
         accessorFn: (row) => row.sku,
-        cell: ({ getValue }) => <span className="text-sm text-gray-500">{getValue() as string}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-sm text-gray-500">{getValue() as string}</span>
+        ),
       },
       {
         id: "category",
@@ -303,7 +330,11 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           );
         },
         accessorFn: (row) => row.cost,
-        cell: ({ getValue }) => <span className="text-sm text-gray-900 font-medium">{formatCurrency(getValue() as number)}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-sm text-gray-900 font-medium">
+            {formatCurrency(getValue() as number)}
+          </span>
+        ),
       },
       {
         id: "price",
@@ -327,7 +358,56 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           );
         },
         accessorFn: (row) => row.price,
-        cell: ({ getValue }) => <span className="text-sm text-gray-900 font-medium">{formatCurrency(getValue() as number)}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-sm text-gray-900 font-medium">
+            {formatCurrency(getValue() as number)}
+          </span>
+        ),
+      },
+      {
+        id: "quantity",
+        header: ({ column }) => {
+          return (
+            <button
+              className="group inline-flex items-center gap-x-1 text-sm font-semibold text-gray-900"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Quantity
+              <span className="ml-1 flex-none text-gray-400 group-hover:text-gray-500">
+                {column.getIsSorted() === "asc" ? (
+                  <ChevronUpIcon className="h-4 w-4" />
+                ) : column.getIsSorted() === "desc" ? (
+                  <ChevronDownIcon className="h-4 w-4" />
+                ) : (
+                  <ChevronUpDownIcon className="h-4 w-4" />
+                )}
+              </span>
+            </button>
+          );
+        },
+        accessorFn: (row) => {
+          const inventory = inventoryMap?.get(row.id);
+          return inventory?.total_quantity || 0;
+        },
+        cell: ({ row }) => {
+          const inventory = inventoryMap?.get(row.original.id);
+          if (!inventory) {
+            return <span className="text-sm text-gray-500">-</span>;
+          }
+          const total = inventory.total_quantity || 0;
+          const reserved = inventory.total_reserved || 0;
+
+          return (
+            <div className="text-sm font-medium text-gray-900">
+              {total}
+              {reserved > 0 && (
+                <Tooltip content="Reserved">
+                  <span className="text-amber-600 ml-0.5 cursor-help">({reserved})</span>
+                </Tooltip>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "status",
@@ -390,7 +470,9 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           );
         },
         accessorFn: (row) => row.created_at,
-        cell: ({ getValue }) => <span className="text-sm text-gray-500">{formatDate(getValue() as string)}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-sm text-gray-500">{formatDate(getValue() as string)}</span>
+        ),
       },
       {
         id: "actions",
@@ -427,9 +509,9 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
         enableHiding: false,
       },
     ],
-    [productImages, isAdmin, onEdit, handleDelete, openLightbox]
+    [productImages, isAdmin, onEdit, handleDelete, openLightbox, inventoryMap]
   );
-  
+
   const table = useReactTable({
     data: products,
     columns,
@@ -454,8 +536,42 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
       onTableReady(table);
     }
   }, [table, onTableReady]);
-  
-  
+
+  // Show loading state while preferences are loading - MUST be after all hooks
+  if (isLoadingPreferences) {
+    return (
+      <div className="mt-4 flow-root">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="inline-flex items-center">
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Loading view preferences...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary level="section" resetKeys={[products.length]}>
       <div className="mt-4 flow-root">
@@ -487,10 +603,13 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
               </thead>
               <tbody className="bg-white">
                 {table.getRowModel().rows.map((row, rowIndex) => (
-                  <tr key={row.id} className={cn(
-                    rowIndex % 2 === 1 && "bg-gray-50",
-                    "hover:bg-gray-100 transition-colors"
-                  )}>
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      rowIndex % 2 === 1 && "bg-gray-50",
+                      "hover:bg-gray-100 transition-colors"
+                    )}
+                  >
                     {row.getVisibleCells().map((cell, cellIndex) => (
                       <td
                         key={cell.id}
@@ -508,7 +627,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
                 ))}
               </tbody>
             </table>
-            
+
             {table.getRowModel().rows.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500">No products found</p>
@@ -517,7 +636,7 @@ export function ProductTable({ products, onEdit, isAdmin, globalFilter, onTableR
           </div>
         </div>
       </div>
-      
+
       {/* Photo Lightbox */}
       {lightboxOpen && (
         <PhotoLightbox

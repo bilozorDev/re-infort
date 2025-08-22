@@ -241,6 +241,56 @@ export function useInventoryAnalytics(productId: string, period: string = "30d")
   });
 }
 
+// Hook to get all products inventory summary
+export function useAllProductsInventory(productIds: string[]) {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["all-products-inventory", productIds],
+    queryFn: async () => {
+      if (!productIds || productIds.length === 0) {
+        return new Map<string, InventorySummary>();
+      }
+
+      // Batch fetch inventory summaries for all products
+      const inventoryPromises = productIds.map(async (productId) => {
+        try {
+          const { data, error } = await supabase.rpc("get_product_total_inventory", {
+            p_product_id: productId,
+          });
+
+          if (error) {
+            console.error(`Failed to fetch inventory for product ${productId}:`, error);
+            return [productId, null];
+          }
+
+          // Log the response to debug
+          console.log(`Inventory for product ${productId}:`, data);
+
+          // The RPC function returns an array with one row, so we need to get the first element
+          const inventoryData = Array.isArray(data) && data.length > 0 ? data[0] : data;
+          return [productId, inventoryData as InventorySummary];
+        } catch (error) {
+          console.error(`Failed to fetch inventory for product ${productId}:`, error);
+          return [productId, null];
+        }
+      });
+
+      const results = await Promise.all(inventoryPromises);
+      const inventoryMap = new Map<string, InventorySummary>();
+
+      results.forEach(([productId, inventory]) => {
+        if (inventory) {
+          inventoryMap.set(productId as string, inventory as InventorySummary);
+        }
+      });
+
+      return inventoryMap;
+    },
+    enabled: productIds.length > 0,
+  });
+}
+
 // Hook to get organization-wide inventory with filters
 export interface InventoryFilters {
   search?: string;

@@ -13,25 +13,23 @@ function getDefaultTablePreferences(tableKey: string, isAdmin: boolean = false):
   const defaults: Record<string, TablePreference> = {
     products: {
       columnVisibility: {
+        photo: true,
         name: true,
         sku: true,
         category: true,
-        subcategory: false,
-        description: false,
         cost: isAdmin,
         price: true,
+        quantity: true,
         status: true,
-        photo_urls: true,
-        features: false,
         created_at: false,
-        updated_at: false,
+        actions: true,
       },
       sorting: [],
       columnFilters: [],
-      globalFilter: '',
-      density: 'normal',
+      globalFilter: "",
+      density: "normal",
       pageSize: 25,
-      viewMode: 'list',
+      viewMode: "list",
     },
     inventory: {
       columnVisibility: {
@@ -47,9 +45,9 @@ function getDefaultTablePreferences(tableKey: string, isAdmin: boolean = false):
         updated_at: false,
       },
       sorting: [],
-      density: 'normal',
+      density: "normal",
       pageSize: 25,
-      viewMode: 'list',
+      viewMode: "list",
     },
     warehouses: {
       columnVisibility: {
@@ -67,19 +65,21 @@ function getDefaultTablePreferences(tableKey: string, isAdmin: boolean = false):
         updated_at: false,
       },
       sorting: [],
-      density: 'normal',
+      density: "normal",
       pageSize: 25,
-      viewMode: 'list',
+      viewMode: "list",
     },
   };
-  
-  return defaults[tableKey] || {
-    columnVisibility: {},
-    sorting: [],
-    density: 'normal',
-    pageSize: 25,
-    viewMode: 'list',
-  };
+
+  return (
+    defaults[tableKey] || {
+      columnVisibility: {},
+      sorting: [],
+      density: "normal",
+      pageSize: 25,
+      viewMode: "list",
+    }
+  );
 }
 
 /**
@@ -117,7 +117,7 @@ export function useTablePreferences(tableKey: string, isAdmin: boolean = false) 
   const preferences = useMemo(() => {
     const userTablePrefs = userPreferences?.table_preferences?.[tableKey];
     if (!userTablePrefs) return defaultPreferences;
-    
+
     return {
       ...defaultPreferences,
       ...userTablePrefs,
@@ -139,20 +139,20 @@ export function useTablePreferences(tableKey: string, isAdmin: boolean = false) 
         },
         body: JSON.stringify(newPrefs),
       });
-      
+
       if (!res.ok) {
         throw new Error("Failed to update preferences");
       }
-      
+
       return res.json();
     },
     onMutate: async (newPrefs) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["user-preferences"] });
-      
+
       // Snapshot the previous value
       const previousPrefs = queryClient.getQueryData(["user-preferences"]);
-      
+
       // Optimistically update to the new value
       queryClient.setQueryData(["user-preferences"], (old: UserPreferences | undefined) => {
         if (!old) {
@@ -164,7 +164,7 @@ export function useTablePreferences(tableKey: string, isAdmin: boolean = false) 
             feature_settings: {},
           };
         }
-        
+
         return {
           ...old,
           table_preferences: {
@@ -176,7 +176,7 @@ export function useTablePreferences(tableKey: string, isAdmin: boolean = false) 
           },
         };
       });
-      
+
       // Return a context object with the snapshotted value
       return { previousPrefs };
     },
@@ -199,11 +199,11 @@ export function useTablePreferences(tableKey: string, isAdmin: boolean = false) 
       const res = await fetch(`/api/user/preferences/table/${tableKey}`, {
         method: "DELETE",
       });
-      
+
       if (!res.ok) {
         throw new Error("Failed to reset preferences");
       }
-      
+
       return res.json();
     },
     onSuccess: () => {
