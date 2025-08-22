@@ -104,7 +104,9 @@ export function useAdjustStock() {
     onSuccess: (_, variables) => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["product-inventory", variables.productId] });
-      queryClient.invalidateQueries({ queryKey: ["product-warehouse-inventory", variables.productId] });
+      queryClient.invalidateQueries({
+        queryKey: ["product-warehouse-inventory", variables.productId],
+      });
       queryClient.invalidateQueries({ queryKey: ["stock-movements", variables.productId] });
       queryClient.invalidateQueries({ queryKey: ["inventory-analytics", variables.productId] });
     },
@@ -133,7 +135,9 @@ export function useTransferStock() {
     onSuccess: (_, variables) => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["product-inventory", variables.productId] });
-      queryClient.invalidateQueries({ queryKey: ["product-warehouse-inventory", variables.productId] });
+      queryClient.invalidateQueries({
+        queryKey: ["product-warehouse-inventory", variables.productId],
+      });
       queryClient.invalidateQueries({ queryKey: ["stock-movements", variables.productId] });
       queryClient.invalidateQueries({ queryKey: ["inventory-analytics", variables.productId] });
     },
@@ -188,34 +192,40 @@ export function useInventoryAnalytics(productId: string, period: string = "30d")
       const stockValue = totalQuantity * (product?.cost || 0);
 
       // Movement breakdown by type
-      const movementBreakdown = movements?.reduce((acc: Record<string, { count: number; quantity: number }>, m) => {
-        if (!acc[m.movement_type]) {
-          acc[m.movement_type] = { count: 0, quantity: 0 };
-        }
-        acc[m.movement_type].count++;
-        acc[m.movement_type].quantity += m.quantity;
-        return acc;
-      }, {});
+      const movementBreakdown = movements?.reduce(
+        (acc: Record<string, { count: number; quantity: number }>, m) => {
+          if (!acc[m.movement_type]) {
+            acc[m.movement_type] = { count: 0, quantity: 0 };
+          }
+          acc[m.movement_type].count++;
+          acc[m.movement_type].quantity += m.quantity;
+          return acc;
+        },
+        {}
+      );
 
       // Top warehouses by activity
-      const warehouseActivity = movements?.reduce((acc: Record<string, { id: string; name: string; movements: number }>, m) => {
-        const warehouseId = m.from_warehouse_id || m.to_warehouse_id;
-        const warehouseName = m.from_warehouse_name || m.to_warehouse_name;
-        if (warehouseId) {
-          if (!acc[warehouseId]) {
-            acc[warehouseId] = { id: warehouseId, name: warehouseName, movements: 0 };
+      const warehouseActivity = movements?.reduce(
+        (acc: Record<string, { id: string; name: string; movements: number }>, m) => {
+          const warehouseId = m.from_warehouse_id || m.to_warehouse_id;
+          const warehouseName = m.from_warehouse_name || m.to_warehouse_name;
+          if (warehouseId) {
+            if (!acc[warehouseId]) {
+              acc[warehouseId] = { id: warehouseId, name: warehouseName, movements: 0 };
+            }
+            acc[warehouseId].movements++;
           }
-          acc[warehouseId].movements++;
-        }
-        return acc;
-      }, {});
+          return acc;
+        },
+        {}
+      );
 
       const topWarehouses = Object.values(warehouseActivity || {})
         .sort((a, b) => b.movements - a.movements)
         .slice(0, 5);
 
       // Calculate turnover rate (movements / average inventory)
-      const turnoverRate = totalQuantity > 0 ? (totalMovement / totalQuantity) : 0;
+      const turnoverRate = totalQuantity > 0 ? totalMovement / totalQuantity : 0;
 
       return {
         totalMovement,
@@ -228,5 +238,228 @@ export function useInventoryAnalytics(productId: string, period: string = "30d")
       };
     },
     enabled: !!productId,
+  });
+}
+
+// Hook to get organization-wide inventory with filters
+export interface InventoryFilters {
+  search?: string;
+  categoryId?: string;
+  subcategoryId?: string;
+  warehouseId?: string;
+  stockStatus?: "all" | "in-stock" | "low-stock" | "out-of-stock";
+  sortBy?: "product_name" | "quantity" | "available" | "category" | "updated_at";
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface OrganizationInventoryItem {
+  product_id: string;
+  product_name: string;
+  product_sku: string;
+  category_name: string;
+  subcategory_name: string | null;
+  total_quantity: number;
+  total_reserved: number;
+  total_available: number;
+  reorder_point: number;
+  warehouse_count: number;
+  warehouses: Array<{
+    warehouse_id: string;
+    warehouse_name: string;
+    quantity: number;
+    reserved: number;
+    available: number;
+  }>;
+  stock_status: "in-stock" | "low-stock" | "out-of-stock";
+  last_movement_date: string | null;
+}
+
+export function useOrganizationInventory(filters: InventoryFilters = {}) {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["organization-inventory", filters],
+    queryFn: async () => {
+      // Start with base query
+      let query = supabase.from("inventory_details").select(`
+          product_id,
+          product_name,
+          product_sku,
+          quantity,
+          reserved_quantity,
+          available_quantity,
+          reorder_point,
+          warehouse_id,
+          warehouse_name,
+          category_id,
+          subcategory_id,
+          updated_at
+        `);
+
+      // Apply search filter
+      if (filters.search) {
+        query = query.or(
+          `product_name.ilike.%${filters.search}%,product_sku.ilike.%${filters.search}%`
+        );
+      }
+
+      // Apply category filter
+      if (filters.categoryId) {
+        query = query.eq("category_id", filters.categoryId);
+      }
+
+      // Apply subcategory filter
+      if (filters.subcategoryId) {
+        query = query.eq("subcategory_id", filters.subcategoryId);
+      }
+
+      // Apply warehouse filter
+      if (filters.warehouseId) {
+        query = query.eq("warehouse_id", filters.warehouseId);
+      }
+
+      const { data: inventoryData, error } = await query;
+
+      if (error) throw error;
+
+      // Get category and subcategory names
+      const categoryIds = [
+        ...new Set(inventoryData?.map((item) => item.category_id).filter(Boolean)),
+      ];
+      const subcategoryIds = [
+        ...new Set(inventoryData?.map((item) => item.subcategory_id).filter(Boolean)),
+      ];
+
+      const { data: categories } = await supabase
+        .from("categories")
+        .select("id, name")
+        .in("id", categoryIds);
+
+      const { data: subcategories } = await supabase
+        .from("subcategories")
+        .select("id, name")
+        .in("id", subcategoryIds);
+
+      const categoryMap = new Map(categories?.map((c) => [c.id, c.name]));
+      const subcategoryMap = new Map(subcategories?.map((s) => [s.id, s.name]));
+
+      // Group by product
+      const productGroups = inventoryData?.reduce(
+        (acc: Record<string, (typeof inventoryData)[0][]>, item) => {
+          if (!acc[item.product_id]) {
+            acc[item.product_id] = [];
+          }
+          acc[item.product_id].push(item);
+          return acc;
+        },
+        {}
+      );
+
+      // Transform to organization inventory items
+      let items: OrganizationInventoryItem[] = Object.entries(productGroups || {}).map(
+        ([productId, warehouses]) => {
+          const firstItem = warehouses[0];
+          const totalQuantity = warehouses.reduce((sum, w) => sum + w.quantity, 0);
+          const totalReserved = warehouses.reduce((sum, w) => sum + w.reserved_quantity, 0);
+          const totalAvailable = warehouses.reduce((sum, w) => sum + w.available_quantity, 0);
+          const maxReorderPoint = Math.max(...warehouses.map((w) => w.reorder_point || 0));
+
+          // Determine stock status
+          let stockStatus: "in-stock" | "low-stock" | "out-of-stock";
+          if (totalQuantity === 0) {
+            stockStatus = "out-of-stock";
+          } else if (totalQuantity <= maxReorderPoint) {
+            stockStatus = "low-stock";
+          } else {
+            stockStatus = "in-stock";
+          }
+
+          return {
+            product_id: productId,
+            product_name: firstItem.product_name,
+            product_sku: firstItem.product_sku,
+            category_name: categoryMap.get(firstItem.category_id) || "Uncategorized",
+            subcategory_name: firstItem.subcategory_id
+              ? subcategoryMap.get(firstItem.subcategory_id) || null
+              : null,
+            total_quantity: totalQuantity,
+            total_reserved: totalReserved,
+            total_available: totalAvailable,
+            reorder_point: maxReorderPoint,
+            warehouse_count: warehouses.length,
+            warehouses: warehouses.map((w) => ({
+              warehouse_id: w.warehouse_id,
+              warehouse_name: w.warehouse_name,
+              quantity: w.quantity,
+              reserved: w.reserved_quantity,
+              available: w.available_quantity,
+            })),
+            stock_status: stockStatus,
+            last_movement_date: warehouses.reduce((latest, w) => {
+              return !latest || w.updated_at > latest ? w.updated_at : latest;
+            }, null),
+          };
+        }
+      );
+
+      // Apply stock status filter
+      if (filters.stockStatus && filters.stockStatus !== "all") {
+        items = items.filter((item) => item.stock_status === filters.stockStatus);
+      }
+
+      // Apply sorting
+      const sortBy = filters.sortBy || "product_name";
+      const sortOrder = filters.sortOrder || "asc";
+
+      items.sort((a, b) => {
+        let aVal, bVal;
+        switch (sortBy) {
+          case "product_name":
+            aVal = a.product_name.toLowerCase();
+            bVal = b.product_name.toLowerCase();
+            break;
+          case "quantity":
+            aVal = a.total_quantity;
+            bVal = b.total_quantity;
+            break;
+          case "available":
+            aVal = a.total_available;
+            bVal = b.total_available;
+            break;
+          case "category":
+            aVal = a.category_name.toLowerCase();
+            bVal = b.category_name.toLowerCase();
+            break;
+          case "updated_at":
+            aVal = a.last_movement_date || "";
+            bVal = b.last_movement_date || "";
+            break;
+          default:
+            aVal = a.product_name.toLowerCase();
+            bVal = b.product_name.toLowerCase();
+        }
+
+        if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+
+      // Apply pagination
+      const page = filters.page || 1;
+      const pageSize = filters.pageSize || 50;
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedItems = items.slice(startIndex, endIndex);
+
+      return {
+        items: paginatedItems,
+        totalItems: items.length,
+        totalPages: Math.ceil(items.length / pageSize),
+        currentPage: page,
+        pageSize,
+      };
+    },
   });
 }

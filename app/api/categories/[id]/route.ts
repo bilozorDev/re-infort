@@ -9,10 +9,7 @@ import {
 import { createClient } from "@/app/lib/supabase/server";
 import { updateCategorySchema } from "@/app/lib/validations/product";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { orgId } = await auth();
 
@@ -20,7 +17,8 @@ export async function GET(
       return NextResponse.json({ error: "Organization not found" }, { status: 401 });
     }
 
-    const category = await getCategoryById(params.id, orgId);
+    const { id } = await params;
+    const category = await getCategoryById(id, orgId);
 
     if (!category) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
@@ -28,17 +26,17 @@ export async function GET(
 
     // Get subcategory and product counts
     const supabase = await createClient();
-    
+
     const { count: subcategoryCount } = await supabase
       .from("subcategories")
       .select("*", { count: "exact", head: true })
-      .eq("category_id", params.id)
+      .eq("category_id", id)
       .eq("organization_clerk_id", orgId);
 
     const { count: productCount } = await supabase
       .from("products")
       .select("*", { count: "exact", head: true })
-      .eq("category_id", params.id)
+      .eq("category_id", id)
       .eq("organization_clerk_id", orgId);
 
     return NextResponse.json({
@@ -55,10 +53,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { orgId } = await auth();
 
@@ -69,7 +64,8 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateCategorySchema.parse(body);
 
-    const category = await updateCategory(params.id, validatedData, orgId);
+    const { id } = await params;
+    const category = await updateCategory(id, validatedData, orgId);
 
     return NextResponse.json(category);
   } catch (error) {
@@ -89,7 +85,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { orgId } = await auth();
@@ -98,6 +94,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     // Check if this is a force delete
     const url = new URL(request.url);
     const forceDelete = url.searchParams.get("force") === "true";
@@ -105,27 +103,27 @@ export async function DELETE(
     if (!forceDelete) {
       // Check for existing subcategories and products
       const supabase = await createClient();
-      
+
       const { count: subcategoryCount } = await supabase
         .from("subcategories")
         .select("*", { count: "exact", head: true })
-        .eq("category_id", params.id)
+        .eq("category_id", id)
         .eq("organization_clerk_id", orgId);
 
       const { count: productCount } = await supabase
         .from("products")
         .select("*", { count: "exact", head: true })
-        .eq("category_id", params.id)
+        .eq("category_id", id)
         .eq("organization_clerk_id", orgId);
 
       // Return counts so frontend can show appropriate warning
       if (subcategoryCount || productCount) {
         return NextResponse.json(
-          { 
+          {
             error: "Category has dependencies",
             subcategory_count: subcategoryCount || 0,
             product_count: productCount || 0,
-            message: `This category has ${subcategoryCount || 0} subcategories and ${productCount || 0} products. Deleting will remove all subcategories and unassign products.`
+            message: `This category has ${subcategoryCount || 0} subcategories and ${productCount || 0} products. Deleting will remove all subcategories and unassign products.`,
           },
           { status: 409 }
         );
@@ -133,7 +131,7 @@ export async function DELETE(
     }
 
     // Proceed with deletion (force or no dependencies)
-    await deleteCategory(params.id, orgId, forceDelete);
+    await deleteCategory(id, orgId, forceDelete);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

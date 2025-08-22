@@ -10,7 +10,7 @@ import { updateWarehouseSchema } from "@/app/lib/validations/warehouse";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 // GET /api/warehouses/[id] - Get a single warehouse
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -22,7 +22,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const warehouse = await getWarehouseById(params.id, orgId);
+    const { id } = await params;
+    const warehouse = await getWarehouseById(id, orgId);
     if (!warehouse) {
       return NextResponse.json({ error: "Warehouse not found" }, { status: 404 });
     }
@@ -35,7 +36,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // PUT /api/warehouses/[id] - Update a warehouse
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -66,7 +67,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       );
     }
 
-    const warehouse = await updateWarehouse(params.id, validationResult.data, orgId);
+    const { id } = await params;
+    const warehouse = await updateWarehouse(id, validationResult.data, orgId);
     return NextResponse.json(warehouse);
   } catch (error) {
     console.error("Error updating warehouse:", error);
@@ -76,15 +78,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: errorMessage }, { status: 404 });
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 // DELETE /api/warehouses/[id] - Delete a warehouse
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -104,8 +103,10 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
+    const { id } = await params;
+
     // TODO: Check if warehouse has any products before allowing deletion
-    // const productCount = await getProductCountByWarehouse(params.id, orgId);
+    // const productCount = await getProductCountByWarehouse(id, orgId);
     // if (productCount > 0) {
     //   return NextResponse.json(
     //     { error: `Cannot delete warehouse with ${productCount} products. Please reassign or remove products first.` },
@@ -113,7 +114,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     //   );
     // }
 
-    await deleteWarehouse(params.id, orgId);
+    await deleteWarehouse(id, orgId);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting warehouse:", error);

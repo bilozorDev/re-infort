@@ -1,26 +1,22 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  deleteProduct,
-  getProductById,
-  updateProduct,
-} from "@/app/lib/services/product.service";
+import { deleteProduct, getProductById, updateProduct } from "@/app/lib/services/product.service";
 import { createMockProduct } from "@/app/test-utils/types";
 import type { ProductWithCategory } from "@/app/types/product";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
-import { DELETE,GET, PATCH } from "./route";
+import { DELETE, GET, PATCH } from "./route";
 
 vi.mock("@/app/lib/services/product.service");
 vi.mock("@/app/utils/roles");
 
 const createRequest = (method: string, body?: unknown): NextRequest => {
   const url = "http://localhost:3000/api/products/prod_123";
-  const init = { 
-    method, 
-    headers: body ? { "Content-Type": "application/json" } : undefined, 
-    body: body ? JSON.stringify(body) : undefined 
+  const init = {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
   };
   return new NextRequest(url, init);
 };
@@ -31,7 +27,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -43,7 +39,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getProductById).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -64,7 +60,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getProductById).mockResolvedValue(mockProduct as ProductWithCategory);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -77,7 +73,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getProductById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "prod_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -92,7 +88,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "prod_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -111,7 +107,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(updateProduct).mockResolvedValue(mockUpdated as ProductWithCategory);
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "prod_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -123,7 +119,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(updateProduct).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "prod_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -136,7 +132,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "prod_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -148,7 +144,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(deleteProduct).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "prod_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -161,7 +157,7 @@ describe("Products [id] API Route", () => {
       vi.mocked(deleteProduct).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "prod_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "prod_123" }) });
 
       expect(response.status).toBe(400);
       const data = await response.json();

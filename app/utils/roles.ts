@@ -9,9 +9,11 @@ interface CustomSessionClaims {
     id?: string;
     rol?: string;
   };
-  metadata?: string | {
-    role?: UserRole;
-  };
+  metadata?:
+    | string
+    | {
+        role?: UserRole;
+      };
 }
 
 /**
@@ -22,7 +24,7 @@ export async function checkRole(role: UserRole): Promise<boolean> {
 
   // Type-safe access to custom claims
   const customClaims = sessionClaims as CustomSessionClaims | null;
-  
+
   // Check organization role from Clerk (o.rol in JWT)
   const orgRole = customClaims?.o?.rol;
 
@@ -46,13 +48,18 @@ export async function getCurrentUserRole(): Promise<UserRole | undefined> {
 
   // Type-safe access to custom claims
   const customClaims = sessionClaims as CustomSessionClaims | null;
-  
+
   // Check organization role from Clerk (o.rol in JWT)
   const orgRole = customClaims?.o?.rol;
 
   // If user has org admin role, return admin
   if (orgRole === "admin") {
     return "admin";
+  }
+
+  // If user has org member role, return member
+  if (orgRole === "member") {
+    return "member";
   }
 
   // Check metadata - it might be a string like "org:admin" or an object
@@ -76,10 +83,10 @@ export async function isAdmin(): Promise<boolean> {
  */
 export async function getCurrentOrgId(): Promise<string | null> {
   const { sessionClaims } = await auth();
-  
+
   // Type-safe access to custom claims
   const customClaims = sessionClaims as CustomSessionClaims | null;
-  
+
   // Organization ID is in o.id in Clerk's JWT structure
   return customClaims?.o?.id || customClaims?.org_id || null;
 }

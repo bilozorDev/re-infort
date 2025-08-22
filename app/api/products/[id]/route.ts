@@ -1,17 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  deleteProduct,
-  getProductById,
-  updateProduct,
-} from "@/app/lib/services/product.service";
+import { deleteProduct, getProductById, updateProduct } from "@/app/lib/services/product.service";
 import { updateProductSchema } from "@/app/lib/validations/product";
 import { getCurrentOrgId } from "@/app/utils/roles";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const orgId = await getCurrentOrgId();
 
@@ -19,7 +12,8 @@ export async function GET(
       return NextResponse.json({ error: "Organization not found" }, { status: 401 });
     }
 
-    const product = await getProductById(params.id, orgId);
+    const { id } = await params;
+    const product = await getProductById(id, orgId);
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -35,10 +29,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const orgId = await getCurrentOrgId();
 
@@ -49,7 +40,8 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateProductSchema.parse(body);
 
-    const product = await updateProduct(params.id, validatedData, orgId);
+    const { id } = await params;
+    const product = await updateProduct(id, validatedData, orgId);
 
     return NextResponse.json(product);
   } catch (error) {
@@ -66,7 +58,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const orgId = await getCurrentOrgId();
@@ -75,7 +67,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await deleteProduct(params.id, orgId);
+    const { id } = await params;
+    await deleteProduct(id, orgId);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

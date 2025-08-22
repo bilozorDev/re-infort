@@ -3,6 +3,8 @@
 import { ArrowDownTrayIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
+import { Select } from "@/app/components/ui/form/select";
+import { TextField } from "@/app/components/ui/form/text-field";
 import { useStockMovements } from "@/app/hooks/use-stock-movements";
 import { exportToCSV } from "@/app/lib/utils/export";
 import { formatDate } from "@/app/lib/utils/table";
@@ -25,7 +27,7 @@ const movementTypes = [
 export function MovementsTab({ productId }: MovementsTabProps) {
   const [selectedType, setSelectedType] = useState("all");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  
+
   const { data: movements, isLoading } = useStockMovements(productId, {
     type: selectedType === "all" ? undefined : selectedType,
     startDate: dateRange.start || undefined,
@@ -68,7 +70,7 @@ export function MovementsTab({ productId }: MovementsTabProps) {
     }
   };
 
-  const getMovementDirection = (movement: { 
+  const getMovementDirection = (movement: {
     movement_type: string;
     from_warehouse_id?: string | null;
     from_warehouse_name?: string | null;
@@ -91,46 +93,33 @@ export function MovementsTab({ productId }: MovementsTabProps) {
       <div className="bg-white shadow rounded-lg px-6 py-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label htmlFor="movement-type" className="block text-sm font-medium text-gray-700 mb-1">
-              Movement Type
-            </label>
-            <select
+            <Select
               id="movement-type"
+              label="Movement Type"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            >
-              {movementTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex-1 min-w-[150px]">
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
-            </label>
-            <input
-              type="date"
-              id="start-date"
-              value={dateRange.start}
-              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              options={movementTypes}
+              placeholder="Select movement type"
             />
           </div>
 
           <div className="flex-1 min-w-[150px]">
-            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
-              End Date
-            </label>
-            <input
+            <TextField
+              type="date"
+              id="start-date"
+              label="Start Date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            />
+          </div>
+
+          <div className="flex-1 min-w-[150px]">
+            <TextField
               type="date"
               id="end-date"
+              label="End Date"
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -218,8 +207,8 @@ export function MovementsTab({ productId }: MovementsTabProps) {
                           movement.status === "completed"
                             ? "bg-green-100 text-green-800"
                             : movement.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                         }`}
                       >
                         {movement.status}

@@ -6,13 +6,10 @@ import {
   getWarehouseById,
   updateWarehouse,
 } from "@/app/lib/services/warehouse.service";
-import {
-  createAuthenticatedMock,
-  createUnauthenticatedMock,
-} from "@/app/test-utils/clerk-mocks";
+import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
-import { DELETE,GET, PUT } from "./route";
+import { DELETE, GET, PUT } from "./route";
 
 vi.mock("@clerk/nextjs/server");
 vi.mock("@/app/lib/services/warehouse.service");
@@ -34,7 +31,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "wh_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -46,7 +43,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "wh_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -80,7 +77,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(getWarehouseById).mockResolvedValue(mockWarehouse);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "wh_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -94,7 +91,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(getWarehouseById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "wh_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -109,7 +106,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -121,7 +118,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -134,7 +131,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -169,17 +166,21 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(updateWarehouse).mockResolvedValue(mockUpdated);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toEqual(mockUpdated);
-      expect(updateWarehouse).toHaveBeenCalledWith("wh_123", {
-        name: "Updated Warehouse",
-        city: "New York",
-        status: "active",
-        is_default: false
-      }, "org_123");
+      expect(updateWarehouse).toHaveBeenCalledWith(
+        "wh_123",
+        {
+          name: "Updated Warehouse",
+          city: "New York",
+          status: "active",
+          is_default: false,
+        },
+        "org_123"
+      );
     });
 
     it("should handle duplicate name error", async () => {
@@ -191,7 +192,7 @@ describe("Warehouses [id] API Route", () => {
       );
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -205,7 +206,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(updateWarehouse).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "wh_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -218,7 +219,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "wh_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -230,7 +231,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "wh_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -243,7 +244,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "wh_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -257,7 +258,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(deleteWarehouse).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "wh_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -272,7 +273,7 @@ describe("Warehouses [id] API Route", () => {
       vi.mocked(deleteWarehouse).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "wh_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "wh_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

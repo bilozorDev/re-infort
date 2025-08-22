@@ -6,9 +6,9 @@ import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 import { ProductDetailClient } from "./ProductDetailClient";
 
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -24,12 +24,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   }
 
   const userIsAdmin = await isAdmin();
+  const { id } = await params;
 
-  return (
-    <ProductDetailClient 
-      productId={params.id} 
-      isAdmin={userIsAdmin} 
-      organizationId={orgId} 
-    />
-  );
+  return <ProductDetailClient productId={id} isAdmin={userIsAdmin} organizationId={orgId} />;
 }
