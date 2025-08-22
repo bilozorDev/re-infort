@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 
@@ -21,10 +22,31 @@ const tabs = [
   { name: "Reports", value: "reports" },
 ] as const;
 
-type TabValue = typeof tabs[number]["value"];
+type TabValue = (typeof tabs)[number]["value"];
 
 export function InventoryClient({ isAdmin, organizationId }: InventoryClientProps) {
-  const [activeTab, setActiveTab] = useState<TabValue>("dashboard");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = (searchParams.get("tab") as TabValue) || "dashboard";
+
+  const setActiveTab = useCallback(
+    (tab: TabValue) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (tab === "dashboard") {
+        // Remove tab param for default view to keep URL clean
+        params.delete("tab");
+      } else {
+        params.set("tab", tab);
+      }
+
+      const query = params.toString();
+      const url = query ? `?${query}` : window.location.pathname;
+      router.push(url, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   return (
     <div className="space-y-6">
@@ -66,12 +88,8 @@ export function InventoryClient({ isAdmin, organizationId }: InventoryClientProp
           {activeTab === "stock-levels" && (
             <StockLevelsView isAdmin={isAdmin} organizationId={organizationId} />
           )}
-          {activeTab === "movements" && (
-            <MovementsView isAdmin={isAdmin} />
-          )}
-          {activeTab === "reports" && (
-            <ReportsView organizationId={organizationId} />
-          )}
+          {activeTab === "movements" && <MovementsView isAdmin={isAdmin} />}
+          {activeTab === "reports" && <ReportsView organizationId={organizationId} />}
         </ErrorBoundary>
       </div>
     </div>

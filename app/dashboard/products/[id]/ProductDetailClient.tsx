@@ -2,8 +2,8 @@
 
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 
 import { useProduct } from "@/app/hooks/use-products";
 
@@ -25,12 +25,36 @@ const tabs = [
   { name: "Analytics", value: "analytics" },
 ] as const;
 
-type TabValue = typeof tabs[number]["value"];
+type TabValue = (typeof tabs)[number]["value"];
 
-export function ProductDetailClient({ productId, isAdmin, organizationId }: ProductDetailClientProps) {
+export function ProductDetailClient({
+  productId,
+  isAdmin,
+  organizationId,
+}: ProductDetailClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabValue>("overview");
+  const searchParams = useSearchParams();
   const { data: product, isLoading, error } = useProduct(productId);
+
+  const activeTab = (searchParams.get("tab") as TabValue) || "overview";
+
+  const setActiveTab = useCallback(
+    (tab: TabValue) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (tab === "overview") {
+        // Remove tab param for default view to keep URL clean
+        params.delete("tab");
+      } else {
+        params.set("tab", tab);
+      }
+
+      const query = params.toString();
+      const url = query ? `?${query}` : window.location.pathname;
+      router.push(url, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   if (isLoading) {
     return (
@@ -107,10 +131,10 @@ export function ProductDetailClient({ productId, isAdmin, organizationId }: Prod
               product.status === "active"
                 ? "bg-green-100 text-green-800"
                 : product.status === "inactive"
-                ? "bg-gray-100 text-gray-800"
-                : product.status === "draft"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
+                  ? "bg-gray-100 text-gray-800"
+                  : product.status === "draft"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-800"
             }`}
           >
             {product.status}
@@ -142,15 +166,9 @@ export function ProductDetailClient({ productId, isAdmin, organizationId }: Prod
         {activeTab === "overview" && (
           <OverviewTab product={product} isAdmin={isAdmin} organizationId={organizationId} />
         )}
-        {activeTab === "inventory" && (
-          <InventoryTab productId={productId} isAdmin={isAdmin} />
-        )}
-        {activeTab === "movements" && (
-          <MovementsTab productId={productId} />
-        )}
-        {activeTab === "analytics" && (
-          <AnalyticsTab productId={productId} />
-        )}
+        {activeTab === "inventory" && <InventoryTab productId={productId} isAdmin={isAdmin} />}
+        {activeTab === "movements" && <MovementsTab productId={productId} />}
+        {activeTab === "analytics" && <AnalyticsTab productId={productId} />}
       </div>
     </div>
   );
