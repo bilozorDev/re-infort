@@ -145,7 +145,7 @@ export function TransferModal({ productId, isOpen, onClose }: TransferModalProps
                       .filter((inv) => inv.warehouse_id !== fromWarehouseValue)
                       .map((inv) => ({
                         value: inv.warehouse_id,
-                        label: inv.warehouse_name,
+                        label: `${inv.warehouse_name} (Current: ${inv.quantity || 0})`,
                       }));
 
                     return (

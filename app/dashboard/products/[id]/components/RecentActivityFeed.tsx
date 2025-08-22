@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowDownIcon, ArrowsRightLeftIcon, ArrowUpIcon, PencilIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownIcon,
+  ArrowsRightLeftIcon,
+  ArrowUpIcon,
+  PencilIcon,
+} from "@heroicons/react/24/outline";
 
 import { useRecentMovements } from "@/app/hooks/use-stock-movements";
 import { formatDate } from "@/app/lib/utils/table";
@@ -30,7 +35,7 @@ export function RecentActivityFeed({ productId }: RecentActivityFeedProps) {
     }
   };
 
-  const getMovementText = (movement: { 
+  const getMovementText = (movement: {
     movement_type: string;
     quantity: number;
     to_warehouse_name?: string | null;
@@ -46,7 +51,7 @@ export function RecentActivityFeed({ productId }: RecentActivityFeedProps) {
       case "transfer":
         return `Transferred ${quantity} units from ${movement.from_warehouse_name} to ${movement.to_warehouse_name}`;
       case "adjustment":
-        return movement.from_warehouse_id 
+        return movement.from_warehouse_id
           ? `Adjusted -${quantity} units at ${movement.from_warehouse_name}`
           : `Adjusted +${quantity} units at ${movement.to_warehouse_name}`;
       case "return":
@@ -88,16 +93,15 @@ export function RecentActivityFeed({ productId }: RecentActivityFeedProps) {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">
-                    {getMovementText(movement)}
-                  </p>
+                  <p className="text-sm text-gray-900">{getMovementText(movement)}</p>
                   {movement.reason && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Reason: {movement.reason}
-                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Reason: {movement.reason}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
                     {formatDate(movement.created_at)}
+                    {movement.created_by_name && (
+                      <span className="ml-2">by {movement.created_by_name}</span>
+                    )}
                   </p>
                 </div>
               </div>

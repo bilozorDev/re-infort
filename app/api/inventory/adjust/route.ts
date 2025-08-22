@@ -6,13 +6,13 @@ import { createClient } from "@/app/lib/supabase/server";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 import { getCurrentUserName } from "@/app/utils/user";
 
-interface TransferRequest {
+interface AdjustRequest {
   productId: string;
-  fromWarehouseId: string;
-  toWarehouseId: string;
+  warehouseId: string;
   quantity: number;
+  movementType: string;
   reason?: string;
-  notes?: string;
+  referenceNumber?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const userIsAdmin = await isAdmin();
     if (!userIsAdmin) {
       return NextResponse.json(
-        { error: "Only administrators can transfer inventory" },
+        { error: "Only administrators can adjust inventory" },
         { status: 403 }
       );
     }
@@ -39,25 +39,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const body: TransferRequest = await request.json();
-    const { productId, fromWarehouseId, toWarehouseId, quantity, reason, notes } = body;
+    const body: AdjustRequest = await request.json();
+    const { productId, warehouseId, quantity, movementType, reason, referenceNumber } = body;
 
     // Validate required fields
-    if (!productId || !fromWarehouseId || !toWarehouseId || !quantity) {
+    if (!productId || !warehouseId || quantity === undefined || !movementType) {
       return NextResponse.json(
-        { error: "Missing required fields: productId, fromWarehouseId, toWarehouseId, quantity" },
+        { error: "Missing required fields: productId, warehouseId, quantity, movementType" },
         { status: 400 }
       );
-    }
-
-    // Validate quantity is positive
-    if (quantity <= 0) {
-      return NextResponse.json({ error: "Quantity must be a positive number" }, { status: 400 });
-    }
-
-    // Validate not transferring to same warehouse
-    if (fromWarehouseId === toWarehouseId) {
-      return NextResponse.json({ error: "Cannot transfer to the same warehouse" }, { status: 400 });
     }
 
     // Get current user's name for audit trail
@@ -66,28 +56,29 @@ export async function POST(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient();
 
-    // Call the transfer_inventory RPC function with user name
-    const { data, error } = await supabase.rpc("transfer_inventory", {
+    // Call the adjust_inventory RPC function with user name
+    const { data, error } = await supabase.rpc("adjust_inventory", {
       p_product_id: productId,
-      p_from_warehouse_id: fromWarehouseId,
-      p_to_warehouse_id: toWarehouseId,
-      p_quantity: quantity,
+      p_warehouse_id: warehouseId,
+      p_quantity_change: quantity,
+      p_movement_type: movementType,
       p_reason: reason,
-      p_notes: notes,
+      p_reference_number: referenceNumber,
+      p_reference_type: null,
       p_user_name: userName,
     });
 
     if (error) {
-      console.error("Transfer inventory error:", error);
+      console.error("Adjust inventory error:", error);
       return NextResponse.json(
-        { error: error.message || "Failed to transfer inventory" },
+        { error: error.message || "Failed to adjust inventory" },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error("Transfer inventory API error:", error);
+    console.error("Adjust inventory API error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -22,6 +22,7 @@ export interface StockMovement {
   status: string;
   created_at: string;
   created_by_clerk_user_id: string;
+  created_by_name?: string;
 }
 
 interface MovementFilters {
@@ -39,9 +40,7 @@ export function useStockMovements(productId?: string, filters?: MovementFilters)
   return useQuery({
     queryKey: ["stock-movements", productId, filters],
     queryFn: async () => {
-      let query = supabase
-        .from("stock_movements_details")
-        .select("*");
+      let query = supabase.from("stock_movements_details").select("*");
 
       // Apply product filter if provided
       if (productId) {
@@ -116,9 +115,7 @@ export function useOrganizationMovements(filters?: MovementFilters) {
   return useQuery({
     queryKey: ["organization-movements", filters],
     queryFn: async () => {
-      let query = supabase
-        .from("stock_movements_details")
-        .select("*");
+      let query = supabase.from("stock_movements_details").select("*");
 
       // Apply filters
       if (filters?.type) {
@@ -185,14 +182,17 @@ export function useMovementStatistics(period: string = "30d") {
       const avgMovementSize = totalMovements > 0 ? totalQuantityMoved / totalMovements : 0;
 
       // Get top products by movement
-      const productMovements = movements?.reduce((acc: Record<string, { count: number; quantity: number }>, m) => {
-        if (!acc[m.product_id]) {
-          acc[m.product_id] = { count: 0, quantity: 0 };
-        }
-        acc[m.product_id].count++;
-        acc[m.product_id].quantity += m.quantity;
-        return acc;
-      }, {});
+      const productMovements = movements?.reduce(
+        (acc: Record<string, { count: number; quantity: number }>, m) => {
+          if (!acc[m.product_id]) {
+            acc[m.product_id] = { count: 0, quantity: 0 };
+          }
+          acc[m.product_id].count++;
+          acc[m.product_id].quantity += m.quantity;
+          return acc;
+        },
+        {}
+      );
 
       return {
         totalMovements,

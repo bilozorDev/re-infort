@@ -141,22 +141,32 @@ export function useProductWarehouseInventory(productId: string) {
 
 // Hook to adjust stock
 export function useAdjustStock() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params: AdjustStockParams) => {
-      const { data, error } = await supabase.rpc("adjust_inventory", {
-        p_product_id: params.productId,
-        p_warehouse_id: params.warehouseId,
-        p_quantity_change: params.quantity,
-        p_movement_type: params.movementType,
-        p_reason: params.reason,
-        p_reference_number: params.referenceNumber,
+      // Get current user name for audit trail
+      const response = await fetch("/api/inventory/adjust", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: params.productId,
+          warehouseId: params.warehouseId,
+          quantity: params.quantity,
+          movementType: params.movementType,
+          reason: params.reason,
+          referenceNumber: params.referenceNumber,
+        }),
       });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to adjust inventory");
+      }
+
+      return response.json();
     },
     onSuccess: (_, variables) => {
       // Invalidate related queries
@@ -165,6 +175,7 @@ export function useAdjustStock() {
         queryKey: ["product-warehouse-inventory", variables.productId],
       });
       queryClient.invalidateQueries({ queryKey: ["stock-movements", variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ["recent-movements", variables.productId] });
       queryClient.invalidateQueries({ queryKey: ["inventory-analytics", variables.productId] });
     },
   });
@@ -205,6 +216,7 @@ export function useTransferStock() {
         queryKey: ["product-warehouse-inventory", variables.productId],
       });
       queryClient.invalidateQueries({ queryKey: ["stock-movements", variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ["recent-movements", variables.productId] });
       queryClient.invalidateQueries({ queryKey: ["inventory-analytics", variables.productId] });
     },
   });

@@ -54,8 +54,9 @@ export async function getProductTotalInventory(
 ): Promise<ProductInventorySummary> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .rpc("get_product_total_inventory", { p_product_id: productId });
+  const { data, error } = await supabase.rpc("get_product_total_inventory", {
+    p_product_id: productId,
+  });
 
   if (error) {
     throw new Error(`Failed to fetch product total inventory: ${error.message}`);
@@ -63,19 +64,19 @@ export async function getProductTotalInventory(
 
   // The function returns an array, get the first element
   const result = data?.[0];
-  
-  return result || {
-    total_quantity: 0,
-    total_reserved: 0,
-    total_available: 0,
-    warehouse_count: 0,
-    warehouses: [],
-  };
+
+  return (
+    result || {
+      total_quantity: 0,
+      total_reserved: 0,
+      total_available: 0,
+      warehouse_count: 0,
+      warehouses: [],
+    }
+  );
 }
 
-export async function adjustInventory(
-  adjustment: InventoryAdjustment
-): Promise<{
+export async function adjustInventory(adjustment: InventoryAdjustment): Promise<{
   success: boolean;
   inventory_id: string;
   movement_id: string;
@@ -102,9 +103,7 @@ export async function adjustInventory(
   return data;
 }
 
-export async function transferInventory(
-  transfer: InventoryTransfer
-): Promise<{
+export async function transferInventory(transfer: InventoryTransfer): Promise<{
   success: boolean;
   movement_id: string;
   from_warehouse_id: string;
@@ -252,9 +251,7 @@ export async function getRecentMovements(
   return data || [];
 }
 
-export async function getLowStockItems(
-  organizationId: string
-): Promise<InventoryWithDetails[]> {
+export async function getLowStockItems(organizationId: string): Promise<InventoryWithDetails[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -275,7 +272,8 @@ export async function getLowStockItems(
 export async function createManualMovement(
   input: CreateStockMovementInput,
   organizationId: string,
-  userId: string
+  userId: string,
+  userName: string
 ): Promise<StockMovement> {
   const supabase = await createClient();
 
@@ -285,6 +283,7 @@ export async function createManualMovement(
       ...input,
       organization_clerk_id: organizationId,
       created_by_clerk_user_id: userId,
+      created_by_name: userName,
     })
     .select()
     .single();

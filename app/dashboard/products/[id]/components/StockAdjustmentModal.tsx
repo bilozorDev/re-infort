@@ -6,7 +6,7 @@ import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
-import { useAdjustStock } from "@/app/hooks/use-inventory";
+import { useAdjustStock, useProductWarehouseInventory } from "@/app/hooks/use-inventory";
 import { useWarehouses } from "@/app/hooks/use-warehouses";
 
 interface StockAdjustmentModalProps {
@@ -25,6 +25,7 @@ export function StockAdjustmentModal({
   onClose,
 }: StockAdjustmentModalProps) {
   const { data: warehouses } = useWarehouses();
+  const { data: inventory } = useProductWarehouseInventory(productId);
   const adjustStock = useAdjustStock();
 
   const form = useForm({
@@ -59,11 +60,33 @@ export function StockAdjustmentModal({
     }
   }, [warehouseId, form]);
 
-  const warehouseOptions =
-    warehouses?.map((warehouse) => ({
-      value: warehouse.id,
-      label: warehouse.name,
-    })) || [];
+  // Get active warehouses with inventory information
+  const activeWarehouses = warehouses?.filter((w) => w.status === "active") || [];
+
+  // Create warehouse options based on operation type
+  const warehouseOptions = activeWarehouses.map((warehouse) => {
+    const warehouseInventory = inventory?.find((inv) => inv.warehouse_id === warehouse.id);
+    const currentStock = warehouseInventory?.quantity || 0;
+    const availableStock = warehouseInventory?.available_quantity || 0;
+
+    if (type === "remove") {
+      return {
+        value: warehouse.id,
+        label:
+          availableStock > 0
+            ? `${warehouse.name} (Available: ${availableStock})`
+            : `${warehouse.name} (No stock available)`,
+        disabled: availableStock === 0,
+      };
+    } else {
+      // For "add" operation, show current stock
+      return {
+        value: warehouse.id,
+        label: `${warehouse.name} (Current: ${currentStock})`,
+        disabled: false,
+      };
+    }
+  });
 
   const isSubmitting = adjustStock.isPending;
 
@@ -104,7 +127,21 @@ export function StockAdjustmentModal({
                   validators={{
                     onChange: ({ value }: { value: string }) => {
                       if (!value) return "Warehouse is required";
+                      // For remove operation, check if warehouse has stock
+                      if (type === "remove") {
+                        const selectedWarehouse = warehouseOptions.find((w) => w.value === value);
+                        if (selectedWarehouse?.disabled) {
+                          return "Selected warehouse has no available stock";
+                        }
+                      }
                       return undefined;
+                    },
+                  }}
+                  listeners={{
+                    onChange: () => {
+                      // Reset quantity when warehouse changes
+                      form.setFieldValue("quantity", "");
+                      form.setFieldMeta("quantity", (prev) => ({ ...prev, isTouched: false }));
                     },
                   }}
                 >
@@ -124,25 +161,82 @@ export function StockAdjustmentModal({
                 <form.Field
                   name="quantity"
                   validators={{
-                    onChange: ({ value }: { value: string }) => {
+                    onChangeListenTo: ["warehouseId"],
+                    onChange: ({ value, fieldApi }) => {
+                      // Skip validation if field hasn't been touched and is empty
+                      if (!fieldApi.state.meta.isTouched && !value) {
+                        return undefined;
+                      }
                       if (!value) return "Quantity is required";
                       const num = parseInt(value);
                       if (isNaN(num) || num <= 0) return "Quantity must be a positive number";
+
+                      // For remove operation, validate against available stock
+                      if (type === "remove") {
+                        const selectedWarehouseId = fieldApi.form.getFieldValue("warehouseId");
+                        const warehouseInventory = inventory?.find(
+                          (inv) => inv.warehouse_id === selectedWarehouseId
+                        );
+                        const availableStock = warehouseInventory?.available_quantity || 0;
+
+                        if (num > availableStock) {
+                          return `Cannot remove more than ${availableStock} items`;
+                        }
+                      }
+
                       return undefined;
                     },
                   }}
                 >
-                  {(field) => (
-                    <FormField field={field}>
-                      <TextField
-                        type="number"
-                        label="Quantity"
-                        required
-                        min="1"
-                        placeholder="Enter quantity"
-                      />
-                    </FormField>
-                  )}
+                  {(field) => {
+                    // Get selected warehouse data for dynamic UI
+                    const selectedWarehouseId = form.state.values.warehouseId;
+                    const warehouseInventory =
+                      selectedWarehouseId && inventory
+                        ? inventory.find((inv) => inv.warehouse_id === selectedWarehouseId)
+                        : null;
+                    const availableStock = warehouseInventory?.available_quantity || 0;
+                    const currentStock = warehouseInventory?.quantity || 0;
+
+                    // Determine if field should be disabled
+                    const isDisabled =
+                      type === "remove"
+                        ? !selectedWarehouseId || availableStock === 0
+                        : !selectedWarehouseId;
+
+                    // Dynamic placeholder based on operation type
+                    const placeholder =
+                      type === "remove"
+                        ? selectedWarehouseId
+                          ? availableStock > 0
+                            ? `Max: ${availableStock}`
+                            : "No stock available"
+                          : "Select warehouse first"
+                        : selectedWarehouseId
+                          ? `Current stock: ${currentStock}`
+                          : "Select warehouse first";
+
+                    // Helper text for remove operation with no stock
+                    const helperText =
+                      type === "remove" && selectedWarehouseId && availableStock === 0
+                        ? "No available stock in selected warehouse"
+                        : undefined;
+
+                    return (
+                      <FormField field={field} showError={field.state.meta.isTouched}>
+                        <TextField
+                          type="number"
+                          label="Quantity"
+                          required
+                          min="1"
+                          max={type === "remove" ? availableStock : undefined}
+                          placeholder={placeholder}
+                          disabled={isDisabled}
+                          helperText={helperText}
+                        />
+                      </FormField>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="referenceNumber">

@@ -13,12 +13,12 @@ ALTER TABLE stock_movements FORCE ROW LEVEL SECURITY;
 
 -- Test function existence and signatures
 SELECT has_function('public', 'adjust_inventory', 
-    ARRAY['uuid', 'uuid', 'integer', 'text', 'text', 'text', 'text'],
+    ARRAY['uuid', 'uuid', 'integer', 'text', 'text', 'text', 'text', 'text'],
     'adjust_inventory function exists with correct signature'
 );
 
 SELECT has_function('public', 'transfer_inventory',
-    ARRAY['uuid', 'uuid', 'uuid', 'integer', 'text', 'text'],
+    ARRAY['uuid', 'uuid', 'uuid', 'integer', 'text', 'text', 'text'],
     'transfer_inventory function exists with correct signature'
 );
 
@@ -61,7 +61,10 @@ SELECT lives_ok(
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     100, 
     'receipt', 
-    'Initial stock'
+    'Initial stock',
+    NULL,
+    NULL,
+    'Test User'
   )$$,
   'adjust_inventory can add stock to inventory'
 );
@@ -80,7 +83,10 @@ SELECT lives_ok(
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     -30, 
     'sale', 
-    'Test sale'
+    'Test sale',
+    NULL,
+    NULL,
+    'Test User'
   )$$,
   'adjust_inventory can remove stock from inventory'
 );
@@ -99,7 +105,10 @@ SELECT throws_ok(
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
     -100, 
     'sale', 
-    'Too much'
+    'Too much',
+    NULL,
+    NULL,
+    'Test User'
   )$$,
   'P0001',
   'Insufficient stock. Current: 70, Requested change: -100',
@@ -113,7 +122,10 @@ SELECT adjust_inventory(
   'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid, 
   50, 
   'receipt', 
-  'Stock for transfer test'
+  'Stock for transfer test',
+  NULL,
+  NULL,
+  'Test User'
 );
 
 SELECT lives_ok(
@@ -122,7 +134,9 @@ SELECT lives_ok(
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     'f8a9b0c1-d2e3-4567-fabc-890123456789'::uuid,
     20,
-    'Internal transfer'
+    'Internal transfer',
+    NULL,
+    'Test User'
   )$$,
   'transfer_inventory can transfer stock between warehouses'
 );
