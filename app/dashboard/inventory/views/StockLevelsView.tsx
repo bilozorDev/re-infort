@@ -14,6 +14,7 @@ import {
 import React from "react";
 import { useCallback, useMemo, useState } from "react";
 
+import { ProductLink } from "@/app/components/ui/ProductLink";
 import { StockAdjustmentModal } from "@/app/dashboard/products/[id]/components/StockAdjustmentModal";
 import { useCategories } from "@/app/hooks/use-categories";
 import {
@@ -408,9 +409,10 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.product_name}
-                            </div>
+                            <ProductLink
+                              productId={item.product_id}
+                              productName={item.product_name}
+                            />
                             <div className="text-xs text-gray-500">{item.product_sku}</div>
                           </div>
                         </td>
