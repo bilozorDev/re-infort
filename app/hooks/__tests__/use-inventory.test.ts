@@ -180,9 +180,9 @@ describe("useInventory hooks", () => {
     it("should call adjust_inventory RPC with positive quantity", async () => {
       const { useAdjustStock } = await import("../use-inventory");
 
-      mockSupabase.rpc.mockResolvedValueOnce({
-        data: { success: true },
-        error: null,
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
       });
 
       useAdjustStock();
@@ -199,22 +199,28 @@ describe("useInventory hooks", () => {
 
       await mutationFn(params);
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith("adjust_inventory", {
-        p_product_id: "prod-1",
-        p_warehouse_id: "wh-1",
-        p_quantity_change: 50,
-        p_movement_type: "receipt",
-        p_reason: "New stock",
-        p_reference_number: "PO-123",
+      expect(mockFetch).toHaveBeenCalledWith("/api/inventory/adjust", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: "prod-1",
+          warehouseId: "wh-1",
+          quantity: 50,
+          movementType: "receipt",
+          reason: "New stock",
+          referenceNumber: "PO-123",
+        }),
       });
     });
 
     it("should handle negative quantity for stock removal", async () => {
       const { useAdjustStock } = await import("../use-inventory");
 
-      mockSupabase.rpc.mockResolvedValueOnce({
-        data: { success: true },
-        error: null,
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
       });
 
       useAdjustStock();
@@ -230,13 +236,19 @@ describe("useInventory hooks", () => {
 
       await mutationFn(params);
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith("adjust_inventory", {
-        p_product_id: "prod-1",
-        p_warehouse_id: "wh-1",
-        p_quantity_change: -20,
-        p_movement_type: "adjustment",
-        p_reason: "Damaged items",
-        p_reference_number: undefined,
+      expect(mockFetch).toHaveBeenCalledWith("/api/inventory/adjust", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: "prod-1",
+          warehouseId: "wh-1",
+          quantity: -20,
+          movementType: "adjustment",
+          reason: "Damaged items",
+          referenceNumber: undefined,
+        }),
       });
     });
 
@@ -266,9 +278,9 @@ describe("useInventory hooks", () => {
     it("should handle insufficient inventory error", async () => {
       const { useAdjustStock } = await import("../use-inventory");
 
-      mockSupabase.rpc.mockResolvedValueOnce({
-        data: null,
-        error: new Error("Insufficient inventory"),
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: "Insufficient inventory" }),
       });
 
       useAdjustStock();

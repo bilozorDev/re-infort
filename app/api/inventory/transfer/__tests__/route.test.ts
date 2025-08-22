@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAuthenticatedMock, createUnauthenticatedMock } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
+import { getCurrentUserName } from "@/app/utils/user";
 import {
   createClientMock,
   resetSupabaseMocks,
@@ -16,6 +17,7 @@ import { POST } from "../route";
 // Mock dependencies
 vi.mock("@clerk/nextjs/server");
 vi.mock("@/app/utils/roles");
+vi.mock("@/app/utils/user");
 vi.mock("@/app/lib/supabase/server", () => ({
   createClient: createClientMock,
 }));
@@ -45,6 +47,7 @@ describe("Inventory Transfer API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
+      vi.mocked(getCurrentUserName).mockResolvedValue("Test User");
       setSupabaseRpcMockData({ success: true });
 
       const request = createMockRequest(validTransferRequest);
@@ -60,6 +63,7 @@ describe("Inventory Transfer API Route", () => {
         p_quantity: 10,
         p_reason: "Rebalancing stock",
         p_notes: "Moving excess inventory",
+        p_user_name: "Test User",
       });
     });
 
@@ -74,6 +78,7 @@ describe("Inventory Transfer API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
       vi.mocked(isAdmin).mockResolvedValue(true);
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
+      vi.mocked(getCurrentUserName).mockResolvedValue("Test User");
       setSupabaseRpcMockData({ success: true });
 
       const request = createMockRequest(minimalRequest);
@@ -87,6 +92,7 @@ describe("Inventory Transfer API Route", () => {
         p_quantity: 5,
         p_reason: undefined,
         p_notes: undefined,
+        p_user_name: "Test User",
       });
     });
 
@@ -370,6 +376,7 @@ describe("Inventory Transfer API Route", () => {
         vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
         vi.mocked(isAdmin).mockResolvedValue(true);
         vi.mocked(getCurrentOrgId).mockResolvedValue("org_123");
+        vi.mocked(getCurrentUserName).mockResolvedValue("Test User");
       });
 
       it("should handle empty string fields", async () => {
@@ -409,6 +416,7 @@ describe("Inventory Transfer API Route", () => {
           p_quantity: 10.5,
           p_reason: "Rebalancing stock",
           p_notes: "Moving excess inventory",
+          p_user_name: "Test User",
         });
       });
 
@@ -431,6 +439,7 @@ describe("Inventory Transfer API Route", () => {
           p_quantity: 999999,
           p_reason: "Rebalancing stock",
           p_notes: "Moving excess inventory",
+          p_user_name: "Test User",
         });
       });
 
@@ -454,6 +463,7 @@ describe("Inventory Transfer API Route", () => {
           p_quantity: 10,
           p_reason: "A".repeat(500),
           p_notes: "B".repeat(1000),
+          p_user_name: "Test User",
         });
       });
     });

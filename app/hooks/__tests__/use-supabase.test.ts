@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Clerk
 vi.mock("@clerk/nextjs", () => ({
-  useAuth: () => ({
-    getToken: vi.fn(),
-  }),
+  useAuth: vi.fn(),
 }));
 
 // Mock Supabase
@@ -28,6 +26,9 @@ describe("useSupabase", () => {
   });
 
   it("should create a Supabase client with correct configuration", () => {
+    const mockGetToken = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({ getToken: mockGetToken } as never);
+
     const mockClient = { from: vi.fn() };
     vi.mocked(createBrowserClient).mockReturnValue(mockClient as never);
 
@@ -46,7 +47,10 @@ describe("useSupabase", () => {
     expect(result.current).toBe(mockClient);
   });
 
-  it.skip("should use memoization to prevent unnecessary re-renders", () => {
+  it("should use memoization to prevent unnecessary re-renders", () => {
+    const mockGetToken = vi.fn();
+    vi.mocked(useAuth).mockReturnValue({ getToken: mockGetToken } as never);
+
     const mockClient = { from: vi.fn() };
     vi.mocked(createBrowserClient).mockReturnValue(mockClient as never);
 
@@ -61,10 +65,10 @@ describe("useSupabase", () => {
     expect(createBrowserClient).toHaveBeenCalledTimes(1);
   });
 
-  it.skip("should handle custom fetch with authorization token", async () => {
+  it("should handle custom fetch with authorization token", async () => {
     const mockToken = "test-token-123";
-    const mockAuth = vi.mocked(useAuth());
-    mockAuth.getToken.mockResolvedValue(mockToken);
+    const mockGetToken = vi.fn().mockResolvedValue(mockToken);
+    vi.mocked(useAuth).mockReturnValue({ getToken: mockGetToken } as never);
 
     const mockClient = { from: vi.fn() };
     vi.mocked(createBrowserClient).mockReturnValue(mockClient as never);
@@ -85,19 +89,21 @@ describe("useSupabase", () => {
       headers: { "Content-Type": "application/json" },
     });
 
-    expect(mockAuth.getToken).toHaveBeenCalledWith({ template: "supabase" });
+    expect(mockGetToken).toHaveBeenCalledWith({ template: "supabase" });
     expect(mockGlobalFetch).toHaveBeenCalledWith("https://api.example.com", {
       method: "GET",
-      headers: expect.objectContaining({
-        "Content-Type": "application/json",
-        Authorization: "Bearer test-token-123",
-      }),
+      headers: expect.any(Headers),
     });
+
+    // Check headers were set correctly
+    const actualHeaders = mockGlobalFetch.mock.calls[0][1].headers;
+    expect(actualHeaders.get("Content-Type")).toBe("application/json");
+    expect(actualHeaders.get("Authorization")).toBe("Bearer test-token-123");
   });
 
-  it.skip("should handle custom fetch without authorization token", async () => {
-    const mockAuth = vi.mocked(useAuth());
-    mockAuth.getToken.mockResolvedValue(null);
+  it("should handle custom fetch without authorization token", async () => {
+    const mockGetToken = vi.fn().mockResolvedValue(null);
+    vi.mocked(useAuth).mockReturnValue({ getToken: mockGetToken } as never);
 
     const mockClient = { from: vi.fn() };
     vi.mocked(createBrowserClient).mockReturnValue(mockClient as never);
@@ -115,21 +121,25 @@ describe("useSupabase", () => {
     // Test the custom fetch without token
     await customFetch?.("https://api.example.com", {
       method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
-    expect(mockAuth.getToken).toHaveBeenCalledWith({ template: "supabase" });
+    expect(mockGetToken).toHaveBeenCalledWith({ template: "supabase" });
     expect(mockGlobalFetch).toHaveBeenCalledWith("https://api.example.com", {
       method: "GET",
-      headers: expect.not.objectContaining({
-        Authorization: expect.any(String),
-      }),
+      headers: expect.any(Headers),
     });
+
+    // Check that Authorization header was not added
+    const actualHeaders = mockGlobalFetch.mock.calls[0][1].headers;
+    expect(actualHeaders.get("Content-Type")).toBe("application/json");
+    expect(actualHeaders.get("Authorization")).toBeNull();
   });
 
-  it.skip("should handle custom fetch with no options parameter", async () => {
+  it("should handle custom fetch with no options parameter", async () => {
     const mockToken = "test-token-456";
-    const mockAuth = vi.mocked(useAuth());
-    mockAuth.getToken.mockResolvedValue(mockToken);
+    const mockGetToken = vi.fn().mockResolvedValue(mockToken);
+    vi.mocked(useAuth).mockReturnValue({ getToken: mockGetToken } as never);
 
     const mockClient = { from: vi.fn() };
     vi.mocked(createBrowserClient).mockReturnValue(mockClient as never);
@@ -148,9 +158,11 @@ describe("useSupabase", () => {
     await customFetch?.("https://api.example.com");
 
     expect(mockGlobalFetch).toHaveBeenCalledWith("https://api.example.com", {
-      headers: expect.objectContaining({
-        Authorization: "Bearer test-token-456",
-      }),
+      headers: expect.any(Headers),
     });
+
+    // Check that Authorization header was added
+    const actualHeaders = mockGlobalFetch.mock.calls[0][1].headers;
+    expect(actualHeaders.get("Authorization")).toBe("Bearer test-token-456");
   });
 });
