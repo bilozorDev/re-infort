@@ -342,9 +342,6 @@ export function useAllProductsInventory(productIds: string[]) {
             return [productId, null];
           }
 
-          // Log the response to debug
-          console.log(`Inventory for product ${productId}:`, data);
-
           // The RPC function returns an array with one row, so we need to get the first element
           const inventoryData = Array.isArray(data) && data.length > 0 ? data[0] : data;
           return [productId, inventoryData as InventorySummary];

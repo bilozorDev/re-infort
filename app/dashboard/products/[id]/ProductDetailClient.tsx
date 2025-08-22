@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { useProduct } from "@/app/hooks/use-products";
 
 import ProductForm from "../ProductForm";
-import { AnalyticsTab } from "./tabs/AnalyticsTab";
+// import { AnalyticsTab } from "./tabs/AnalyticsTab";
 import { InventoryTab } from "./tabs/InventoryTab";
 import { MovementsTab } from "./tabs/MovementsTab";
 import { OverviewTab } from "./tabs/OverviewTab";
@@ -23,7 +23,7 @@ const tabs = [
   { name: "Overview", value: "overview" },
   { name: "Inventory", value: "inventory" },
   { name: "Movements", value: "movements" },
-  { name: "Analytics", value: "analytics" },
+  // { name: "Analytics", value: "analytics" },
 ] as const;
 
 type TabValue = (typeof tabs)[number]["value"];
@@ -179,7 +179,7 @@ export function ProductDetailClient({
         )}
         {activeTab === "inventory" && <InventoryTab productId={productId} isAdmin={isAdmin} />}
         {activeTab === "movements" && <MovementsTab productId={productId} />}
-        {activeTab === "analytics" && <AnalyticsTab productId={productId} />}
+        {/* {activeTab === "analytics" && <AnalyticsTab productId={productId} />} */}
       </div>
 
       {/* Edit Product Modal */}
