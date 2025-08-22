@@ -1,13 +1,6 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript",
-    "prettier"
-  ],
-  "plugins": [
-    "simple-import-sort",
-    "unused-imports"
-  ],
+  "extends": ["next/core-web-vitals", "next/typescript", "prettier"],
+  "plugins": ["simple-import-sort", "unused-imports"],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -50,5 +43,13 @@
   "parserOptions": {
     "projectService": true,
     "tsconfigRootDir": "."
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
 }
