@@ -1,6 +1,8 @@
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { Logo } from "@/app/components/ui/Logo";
+
 export default function Home() {
   return (
     <div className="min-h-screen">
@@ -8,7 +10,7 @@ export default function Home() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold">Re-infort</h1>
+              <Logo size="4xl" />
             </div>
 
             <div className="flex items-center gap-4">
@@ -44,7 +46,7 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
           <h2 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
-            Welcome to Re-infort
+            Welcome to <Logo className="inline-block" />
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Your application is ready with Clerk authentication and Supabase integration. Start

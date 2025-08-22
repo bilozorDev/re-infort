@@ -1,4 +1,12 @@
 #!/bin/sh
 
+# Run all tests first
+echo "Running tests..."
+npm run test:all
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Please fix tests before committing."
+  exit 1
+fi
+
 # Run lint-staged to check only staged files
 npx lint-staged

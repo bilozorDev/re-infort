@@ -19,6 +19,8 @@ import {
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { Logo } from "@/app/components/ui/Logo";
+
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
   { name: "Products", href: "/dashboard/products", icon: CubeIcon },
@@ -66,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
               <div className="relative flex h-16 shrink-0 items-center">
-                <span className="text-xl font-bold text-indigo-600">Re-infort</span>
+                <Logo size="xl" className="text-indigo-600" />
               </div>
               <nav className="relative flex flex-1 flex-col">
                 <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -132,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="hidden bg-gray-900 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <span className="text-xl font-bold text-indigo-600">Re-infort</span>
+            <Logo size="xl" className="text-indigo-600" />
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">

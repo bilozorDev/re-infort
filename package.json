@@ -74,5 +74,10 @@
     "**/*.{ts,tsx}": [
       "sh -c 'npm run typecheck'"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test:all && npx lint-staged"
+    }
   }
 }
