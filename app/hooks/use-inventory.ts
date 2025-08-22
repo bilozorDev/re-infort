@@ -51,12 +51,69 @@ export function useProductInventory(productId: string) {
   return useQuery({
     queryKey: ["product-inventory", productId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_product_total_inventory", {
+      // First try the RPC function
+      const { data: rpcData, error: rpcError } = await supabase.rpc("get_product_total_inventory", {
         p_product_id: productId,
       });
 
-      if (error) throw error;
-      return data as InventorySummary;
+      // If RPC returns data (could be array or single object), use it
+      if (rpcData && !rpcError) {
+        // Handle case where RPC returns array with single element
+        const result = Array.isArray(rpcData) && rpcData.length > 0 ? rpcData[0] : rpcData;
+        if (result && typeof result === "object" && "total_quantity" in result) {
+          return result as InventorySummary;
+        }
+      }
+
+      // Fallback: manually aggregate inventory data
+      const { data: inventory, error: invError } = await supabase
+        .from("inventory")
+        .select(
+          `
+          *,
+          warehouse:warehouses(id, name)
+        `
+        )
+        .eq("product_id", productId);
+
+      if (invError) throw invError;
+
+      if (!inventory || inventory.length === 0) {
+        return {
+          total_quantity: 0,
+          total_reserved: 0,
+          total_available: 0,
+          warehouse_count: 0,
+          warehouses: [],
+        } as ProductInventorySummary;
+      }
+
+      // Aggregate the data
+      const summary: ProductInventorySummary = {
+        total_quantity: 0,
+        total_reserved: 0,
+        total_available: 0,
+        warehouse_count: inventory.length,
+        warehouses: [],
+      };
+
+      inventory.forEach((item) => {
+        summary.total_quantity += item.quantity || 0;
+        summary.total_reserved += item.reserved_quantity || 0;
+        summary.total_available += (item.quantity || 0) - (item.reserved_quantity || 0);
+
+        if (item.warehouse) {
+          summary.warehouses.push({
+            warehouse_id: item.warehouse_id,
+            warehouse_name: item.warehouse.name,
+            quantity: item.quantity || 0,
+            reserved: item.reserved_quantity || 0,
+            available: (item.quantity || 0) - (item.reserved_quantity || 0),
+          });
+        }
+      });
+
+      return summary;
     },
     enabled: !!productId,
   });
@@ -115,22 +172,31 @@ export function useAdjustStock() {
 
 // Hook to transfer stock between warehouses
 export function useTransferStock() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params: TransferStockParams) => {
-      const { data, error } = await supabase.rpc("transfer_inventory", {
-        p_product_id: params.productId,
-        p_from_warehouse_id: params.fromWarehouseId,
-        p_to_warehouse_id: params.toWarehouseId,
-        p_quantity: params.quantity,
-        p_reason: params.reason,
-        p_notes: params.notes,
+      const response = await fetch("/api/inventory/transfer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: params.productId,
+          fromWarehouseId: params.fromWarehouseId,
+          toWarehouseId: params.toWarehouseId,
+          quantity: params.quantity,
+          reason: params.reason,
+          notes: params.notes,
+        }),
       });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to transfer inventory");
+      }
+
+      return response.json();
     },
     onSuccess: (_, variables) => {
       // Invalidate related queries

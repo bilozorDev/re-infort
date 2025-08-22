@@ -3,7 +3,6 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import { useProductWarehouseInventory, useTransferStock } from "@/app/hooks/use-inventory";
@@ -46,35 +45,11 @@ export function TransferModal({ productId, isOpen, onClose }: TransferModalProps
 
   const availableWarehouses = inventory?.filter((inv) => inv.warehouse_status === "active") || [];
 
-  // Get max quantity for selected warehouse
-  const selectedFromWarehouse = form.state.values.fromWarehouse;
-  const maxQuantity =
-    selectedFromWarehouse && inventory
-      ? inventory.find((inv) => inv.warehouse_id === selectedFromWarehouse)?.available_quantity || 0
-      : 0;
-
-  // Update toWarehouse options when fromWarehouse changes
-  useEffect(() => {
-    const fromValue = form.state.values.fromWarehouse;
-    const toValue = form.state.values.toWarehouse;
-
-    if (fromValue && fromValue === toValue) {
-      form.setFieldValue("toWarehouse", "");
-    }
-  }, [form.state.values.fromWarehouse, form.state.values.toWarehouse, form]);
-
   const fromWarehouseOptions = availableWarehouses
-    .filter((inv) => inv.available_quantity > 0)
+    .filter((inv) => typeof inv.available_quantity === "number" && inv.available_quantity > 0)
     .map((inv) => ({
       value: inv.warehouse_id,
       label: `${inv.warehouse_name} (Available: ${inv.available_quantity})`,
-    }));
-
-  const toWarehouseOptions = availableWarehouses
-    .filter((inv) => inv.warehouse_id !== form.state.values.fromWarehouse)
-    .map((inv) => ({
-      value: inv.warehouse_id,
-      label: inv.warehouse_name,
     }));
 
   const isSubmitting = transferStock.isPending;
@@ -119,6 +94,19 @@ export function TransferModal({ productId, isOpen, onClose }: TransferModalProps
                       return undefined;
                     },
                   }}
+                  listeners={{
+                    onChange: ({ value }) => {
+                      // Reset toWarehouse if it's the same as the new fromWarehouse
+                      if (value && value === form.state.values.toWarehouse) {
+                        form.setFieldValue("toWarehouse", "");
+                        form.setFieldMeta("toWarehouse", (prev) => ({ ...prev, isTouched: false }));
+                      }
+                      // Reset quantity when changing warehouse since max quantity changes
+                      // Use setFieldMeta to reset touched state when clearing the field
+                      form.setFieldValue("quantity", "");
+                      form.setFieldMeta("quantity", (prev) => ({ ...prev, isTouched: false }));
+                    },
+                  }}
                 >
                   {(field) => (
                     <FormField field={field}>
@@ -135,61 +123,110 @@ export function TransferModal({ productId, isOpen, onClose }: TransferModalProps
                 <form.Field
                   name="toWarehouse"
                   validators={{
-                    onChange: ({ value }: { value: string }) => {
+                    onChangeListenTo: ["fromWarehouse"],
+                    onChange: ({ value, fieldApi }) => {
+                      // Only validate if field has been touched or has a value
+                      if (!fieldApi.state.meta.isTouched && !value) {
+                        return undefined;
+                      }
                       if (!value) return "Destination warehouse is required";
-                      if (value === form.state.values.fromWarehouse) {
+                      const fromWarehouseValue = fieldApi.form.getFieldValue("fromWarehouse");
+                      if (value === fromWarehouseValue) {
                         return "Cannot transfer to the same warehouse";
                       }
                       return undefined;
                     },
                   }}
                 >
-                  {(field) => (
-                    <FormField field={field}>
-                      <Select
-                        label="To Warehouse"
-                        required
-                        placeholder="Select destination warehouse"
-                        options={toWarehouseOptions}
-                        disabled={!form.state.values.fromWarehouse}
-                      />
-                    </FormField>
-                  )}
+                  {(field) => {
+                    const fromWarehouseValue = form.state.values.fromWarehouse;
+                    // Filter out the selected fromWarehouse from the options
+                    const filteredToWarehouseOptions = availableWarehouses
+                      .filter((inv) => inv.warehouse_id !== fromWarehouseValue)
+                      .map((inv) => ({
+                        value: inv.warehouse_id,
+                        label: inv.warehouse_name,
+                      }));
+
+                    return (
+                      <FormField field={field} showError={field.state.meta.isTouched}>
+                        <Select
+                          label="To Warehouse"
+                          required
+                          placeholder="Select destination warehouse"
+                          options={filteredToWarehouseOptions}
+                          disabled={!fromWarehouseValue || filteredToWarehouseOptions.length === 0}
+                        />
+                      </FormField>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field
                   name="quantity"
                   validators={{
-                    onChange: ({ value }: { value: string }) => {
+                    onChangeListenTo: ["fromWarehouse"],
+                    onChange: ({ value, fieldApi }) => {
+                      // Skip validation if field hasn't been touched and is empty
+                      if (!fieldApi.state.meta.isTouched && !value) {
+                        return undefined;
+                      }
                       if (!value) return "Quantity is required";
                       const num = parseInt(value);
                       if (isNaN(num) || num <= 0) return "Quantity must be a positive number";
-                      if (num > maxQuantity)
-                        return `Cannot transfer more than ${maxQuantity} items`;
+
+                      // Get current max quantity for selected warehouse
+                      const fromWarehouseId = fieldApi.form.getFieldValue("fromWarehouse");
+                      const warehouseData =
+                        fromWarehouseId && inventory
+                          ? inventory.find((inv) => inv.warehouse_id === fromWarehouseId)
+                          : null;
+                      const currentMaxQuantity =
+                        typeof warehouseData?.available_quantity === "number"
+                          ? warehouseData.available_quantity
+                          : 0;
+
+                      if (num > currentMaxQuantity)
+                        return `Cannot transfer more than ${currentMaxQuantity} items`;
                       return undefined;
                     },
                   }}
                 >
-                  {(field) => (
-                    <FormField field={field} showError={field.state.meta.isTouched}>
-                      <TextField
-                        type="number"
-                        label="Quantity"
-                        required
-                        min="1"
-                        max={maxQuantity}
-                        placeholder={
-                          maxQuantity > 0 ? `Max: ${maxQuantity}` : "Select source warehouse first"
-                        }
-                        disabled={!form.state.values.fromWarehouse || maxQuantity === 0}
-                        helperText={
-                          form.state.values.fromWarehouse && maxQuantity === 0
-                            ? "No available stock in selected warehouse"
-                            : undefined
-                        }
-                      />
-                    </FormField>
-                  )}
+                  {(field) => {
+                    // Calculate max quantity inside render for reactivity
+                    const fromWarehouseValue = form.state.values.fromWarehouse;
+                    const warehouseData =
+                      fromWarehouseValue && inventory
+                        ? inventory.find((inv) => inv.warehouse_id === fromWarehouseValue)
+                        : null;
+                    const currentMaxQuantity =
+                      typeof warehouseData?.available_quantity === "number"
+                        ? warehouseData.available_quantity
+                        : 0;
+
+                    return (
+                      <FormField field={field} showError={field.state.meta.isTouched}>
+                        <TextField
+                          type="number"
+                          label="Quantity"
+                          required
+                          min="1"
+                          max={currentMaxQuantity}
+                          placeholder={
+                            currentMaxQuantity > 0
+                              ? `Max: ${currentMaxQuantity}`
+                              : "Select source warehouse first"
+                          }
+                          disabled={!fromWarehouseValue || currentMaxQuantity === 0}
+                          helperText={
+                            fromWarehouseValue && currentMaxQuantity === 0
+                              ? "No available stock in selected warehouse"
+                              : undefined
+                          }
+                        />
+                      </FormField>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="reason">
@@ -215,7 +252,7 @@ export function TransferModal({ productId, isOpen, onClose }: TransferModalProps
                 <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !form.state.canSubmit || maxQuantity === 0}
+                    disabled={isSubmitting || !form.state.canSubmit}
                     className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed sm:col-start-2"
                   >
                     {isSubmitting ? "Transferring..." : "Transfer Stock"}

@@ -13,7 +13,9 @@ interface FormFieldProps {
 interface ChildProps {
   name: string;
   value: unknown;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | unknown) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | unknown
+  ) => void;
   onBlur: () => void;
   error?: string;
   "aria-invalid"?: boolean;
@@ -30,28 +32,37 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
       ? field.state.meta.errors.join(", ")
       : undefined;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | unknown) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | unknown
+  ) => {
     // Handle different input types
-    if (!e || typeof e !== 'object') {
+    if (!e || typeof e !== "object") {
       field.handleChange(e);
       return;
     }
-    
-    if (!('target' in e)) {
+
+    if (!("target" in e)) {
       // This handles direct value changes from components like Listbox
       field.handleChange(e);
       return;
     }
-    
-    const event = e as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
+
+    const event = e as React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >;
     const target = event.target;
-    
+
     // Check if it's an input element with a type
     if (target instanceof HTMLInputElement) {
       if (target.type === "checkbox") {
         field.handleChange(target.checked);
       } else if (target.type === "number") {
-        field.handleChange(target.valueAsNumber || 0);
+        // Allow empty string for number inputs
+        if (target.value === "") {
+          field.handleChange("");
+        } else {
+          field.handleChange(target.valueAsNumber);
+        }
       } else {
         field.handleChange(target.value);
       }
@@ -75,16 +86,17 @@ export function FormField({ field, children, showError = true }: FormFieldProps)
 
   // Check if the child is a checkbox component and add checked prop
   const childType = children.type;
-  const isCheckbox = childType && 
-    (typeof childType === 'function' && 
-     ((childType as React.ComponentType & { displayName?: string }).displayName === 'Checkbox' || 
-      childType.name === 'Checkbox')) ||
-    (children.props && (children.props as Record<string, unknown>).type === 'checkbox');
-  
+  const isCheckbox =
+    (childType &&
+      typeof childType === "function" &&
+      ((childType as React.ComponentType & { displayName?: string }).displayName === "Checkbox" ||
+        childType.name === "Checkbox")) ||
+    (children.props && (children.props as Record<string, unknown>).type === "checkbox");
+
   interface CheckboxChildProps extends ChildProps {
     checked?: boolean;
   }
-  
+
   if (isCheckbox) {
     (childProps as CheckboxChildProps).checked = field.state.value as boolean;
   }
