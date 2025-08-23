@@ -244,7 +244,7 @@ export default function TeamPage() {
                       </div>
                     </div>
 
-                    {newRole === "org:admin" && (
+                    {newRole === "org:admin" && selectedMember.role === "org:member" && (
                       <div className="mt-4 rounded-md bg-yellow-50 p-4">
                         <div className="flex">
                           <div className="flex-shrink-0">
@@ -482,15 +482,16 @@ export default function TeamPage() {
                             <span className="block truncate text-sm font-medium text-gray-900">
                               {invitation.email}
                             </span>
-                            <span className="block truncate text-sm font-medium text-gray-500">
-                              {invitation.role === "org:admin" ? "Admin" : "Member"} · Pending
+                            <span className="block text-xs text-gray-500">
+                              {invitation.role === "org:admin" ? "Admin" : "Member"}
                             </span>
+                            <span className="block text-xs text-gray-500">Pending</span>
                           </span>
                         </span>
                         {isAdmin && (
                           <button
                             onClick={() => handleRevokeInvitation(invitation.id)}
-                            className="inline-flex size-10 shrink-0 items-center justify-center"
+                            className="inline-flex size-10 shrink-0 items-center justify-center pr-2"
                           >
                             <XMarkIcon
                               aria-hidden="true"
@@ -540,35 +541,33 @@ export default function TeamPage() {
                                 ? `${member.firstName || ""} ${member.lastName || ""}`.trim()
                                 : member.email}
                             </span>
-                            <span className="block truncate text-sm font-medium text-gray-500">
+                            <span className="block text-xs text-gray-500">
+                              {member.role === "org:admin" ? "Admin" : "Member"}
+                            </span>
+                            <span className="block text-xs text-gray-500">
                               Joined {formatDate(member.createdAt)}
                               {member.userId === userId && " · You"}
                             </span>
                           </span>
                         </span>
-                        <span className="inline-flex items-center gap-2">
-                          <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                            {member.role === "org:admin" ? "Admin" : "Member"}
+                        {isAdmin && member.userId !== userId && (
+                          <span className="inline-flex items-center gap-2 pr-2">
+                            <button
+                              onClick={() => openRoleModal(member)}
+                              className="text-gray-400 hover:text-indigo-600"
+                              title="Edit role"
+                            >
+                              <PencilIcon aria-hidden="true" className="size-4" />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveUser(member.userId)}
+                              className="text-gray-400 hover:text-red-500"
+                              title="Remove member"
+                            >
+                              <TrashIcon aria-hidden="true" className="size-4" />
+                            </button>
                           </span>
-                          {isAdmin && member.userId !== userId && (
-                            <>
-                              <button
-                                onClick={() => openRoleModal(member)}
-                                className="text-gray-400 hover:text-indigo-600"
-                                title="Edit role"
-                              >
-                                <PencilIcon aria-hidden="true" className="size-4" />
-                              </button>
-                              <button
-                                onClick={() => handleRemoveUser(member.userId)}
-                                className="text-gray-400 hover:text-red-500"
-                                title="Remove member"
-                              >
-                                <TrashIcon aria-hidden="true" className="size-4" />
-                              </button>
-                            </>
-                          )}
-                        </span>
+                        )}
                       </div>
                     </li>
                   ))}
