@@ -34,7 +34,7 @@ interface MovementFilters {
 }
 
 // Hook to get stock movements for a product
-export function useStockMovements(productId?: string, filters?: MovementFilters) {
+export function useStockMovements(productId?: string | undefined, filters?: MovementFilters) {
   const supabase = useSupabase();
 
   return useQuery({

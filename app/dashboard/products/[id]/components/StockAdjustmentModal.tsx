@@ -17,6 +17,29 @@ interface StockAdjustmentModalProps {
   onClose: () => void;
 }
 
+const movementTypeOptionsAdd = [
+  { value: "receipt", label: "Receipt - New stock from supplier" },
+  { value: "return", label: "Return - Customer return" },
+  { value: "adjustment", label: "Adjustment - Inventory correction" },
+];
+
+const movementTypeOptionsRemove = [
+  { value: "sale", label: "Sale - Stock sold/shipped" },
+  { value: "damage", label: "Damage - Damaged or lost items" },
+  { value: "production", label: "Production - Used in manufacturing" },
+  { value: "adjustment", label: "Adjustment - Inventory correction" },
+];
+
+const referencePlaceholders: Record<string, string> = {
+  receipt: "e.g., PO-12345",
+  sale: "e.g., SO-12345",
+  return: "e.g., RMA-12345",
+  damage: "e.g., DMG-12345",
+  production: "e.g., BATCH-12345",
+  adjustment: "e.g., ADJ-12345",
+  transfer: "e.g., TRF-12345",
+};
+
 export function StockAdjustmentModal({
   productId,
   warehouseId,
@@ -32,6 +55,7 @@ export function StockAdjustmentModal({
     defaultValues: {
       warehouseId: warehouseId || "",
       quantity: "",
+      movementType: type === "add" ? "receipt" : "sale",
       reason: "",
       referenceNumber: "",
     },
@@ -41,7 +65,7 @@ export function StockAdjustmentModal({
           productId,
           warehouseId: value.warehouseId,
           quantity: type === "add" ? parseInt(value.quantity) : -parseInt(value.quantity),
-          movementType: type === "add" ? "receipt" : "adjustment",
+          movementType: value.movementType,
           reason: value.reason || undefined,
           referenceNumber: value.referenceNumber || undefined,
         });
@@ -239,12 +263,38 @@ export function StockAdjustmentModal({
                   }}
                 </form.Field>
 
-                <form.Field name="referenceNumber">
+                <form.Field
+                  name="movementType"
+                  validators={{
+                    onChange: ({ value }: { value: string }) => {
+                      if (!value) return "Movement type is required";
+                      return undefined;
+                    },
+                  }}
+                >
                   {(field) => (
                     <FormField field={field}>
-                      <TextField label="Reference Number" placeholder="e.g., PO-12345" />
+                      <Select
+                        label="Movement Type"
+                        required
+                        placeholder="Select movement type"
+                        options={type === "add" ? movementTypeOptionsAdd : movementTypeOptionsRemove}
+                      />
                     </FormField>
                   )}
+                </form.Field>
+
+                <form.Field name="referenceNumber">
+                  {(field) => {
+                    const movementType = form.state.values.movementType;
+                    const placeholder = referencePlaceholders[movementType] || "e.g., REF-12345";
+                    
+                    return (
+                      <FormField field={field}>
+                        <TextField label="Reference Number" placeholder={placeholder} />
+                      </FormField>
+                    );
+                  }}
                 </form.Field>
 
                 <form.Field name="reason">
