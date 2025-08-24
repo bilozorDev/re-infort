@@ -80,7 +80,10 @@ export function RecentMovements({ movements }: RecentMovementsProps) {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Recent Movements</h3>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Recent Movements</h3>
+          <p className="text-xs text-gray-500 mt-1">Last 7 days</p>
+        </div>
         <Link
           href="/dashboard/inventory?tab=movements"
           className="text-sm text-indigo-600 hover:text-indigo-900"

@@ -1,7 +1,7 @@
 "use client";
 
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
-import { Dialog, DialogBackdrop, DialogPanel, Disclosure, DisclosureButton, DisclosurePanel, Transition, TransitionChild } from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import {
   ArchiveBoxIcon,
@@ -66,7 +66,7 @@ function classNames(...classes: string[]) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { inventoryExpanded, setInventoryExpanded, isLoaded } = useLocalNavigationPreferences();
+  const { inventoryExpanded, setInventoryExpanded, quotingExpanded, setQuotingExpanded, isLoaded } = useLocalNavigationPreferences();
   
   // Check if we're on any inventory page
   const isOnInventoryPage = pathname.startsWith('/dashboard/inventory') || 
@@ -78,36 +78,61 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           pathname.startsWith('/dashboard/clients') || 
                           pathname.startsWith('/dashboard/services');
   
-  // State for the disclosure components
-  const [inventoryOpen, setInventoryOpen] = useState(false);
-  const [quotingOpen, setQuotingOpen] = useState(false);
+  // Initialize state with saved preferences or based on current page
+  const [inventoryOpen, setInventoryOpen] = useState(() => {
+    // If preferences aren't loaded yet, check if we're on an inventory page
+    if (!isLoaded) {
+      return isOnInventoryPage;
+    }
+    // Use saved preference or current page state
+    return isOnInventoryPage || inventoryExpanded;
+  });
+  
+  const [quotingOpen, setQuotingOpen] = useState(() => {
+    // If preferences aren't loaded yet, check if we're on a quoting page
+    if (!isLoaded) {
+      return isOnQuotingPage;
+    }
+    // Use saved preference or current page state
+    return isOnQuotingPage || quotingExpanded;
+  });
 
-  // Initialize and sync state
+  // Sync state with preferences and current page
   useEffect(() => {
     if (isLoaded) {
-      // If on inventory page, always expand
-      if (isOnInventoryPage) {
+      // If on inventory page, ensure it's expanded
+      if (isOnInventoryPage && !inventoryOpen) {
         setInventoryOpen(true);
-        // Save this preference if it wasn't already expanded
         if (!inventoryExpanded) {
           setInventoryExpanded(true);
         }
-      } else {
-        // Not on inventory page, use saved preference
+      } else if (!isOnInventoryPage && inventoryOpen !== inventoryExpanded) {
+        // Sync with saved preference when not on inventory page
         setInventoryOpen(inventoryExpanded);
       }
       
-      // Auto-expand quoting if on quoting page
-      if (isOnQuotingPage) {
+      // If on quoting page, ensure it's expanded
+      if (isOnQuotingPage && !quotingOpen) {
         setQuotingOpen(true);
+        if (!quotingExpanded) {
+          setQuotingExpanded(true);
+        }
+      } else if (!isOnQuotingPage && quotingOpen !== quotingExpanded) {
+        // Sync with saved preference when not on quoting page
+        setQuotingOpen(quotingExpanded);
       }
     }
-  }, [isLoaded, inventoryExpanded, isOnInventoryPage, isOnQuotingPage, setInventoryExpanded, pathname]);
+  }, [isLoaded, inventoryExpanded, quotingExpanded, isOnInventoryPage, isOnQuotingPage, setInventoryExpanded, setQuotingExpanded]);
 
   const handleInventoryToggle = useCallback((open: boolean) => {
     setInventoryOpen(open);
     setInventoryExpanded(open);
   }, [setInventoryExpanded]);
+
+  const handleQuotingToggle = useCallback((open: boolean) => {
+    setQuotingOpen(open);
+    setQuotingExpanded(open);
+  }, [setQuotingExpanded]);
 
   const isInventoryActive = (item: NavItem): boolean => {
     if (item.href) {
@@ -156,60 +181,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {navigation.map((item) => (
                         <li key={item.name}>
                           {item.children ? (
-                            <Disclosure 
-                              as="div" 
-                              defaultOpen={
-                                item.name === "Inventory" ? inventoryOpen : 
-                                item.name === "Quoting" ? quotingOpen : 
-                                false
-                              } 
-                              key={`mobile-${item.name}-${item.name === "Inventory" ? inventoryOpen : quotingOpen}`}
+                            <div
                             >
-                              {({ open }) => (
-                                <>
-                                  <DisclosureButton
-                                    onClick={() => {
-                                      if (item.name === "Inventory") {
-                                        handleInventoryToggle(!open);
-                                      } else if (item.name === "Quoting") {
-                                        setQuotingOpen(!open);
-                                      }
-                                    }}
-                                    className={classNames(
-                                        isInventoryActive(item)
-                                          ? "bg-gray-50 text-indigo-600"
-                                          : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                                        "group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold"
-                                      )}
-                                    >
-                                      <item.icon
-                                        aria-hidden={true}
-                                        className={classNames(
-                                          isInventoryActive(item)
-                                            ? "text-indigo-600"
-                                            : "text-gray-400 group-hover:text-indigo-600",
-                                          "size-6 shrink-0"
-                                        )}
-                                      />
-                                      {item.name}
-                                      <ChevronDownIcon
-                                        className={classNames(
-                                          open ? "rotate-180" : "",
-                                          "ml-auto h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
-                                        )}
-                                        aria-hidden={true}
-                                      />
-                                    </DisclosureButton>
-                                    <Transition
-                                      show={open}
-                                      enter="transition ease-out duration-200"
-                                      enterFrom="transform opacity-0 -translate-y-1"
-                                      enterTo="transform opacity-100 translate-y-0"
-                                      leave="transition ease-in duration-150"
-                                      leaveFrom="transform opacity-100 translate-y-0"
-                                      leaveTo="transform opacity-0 -translate-y-1"
-                                    >
-                                      <DisclosurePanel className="mt-1 space-y-1">
+                              <button
+                                onClick={() => {
+                                  if (item.name === "Inventory") {
+                                    handleInventoryToggle(!inventoryOpen);
+                                  } else if (item.name === "Quoting") {
+                                    handleQuotingToggle(!quotingOpen);
+                                  }
+                                }}
+                                aria-expanded={
+                                  item.name === "Inventory" ? inventoryOpen : 
+                                  item.name === "Quoting" ? quotingOpen : 
+                                  false
+                                }
+                                className={classNames(
+                                  isInventoryActive(item)
+                                    ? "bg-gray-50 text-indigo-600"
+                                    : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                                  "group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold"
+                                )}
+                              >
+                                <item.icon
+                                  aria-hidden={true}
+                                  className={classNames(
+                                    isInventoryActive(item)
+                                      ? "text-indigo-600"
+                                      : "text-gray-400 group-hover:text-indigo-600",
+                                    "size-6 shrink-0"
+                                  )}
+                                />
+                                {item.name}
+                                <ChevronDownIcon
+                                  className={classNames(
+                                    (item.name === "Inventory" && inventoryOpen) || 
+                                    (item.name === "Quoting" && quotingOpen) 
+                                      ? "rotate-180" : "",
+                                    "ml-auto mr-2 h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
+                                  )}
+                                  aria-hidden={true}
+                                />
+                              </button>
+                              <div
+                                className={classNames(
+                                  "overflow-hidden transition-all duration-200 ease-in-out",
+                                  (item.name === "Inventory" && inventoryOpen) || 
+                                  (item.name === "Quoting" && quotingOpen)
+                                    ? "max-h-96 opacity-100"
+                                    : "max-h-0 opacity-0"
+                                )}
+                              >
+                                <div className="mt-1 space-y-1">
                                         {item.children?.map((subItem) => (
                                         <a
                                           key={subItem.name}
@@ -235,11 +258,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                           {subItem.name}
                                         </a>
                                       ))}
-                                      </DisclosurePanel>
-                                    </Transition>
-                                </>
-                              )}
-                            </Disclosure>
+                                </div>
+                              </div>
+                            </div>
                           ) : (
                             <a
                               href={item.href}
@@ -309,60 +330,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {navigation.map((item) => (
                     <li key={item.name}>
                       {item.children ? (
-                        <Disclosure 
-                          as="div" 
-                          defaultOpen={
-                            item.name === "Inventory" ? inventoryOpen : 
-                            item.name === "Quoting" ? quotingOpen : 
-                            false
-                          } 
-                          key={`desktop-${item.name}-${item.name === "Inventory" ? inventoryOpen : quotingOpen}`}
+                        <div
                         >
-                          {({ open }) => (
-                            <>
-                              <DisclosureButton
-                                onClick={() => {
-                                  if (item.name === "Inventory") {
-                                    handleInventoryToggle(!open);
-                                  } else if (item.name === "Quoting") {
-                                    setQuotingOpen(!open);
-                                  }
-                                }}
-                                className={classNames(
-                                    isInventoryActive(item)
-                                      ? "bg-gray-50 text-indigo-600"
-                                      : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
-                                    "group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold"
-                                  )}
-                                >
-                                  <item.icon
-                                    aria-hidden={true}
-                                    className={classNames(
-                                      isInventoryActive(item)
-                                        ? "text-indigo-600"
-                                        : "text-gray-400 group-hover:text-indigo-600",
-                                      "size-6 shrink-0"
-                                    )}
-                                  />
-                                  {item.name}
-                                  <ChevronDownIcon
-                                    className={classNames(
-                                      open ? "rotate-180" : "",
-                                      "ml-auto h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
-                                    )}
-                                    aria-hidden={true}
-                                  />
-                                </DisclosureButton>
-                                <Transition
-                                  show={open}
-                                  enter="transition ease-out duration-200"
-                                  enterFrom="transform opacity-0 -translate-y-1"
-                                  enterTo="transform opacity-100 translate-y-0"
-                                  leave="transition ease-in duration-150"
-                                  leaveFrom="transform opacity-100 translate-y-0"
-                                  leaveTo="transform opacity-0 -translate-y-1"
-                                >
-                                  <DisclosurePanel className="mt-1 space-y-1">
+                          <button
+                            onClick={() => {
+                              if (item.name === "Inventory") {
+                                handleInventoryToggle(!inventoryOpen);
+                              } else if (item.name === "Quoting") {
+                                handleQuotingToggle(!quotingOpen);
+                              }
+                            }}
+                            aria-expanded={
+                              item.name === "Inventory" ? inventoryOpen : 
+                              item.name === "Quoting" ? quotingOpen : 
+                              false
+                            }
+                            className={classNames(
+                              isInventoryActive(item)
+                                ? "bg-gray-50 text-indigo-600"
+                                : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600",
+                              "group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold"
+                            )}
+                          >
+                            <item.icon
+                              aria-hidden={true}
+                              className={classNames(
+                                isInventoryActive(item)
+                                  ? "text-indigo-600"
+                                  : "text-gray-400 group-hover:text-indigo-600",
+                                "size-6 shrink-0"
+                              )}
+                            />
+                            {item.name}
+                            <ChevronDownIcon
+                              className={classNames(
+                                (item.name === "Inventory" && inventoryOpen) || 
+                                (item.name === "Quoting" && quotingOpen) 
+                                  ? "rotate-180" : "",
+                                "ml-auto mr-2 h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
+                              )}
+                              aria-hidden={true}
+                            />
+                          </button>
+                          <div
+                            className={classNames(
+                              "overflow-hidden transition-all duration-200 ease-in-out",
+                              (item.name === "Inventory" && inventoryOpen) || 
+                              (item.name === "Quoting" && quotingOpen)
+                                ? "max-h-96 opacity-100"
+                                : "max-h-0 opacity-0"
+                            )}
+                          >
+                            <div className="mt-1 space-y-1">
                                     {item.children && item.children.map((subItem) => (
                                     <a
                                       key={subItem.name}
@@ -388,11 +407,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                       {subItem.name}
                                     </a>
                                   ))}
-                                  </DisclosurePanel>
-                                </Transition>
-                            </>
-                          )}
-                        </Disclosure>
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <a
                           href={item.href}

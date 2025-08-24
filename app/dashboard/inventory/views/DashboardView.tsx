@@ -361,24 +361,7 @@ export function DashboardView({ isAdmin }: DashboardViewProps) {
       )}
 
       {/* Movement Type Breakdown */}
-      {movementStats && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900">Movement Breakdown</h3>
-            <span className="text-sm text-gray-500">Last 30 days</span>
-          </div>
-          <div className="px-6 py-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {Object.entries(movementStats.movementsByType || {}).map(([type, count]) => (
-                <div key={type} className="text-center">
-                  <div className="text-2xl font-semibold text-gray-900">{count}</div>
-                  <div className="text-sm text-gray-500 capitalize">{type}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      
 
     </div>
   );

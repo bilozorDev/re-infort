@@ -19,8 +19,6 @@ export interface WarehouseInventory {
   reserved_quantity: number;
   available_quantity: number;
   location_details: string | null;
-  reorder_point: number;
-  reorder_quantity: number;
   since_date: string;
   created_at: string;
   updated_at: string;
@@ -388,7 +386,7 @@ export interface OrganizationInventoryItem {
   total_quantity: number;
   total_reserved: number;
   total_available: number;
-  reorder_point: number;
+  low_stock_threshold: number;
   warehouse_count: number;
   warehouses: Array<{
     warehouse_id: string;
@@ -415,7 +413,6 @@ export function useOrganizationInventory(filters: InventoryFilters = {}) {
           quantity,
           reserved_quantity,
           available_quantity,
-          reorder_point,
           warehouse_id,
           warehouse_name,
           category_id,
@@ -470,6 +467,15 @@ export function useOrganizationInventory(filters: InventoryFilters = {}) {
       const categoryMap = new Map(categories?.map((c) => [c.id, c.name]));
       const subcategoryMap = new Map(subcategories?.map((s) => [s.id, s.name]));
 
+      // Get all unique product IDs and fetch their low_stock_threshold
+      const productIds = [...new Set(inventoryData?.map((item) => item.product_id))];
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, low_stock_threshold")
+        .in("id", productIds);
+
+      const productThresholdMap = new Map(products?.map((p) => [p.id, p.low_stock_threshold || 0]));
+
       // Group by product
       const productGroups = inventoryData?.reduce(
         (acc: Record<string, (typeof inventoryData)[0][]>, item) => {
@@ -489,13 +495,13 @@ export function useOrganizationInventory(filters: InventoryFilters = {}) {
           const totalQuantity = warehouses.reduce((sum, w) => sum + w.quantity, 0);
           const totalReserved = warehouses.reduce((sum, w) => sum + w.reserved_quantity, 0);
           const totalAvailable = warehouses.reduce((sum, w) => sum + w.available_quantity, 0);
-          const maxReorderPoint = Math.max(...warehouses.map((w) => w.reorder_point || 0));
+          const lowStockThreshold = productThresholdMap.get(productId) || 0;
 
           // Determine stock status
           let stockStatus: "in-stock" | "low-stock" | "out-of-stock";
           if (totalQuantity === 0) {
             stockStatus = "out-of-stock";
-          } else if (totalQuantity <= maxReorderPoint) {
+          } else if (lowStockThreshold > 0 && totalQuantity <= lowStockThreshold) {
             stockStatus = "low-stock";
           } else {
             stockStatus = "in-stock";
@@ -512,7 +518,7 @@ export function useOrganizationInventory(filters: InventoryFilters = {}) {
             total_quantity: totalQuantity,
             total_reserved: totalReserved,
             total_available: totalAvailable,
-            reorder_point: maxReorderPoint,
+            low_stock_threshold: lowStockThreshold,
             warehouse_count: warehouses.length,
             warehouses: warehouses.map((w) => ({
               warehouse_id: w.warehouse_id,

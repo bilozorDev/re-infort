@@ -2,9 +2,9 @@
 
 import { Cog6ToothIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { type Table } from "@tanstack/react-table";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { PageHeader } from "@/app/components/ui/page-header";
 import { useAllCategories } from "@/app/hooks/use-categories";
 import { useProducts } from "@/app/hooks/use-products";
 import { type ProductWithCategory } from "@/app/types/product";
@@ -80,31 +80,22 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your product catalog and inventory
-          </p>
-        </div>
-        <div className="flex items-center gap-x-3">
-          {isAdmin && (
-            <Link href="/dashboard/products/categories">
-              <button className="inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                <Cog6ToothIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                Manage Categories
-              </button>
-            </Link>
-          )}
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            <PlusIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-            Add Product
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Products"
+        description="Manage your product catalog and inventory"
+        primaryAction={{
+          label: "Add Product",
+          onClick: () => setShowForm(true),
+          icon: PlusIcon,
+        }}
+        secondaryActions={isAdmin ? [
+          {
+            label: "Manage Categories",
+            href: "/dashboard/products/categories",
+            icon: Cog6ToothIcon,
+          },
+        ] : []}
+      />
 
       {/* Product Toolbar with Filters and View Controls */}
       <ProductToolbar

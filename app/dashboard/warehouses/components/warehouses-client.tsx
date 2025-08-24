@@ -3,6 +3,7 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
+import { PageHeader } from "@/app/components/ui/page-header";
 import { useWarehouses } from "@/app/hooks/use-warehouses";
 
 import { EmptyState } from "./empty-state";
@@ -49,23 +50,15 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
   return (
     <div className="space-y-6">
       {/* Header with title and add button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Warehouses</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage your inventory locations and warehouses
-          </p>
-        </div>
-        {isAdmin && hasWarehouses && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full sm:w-auto justify-center"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add Warehouse
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title="Warehouses"
+        description="Manage your inventory locations and warehouses"
+        primaryAction={isAdmin && hasWarehouses ? {
+          label: "Add Warehouse",
+          onClick: () => setShowForm(true),
+          icon: PlusIcon,
+        } : undefined}
+      />
 
       {/* Content */}
       {hasWarehouses ? (

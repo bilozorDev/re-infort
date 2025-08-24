@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { PencilIcon } from "@heroicons/react/24/outline";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { PageHeader } from "@/app/components/ui/page-header";
 import { useProduct } from "@/app/hooks/use-products";
 
 import ProductForm from "../ProductForm";
@@ -108,50 +108,33 @@ export function ProductDetailClient({
 
   return (
     <div className="space-y-6">
-      {/* Header with back button and product name */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/dashboard/products"
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="mr-1 h-4 w-4" />
-            Back to Products
-          </Link>
-        </div>
-      </div>
-
-      {/* Product title and SKU */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-            <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                product.status === "active"
-                  ? "bg-green-100 text-green-800"
-                  : product.status === "inactive"
-                    ? "bg-gray-100 text-gray-800"
-                    : product.status === "draft"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
-              }`}
-            >
-              {product.status}
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-gray-500">SKU: {product.sku}</p>
-        </div>
-        {isAdmin && (
-          <button
-            onClick={() => setShowEditForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <PencilIcon className="h-4 w-4 mr-2" />
-            Edit
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title={product.name}
+        description={`SKU: ${product.sku}`}
+        backLink={{
+          label: "Back to Products",
+          href: "/dashboard/products",
+        }}
+        primaryAction={isAdmin ? {
+          label: "Edit Product",
+          onClick: () => setShowEditForm(true),
+          icon: PencilIcon,
+        } : undefined}
+      >
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            product.status === "active"
+              ? "bg-green-100 text-green-800"
+              : product.status === "inactive"
+                ? "bg-gray-100 text-gray-800"
+                : product.status === "draft"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+          }`}
+        >
+          {product.status}
+        </span>
+      </PageHeader>
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200">

@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeftIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
+import { PageHeader } from "@/app/components/ui/page-header";
 import { useCategoryTemplates } from "@/app/hooks/use-category-templates";
 import type { CategoryTemplate } from "@/app/types/category-template";
 
@@ -46,25 +46,15 @@ export function TemplateLibraryClient() {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard/products/categories"
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-            >
-              <ArrowLeftIcon className="mr-2 h-4 w-4" />
-              Back to Categories
-            </Link>
-          </div>
-          <h1 className="mt-4 text-2xl font-semibold text-gray-900">Template Library</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Browse and import predefined category structures for your business type
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Template Library"
+        description="Browse and import predefined category structures for your business type"
+        backLink={{
+          label: "Back to Categories",
+          href: "/dashboard/products/categories",
+        }}
+      />
 
       {/* Filters */}
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">

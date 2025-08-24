@@ -28,12 +28,12 @@ SELECT has_function('public', 'get_product_total_inventory',
 );
 
 SELECT has_function('public', 'reserve_inventory',
-    ARRAY['uuid', 'uuid', 'integer', 'text'],
+    ARRAY['uuid', 'uuid', 'integer', 'text', 'text', 'text', 'text'],
     'reserve_inventory function exists with correct signature'
 );
 
 SELECT has_function('public', 'release_reservation',
-    ARRAY['uuid', 'uuid', 'integer'],
+    ARRAY['uuid', 'text', 'text'],
     'release_reservation function exists with correct signature'
 );
 
@@ -156,15 +156,28 @@ SELECT results_eq(
 );
 
 -- Test reserve_inventory function
-SELECT lives_ok(
-  $$SELECT reserve_inventory(
-    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
-    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
-    25,
-    'ORDER-123'
-  )$$,
-  'reserve_inventory can reserve available stock'
-);
+-- Store the movement ID for later release
+DO $$
+DECLARE
+    v_movement_result JSON;
+    v_movement_id UUID;
+BEGIN
+    v_movement_result := reserve_inventory(
+        'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
+        'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
+        25,
+        'sale',
+        'ORDER-123',
+        NULL,
+        'Test User'
+    );
+    v_movement_id := (v_movement_result->>'movement_id')::UUID;
+    -- Store movement ID in a temp table for later use
+    CREATE TEMP TABLE IF NOT EXISTS test_movement_ids (id UUID);
+    INSERT INTO test_movement_ids VALUES (v_movement_id);
+END $$;
+
+SELECT pass('reserve_inventory can reserve available stock');
 
 -- Verify reserved quantity
 SELECT results_eq(
@@ -179,27 +192,32 @@ SELECT throws_ok(
     'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     50,
-    'ORDER-456'
+    'sale',
+    'ORDER-456',
+    NULL,
+    'Test User'
   )$$,
   'P0001',
   'Insufficient available stock. Available: 45, Requested: 50',
   'reserve_inventory throws error for insufficient available stock'
 );
 
--- Test release_reservation function
-SELECT lives_ok(
-  $$SELECT release_reservation(
-    'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
-    'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
-    10
-  )$$,
-  'release_reservation can release reserved stock'
-);
+-- Test release_reservation function using the stored movement ID
+DO $$
+DECLARE
+    v_movement_id UUID;
+    v_release_result JSON;
+BEGIN
+    SELECT id INTO v_movement_id FROM test_movement_ids LIMIT 1;
+    v_release_result := release_reservation(v_movement_id, 'Test cancellation', 'Test User');
+END $$;
 
--- Verify reserved quantity reduced
+SELECT pass('release_reservation can release reserved stock');
+
+-- Verify reserved quantity reduced (should be back to 0 after full release)
 SELECT results_eq(
   'SELECT reserved_quantity FROM inventory WHERE product_id = ''c5d6e7f8-a9b0-1234-cdef-567890123456''::uuid AND warehouse_id = ''e7f8a9b0-c1d2-3456-efab-789012345678''::uuid',
-  'SELECT 15::INTEGER',
+  'SELECT 0::INTEGER',
   'Reserved quantity is correct after release'
 );
 

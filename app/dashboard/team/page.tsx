@@ -397,73 +397,75 @@ export default function TeamPage() {
           </div>
         ) : (
           <>
-            {isAdmin && (
-              <div>
-                <div className="text-center">
-                  <svg
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                    className="mx-auto size-12 text-gray-400"
-                  >
-                    <path
-                      d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <h2 className="mt-2 text-base font-semibold text-gray-900">
-                    Manage team members
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Here you can see full list of team members, invite new ones and manage existing.
-                  </p>
-                </div>
-                <form onSubmit={handleInviteUser} className="mt-6 sm:flex sm:items-center">
-                  <div className="flex grow items-center rounded-md bg-white pl-3 outline-1 -outline-offset-1 outline-gray-300 has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600">
-                    <input
-                      name="email"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="Enter an email"
-                      aria-label="Email address"
-                      className="block min-w-0 grow py-1.5 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
-                      required
-                    />
-                    <div className="grid shrink-0 grid-cols-1 focus-within:relative">
-                      <select
-                        name="role"
-                        aria-label="Role"
-                        value={inviteRole}
-                        onChange={(e) =>
-                          setInviteRole(e.target.value as "org:admin" | "org:member")
-                        }
-                        className="col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-7 pl-3 text-base text-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                      >
-                        <option value="org:member">Member</option>
-                        <option value="org:admin">Admin</option>
-                      </select>
-                      <ChevronDownIcon
-                        aria-hidden="true"
-                        className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-4 sm:shrink-0">
-                    <button
-                      type="submit"
-                      disabled={sendingInvite}
-                      className="block w-full rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
-                    >
-                      Send invite
-                    </button>
-                  </div>
-                </form>
+            <div>
+              <div className="text-center">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 48 48"
+                  aria-hidden="true"
+                  className="mx-auto size-12 text-gray-400"
+                >
+                  <path
+                    d="M34 40h10v-4a6 6 0 00-10.712-3.714M34 40H14m20 0v-4a9.971 9.971 0 00-.712-3.714M14 40H4v-4a6 6 0 0110.713-3.714M14 40v-4c0-1.313.253-2.566.713-3.714m0 0A10.003 10.003 0 0124 26c4.21 0 7.813 2.602 9.288 6.286M30 14a6 6 0 11-12 0 6 6 0 0112 0zm12 6a4 4 0 11-8 0 4 4 0 018 0zm-28 0a4 4 0 11-8 0 4 4 0 018 0z"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <h2 className="mt-2 text-base font-semibold text-gray-900">
+                  {isAdmin ? "Manage team members" : "Team members"}
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  {isAdmin
+                    ? "Here you can see full list of team members, invite new ones and manage existing."
+                    : "View your organization's team members."}
+                </p>
               </div>
-            )}
+              <form onSubmit={handleInviteUser} className="mt-6 sm:flex sm:items-center">
+                <div className={`flex grow items-center rounded-md ${isAdmin ? 'bg-white' : 'bg-gray-50'} pl-3 outline-1 -outline-offset-1 outline-gray-300 ${isAdmin ? 'has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-indigo-600' : ''}`}>
+                  <input
+                    name="email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder={isAdmin ? "Enter an email" : "Only admins can invite users"}
+                    aria-label="Email address"
+                    className={`block min-w-0 grow py-1.5 pr-3 text-base ${isAdmin ? 'text-gray-900' : 'text-gray-400'} placeholder:text-gray-400 ${isAdmin ? 'focus:outline-none' : ''} sm:text-sm/6 ${isAdmin ? '' : 'cursor-not-allowed bg-gray-50'}`}
+                    required
+                    disabled={!isAdmin}
+                  />
+                  <div className="grid shrink-0 grid-cols-1 focus-within:relative">
+                    <select
+                      name="role"
+                      aria-label="Role"
+                      value={inviteRole}
+                      onChange={(e) =>
+                        setInviteRole(e.target.value as "org:admin" | "org:member")
+                      }
+                      className={`col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-7 pl-3 text-base text-gray-500 placeholder:text-gray-400 ${isAdmin ? 'focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600' : 'cursor-not-allowed bg-gray-50'} sm:text-sm/6`}
+                      disabled={!isAdmin}
+                    >
+                      <option value="org:member">Member</option>
+                      <option value="org:admin">Admin</option>
+                    </select>
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 sm:mt-0 sm:ml-4 sm:shrink-0">
+                  <button
+                    type="submit"
+                    disabled={!isAdmin || sendingInvite}
+                    className={`block w-full rounded-md ${isAdmin ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-gray-300 cursor-not-allowed'} px-3 py-2 text-center text-sm font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50`}
+                  >
+                    {isAdmin ? "Send invite" : "Admin only"}
+                  </button>
+                </div>
+              </form>
+            </div>
 
             {invitations.length > 0 && (
               <div className="mt-10">

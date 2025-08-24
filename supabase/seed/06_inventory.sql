@@ -12,7 +12,7 @@ WITH warehouse_ids AS (
 product_ids AS (
   SELECT id, sku FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
-INSERT INTO inventory (product_id, warehouse_id, quantity, reserved_quantity, reorder_point, reorder_quantity, organization_clerk_id, created_by_clerk_user_id)
+INSERT INTO inventory (product_id, warehouse_id, quantity, reserved_quantity, organization_clerk_id, created_by_clerk_user_id)
 SELECT 
   p.id as product_id,
   w.id as warehouse_id,
@@ -104,24 +104,6 @@ SELECT
     WHEN w.name = 'Downtown Store' AND p.sku LIKE 'APPLE-MBP%' THEN 1
     ELSE 0
   END as reserved_quantity,
-  -- Reorder point
-  CASE 
-    WHEN p.sku LIKE 'CAT6%' THEN 50
-    WHEN p.sku LIKE 'USB%' THEN 20
-    WHEN p.sku LIKE 'SAMSUNG-980%' OR p.sku LIKE 'CRUCIAL%' THEN 10
-    WHEN p.sku LIKE 'DELL-LAT%' OR p.sku LIKE 'HP-ELITE%' THEN 3
-    WHEN p.sku LIKE 'CISCO%' OR p.sku LIKE 'FORTINET%' THEN 2
-    ELSE 5
-  END as reorder_point,
-  -- Reorder quantity
-  CASE 
-    WHEN p.sku LIKE 'CAT6%' THEN 100
-    WHEN p.sku LIKE 'USB%' THEN 50
-    WHEN p.sku LIKE 'SAMSUNG%' OR p.sku LIKE 'CRUCIAL%' THEN 25
-    WHEN p.sku LIKE 'DELL-LAT%' OR p.sku LIKE 'HP-ELITE%' THEN 5
-    WHEN p.sku LIKE 'CISCO%' OR p.sku LIKE 'FORTINET%' THEN 3
-    ELSE 10
-  END as reorder_quantity,
   'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM product_ids p

@@ -35,13 +35,11 @@ CREATE TABLE stock_movements (
     total_cost DECIMAL(10, 2),
     
     -- Status
-    status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'cancelled')),
+    status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('reserved', 'completed')),
     
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
     created_by_clerk_user_id TEXT NOT NULL,
-    cancelled_at TIMESTAMP WITH TIME ZONE,
-    cancelled_by_clerk_user_id TEXT,
     
     -- Ensure transfers have both warehouses
     CONSTRAINT transfer_warehouses_check CHECK (
@@ -91,15 +89,15 @@ CREATE POLICY "Users can create stock movements for own org" ON stock_movements
         )
     );
 
--- Policy: Users can update their own pending stock movements
-CREATE POLICY "Users can update own pending stock movements" ON stock_movements
+-- Policy: Users can update their own reserved stock movements
+CREATE POLICY "Users can update own reserved stock movements" ON stock_movements
     FOR UPDATE
     USING (
         organization_clerk_id = COALESCE(
             current_setting('request.jwt.claims', true)::json->>'org_id',
             current_setting('request.jwt.claims', true)::json->'o'->>'id'
         )
-        AND status = 'pending'
+        AND status = 'reserved'
     )
     WITH CHECK (
         organization_clerk_id = COALESCE(
@@ -108,7 +106,7 @@ CREATE POLICY "Users can update own pending stock movements" ON stock_movements
         )
     );
 
--- No delete policy - stock movements should not be deleted, only cancelled
+-- No delete policy - stock movements should not be deleted
 
 -- Create a view for easier stock movement queries with related details
 CREATE VIEW stock_movements_details AS

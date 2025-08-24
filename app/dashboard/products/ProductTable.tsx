@@ -4,7 +4,6 @@ import {
   ChevronDownIcon,
   ChevronUpDownIcon,
   ChevronUpIcon,
-  EyeIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -19,11 +18,11 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
+import { ProductLink } from "@/app/components/ui/ProductLink";
 import { Tooltip } from "@/app/components/ui/Tooltip";
 import { useAllProductsInventory } from "@/app/hooks/use-inventory";
 import { useDeleteProduct } from "@/app/hooks/use-products";
@@ -238,7 +237,10 @@ export function ProductTable({
         cell: ({ row }) => {
           return (
             <div>
-              <div className="text-sm font-medium text-gray-900">{row.original.name}</div>
+              <ProductLink
+                productId={row.original.id}
+                productName={row.original.name}
+              />
               {row.original.description && (
                 <div className="text-sm text-gray-500 truncate max-w-xs mt-1">
                   {row.original.description}
@@ -480,14 +482,6 @@ export function ProductTable({
         cell: ({ row }) => {
           return (
             <div className="flex items-center justify-end gap-2">
-              <Link
-                href={`/dashboard/products/${row.original.id}`}
-                className="text-gray-400 hover:text-gray-600 p-1"
-                title="View details"
-              >
-                <EyeIcon className="h-5 w-5" />
-                <span className="sr-only">View {row.original.name}</span>
-              </Link>
               <button
                 onClick={() => onEdit(row.original.id)}
                 className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"

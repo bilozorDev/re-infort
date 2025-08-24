@@ -6,10 +6,12 @@ const STORAGE_KEY = "navigation-preferences";
 
 interface NavigationPreferences {
   inventoryExpanded: boolean;
+  quotingExpanded: boolean;
 }
 
 const DEFAULT_PREFERENCES: NavigationPreferences = {
   inventoryExpanded: true,
+  quotingExpanded: true,
 };
 
 export function useLocalNavigationPreferences() {
@@ -48,9 +50,15 @@ export function useLocalNavigationPreferences() {
     updatePreferences({ inventoryExpanded: expanded });
   }, [updatePreferences]);
 
+  const setQuotingExpanded = useCallback((expanded: boolean) => {
+    updatePreferences({ quotingExpanded: expanded });
+  }, [updatePreferences]);
+
   return {
     inventoryExpanded: preferences.inventoryExpanded,
     setInventoryExpanded,
+    quotingExpanded: preferences.quotingExpanded,
+    setQuotingExpanded,
     isLoaded,
   };
 }

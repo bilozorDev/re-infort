@@ -92,7 +92,6 @@ export function InventoryTab({ productId, isAdmin }: InventoryTabProps) {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {inventory.map((item) => {
-                  const isLowStock = item.quantity <= (item.reorder_point || 0);
                   const isOutOfStock = item.quantity === 0;
 
                   return (
@@ -123,16 +122,11 @@ export function InventoryTab({ productId, isAdmin }: InventoryTabProps) {
                           className={`text-sm font-semibold ${
                             isOutOfStock
                               ? "text-red-600"
-                              : isLowStock
-                              ? "text-yellow-600"
                               : "text-gray-900"
                           }`}
                         >
                           {item.quantity}
                         </span>
-                        {isLowStock && !isOutOfStock && (
-                          <span className="ml-1 text-xs text-yellow-600">Low</span>
-                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                         {item.reserved_quantity}

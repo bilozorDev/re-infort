@@ -11,7 +11,9 @@ export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
-  ({ className, label, error, helperText, prefix, required, id, ...props }, ref) => {
+  ({ className, label, error, helperText, prefix, required, id, value, ...props }, ref) => {
+    // Convert null values to empty string to avoid React warnings
+    const inputValue = value === null ? "" : value;
     return (
       <div className="w-full">
         {label && (
@@ -29,6 +31,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               <input
                 ref={ref}
                 id={id}
+                value={inputValue}
                 className={cn(
                   "block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6",
                   className
@@ -42,6 +45,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             <input
               ref={ref}
               id={id}
+              value={inputValue}
               className={cn(
                 "block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6",
                 error && "outline-red-500 focus:outline-red-500",

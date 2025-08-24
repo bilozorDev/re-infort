@@ -14,8 +14,8 @@ interface LowStockItem {
   warehouse_id: string;
   warehouse_name: string;
   current_quantity: number;
-  reorder_point: number;
-  reorder_quantity: number;
+  low_stock_threshold: number;
+  total_quantity: number;
 }
 
 interface LowStockAlertsProps {
@@ -57,13 +57,13 @@ export function LowStockAlerts({ items, isAdmin }: LowStockAlertsProps) {
                     Warehouse
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Current Stock
+                    Warehouse Stock
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reorder Point
+                    Total Stock
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Suggested Order
+                    Alert Threshold
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -93,10 +93,10 @@ export function LowStockAlerts({ items, isAdmin }: LowStockAlertsProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                      {item.reorder_point}
+                      {item.total_quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                      {item.reorder_quantity}
+                      {item.low_stock_threshold}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {isAdmin && (

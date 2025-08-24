@@ -11,8 +11,9 @@ import {
   MinusIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ProductLink } from "@/app/components/ui/ProductLink";
 import { StockAdjustmentModal } from "@/app/dashboard/products/[id]/components/StockAdjustmentModal";
@@ -77,46 +78,129 @@ function TableSkeleton() {
 }
 
 export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
-  const [filters, setFilters] = useState<InventoryFilters>({
-    search: "",
-    stockStatus: "all",
-    sortBy: "product_name",
-    sortOrder: "asc",
-    page: 1,
-    pageSize: 25,
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Initialize filters from URL params
+  const [filters, setFilters] = useState<InventoryFilters>(() => {
+    const filterParam = searchParams.get("filter");
+    const searchParam = searchParams.get("search");
+    const categoryParam = searchParams.get("category");
+    const warehouseParam = searchParams.get("warehouse");
+    const sortParam = searchParams.get("sort");
+    const orderParam = searchParams.get("order");
+    const pageParam = searchParams.get("page");
+    const pageSizeParam = searchParams.get("pageSize");
+    
+    return {
+      search: searchParam || "",
+      stockStatus: filterParam === "low-stock" ? "low-stock" : 
+                   filterParam === "out-of-stock" ? "out-of-stock" :
+                   filterParam === "in-stock" ? "in-stock" : "all",
+      categoryId: categoryParam || undefined,
+      warehouseId: warehouseParam || undefined,
+      sortBy: (sortParam as InventoryFilters["sortBy"]) || "product_name",
+      sortOrder: (orderParam as "asc" | "desc") || "asc",
+      page: pageParam ? parseInt(pageParam) : 1,
+      pageSize: pageSizeParam ? parseInt(pageSizeParam) : 25,
+    };
   });
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [showFilters, setShowFilters] = useState(false);
+  // Show filters if any filter is active from URL
+  const [showFilters, setShowFilters] = useState(() => {
+    return !!(searchParams.get("filter") || searchParams.get("category") || searchParams.get("warehouse"));
+  });
   const [adjustmentModal, setAdjustmentModal] = useState<{
     productId: string;
     warehouseId: string;
     type: "add" | "remove";
   } | null>(null);
 
+  // Update filters when URL params change
+  useEffect(() => {
+    const filterParam = searchParams.get("filter");
+    const searchParam = searchParams.get("search");
+    const categoryParam = searchParams.get("category");
+    const warehouseParam = searchParams.get("warehouse");
+    
+    setFilters(prev => ({
+      ...prev,
+      search: searchParam || "",
+      stockStatus: filterParam === "low-stock" ? "low-stock" : 
+                   filterParam === "out-of-stock" ? "out-of-stock" :
+                   filterParam === "in-stock" ? "in-stock" : "all",
+      categoryId: categoryParam || undefined,
+      warehouseId: warehouseParam || undefined,
+    }));
+    
+    // Show filters panel if any filter is active
+    if (filterParam || categoryParam || warehouseParam) {
+      setShowFilters(true);
+    }
+  }, [searchParams]);
+
   const { data: inventory, isLoading, error } = useOrganizationInventory(filters);
   const { data: categories } = useCategories();
   const { data: warehouses } = useWarehouses();
 
+  // Update URL when filters change
+  const updateURL = useCallback((newFilters: InventoryFilters) => {
+    const params = new URLSearchParams();
+    
+    // Always keep the tab parameter
+    params.set("tab", "stock-levels");
+    
+    // Add filter parameters
+    if (newFilters.search) params.set("search", newFilters.search);
+    if (newFilters.stockStatus && newFilters.stockStatus !== "all") {
+      params.set("filter", newFilters.stockStatus);
+    }
+    if (newFilters.categoryId) params.set("category", newFilters.categoryId);
+    if (newFilters.warehouseId) params.set("warehouse", newFilters.warehouseId);
+    if (newFilters.sortBy && newFilters.sortBy !== "product_name") {
+      params.set("sort", newFilters.sortBy);
+    }
+    if (newFilters.sortOrder && newFilters.sortOrder !== "asc") {
+      params.set("order", newFilters.sortOrder);
+    }
+    if (newFilters.page && newFilters.page > 1) {
+      params.set("page", newFilters.page.toString());
+    }
+    if (newFilters.pageSize && newFilters.pageSize !== 25) {
+      params.set("pageSize", newFilters.pageSize.toString());
+    }
+    
+    router.push(`/dashboard/inventory?${params.toString()}`);
+  }, [router]);
+
   const handleSort = (column: typeof filters.sortBy) => {
-    setFilters((prev) => ({
-      ...prev,
+    const newFilters: InventoryFilters = {
+      ...filters,
       sortBy: column,
-      sortOrder: prev.sortBy === column && prev.sortOrder === "asc" ? "desc" : "asc",
+      sortOrder: (filters.sortBy === column && filters.sortOrder === "asc" ? "desc" : "asc") as "asc" | "desc",
       page: 1,
-    }));
+    };
+    setFilters(newFilters);
+    updateURL(newFilters);
   };
 
   const handleSearch = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, search: value, page: 1 }));
-  }, []);
+    const newFilters = { ...filters, search: value, page: 1 };
+    setFilters(newFilters);
+    updateURL(newFilters);
+  }, [filters, updateURL]);
 
   const handleFilterChange = (key: keyof InventoryFilters, value: string | number | undefined) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+    const newFilters = { ...filters, [key]: value, page: 1 };
+    setFilters(newFilters);
+    updateURL(newFilters);
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    const newFilters = { ...filters, page };
+    setFilters(newFilters);
+    updateURL(newFilters);
   };
 
   const toggleRowExpansion = (productId: string) => {
@@ -247,66 +331,90 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
-                <select
-                  value={filters.stockStatus}
-                  onChange={(e) => handleFilterChange("stockStatus", e.target.value)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                  <option value="all">All ({stockStatusCounts.all})</option>
-                  <option value="in-stock">In Stock ({stockStatusCounts["in-stock"]})</option>
-                  <option value="low-stock">Low Stock ({stockStatusCounts["low-stock"]})</option>
-                  <option value="out-of-stock">
-                    Out of Stock ({stockStatusCounts["out-of-stock"]})
-                  </option>
-                </select>
+                <div className="grid grid-cols-1">
+                  <select
+                    value={filters.stockStatus}
+                    onChange={(e) => handleFilterChange("stockStatus", e.target.value)}
+                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
+                  >
+                    <option value="all">All ({stockStatusCounts.all})</option>
+                    <option value="in-stock">In Stock ({stockStatusCounts["in-stock"]})</option>
+                    <option value="low-stock">Low Stock ({stockStatusCounts["low-stock"]})</option>
+                    <option value="out-of-stock">
+                      Out of Stock ({stockStatusCounts["out-of-stock"]})
+                    </option>
+                  </select>
+                  <ChevronDownIcon
+                    aria-hidden="true"
+                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  value={filters.categoryId || ""}
-                  onChange={(e) => handleFilterChange("categoryId", e.target.value || undefined)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                  <option value="">All Categories</option>
-                  {categories?.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1">
+                  <select
+                    value={filters.categoryId || ""}
+                    onChange={(e) => handleFilterChange("categoryId", e.target.value || undefined)}
+                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
+                  >
+                    <option value="">All Categories</option>
+                    {categories?.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDownIcon
+                    aria-hidden="true"
+                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
-                <select
-                  value={filters.warehouseId || ""}
-                  onChange={(e) => handleFilterChange("warehouseId", e.target.value || undefined)}
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                  <option value="">All Warehouses</option>
-                  {warehouses?.map((warehouse) => (
-                    <option key={warehouse.id} value={warehouse.id}>
-                      {warehouse.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-1">
+                  <select
+                    value={filters.warehouseId || ""}
+                    onChange={(e) => handleFilterChange("warehouseId", e.target.value || undefined)}
+                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
+                  >
+                    <option value="">All Warehouses</option>
+                    {warehouses?.map((warehouse) => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDownIcon
+                    aria-hidden="true"
+                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Items per page
                 </label>
-                <select
-                  value={filters.pageSize}
-                  onChange={(e) => handleFilterChange("pageSize", Number(e.target.value))}
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
+                <div className="grid grid-cols-1">
+                  <select
+                    value={filters.pageSize}
+                    onChange={(e) => handleFilterChange("pageSize", Number(e.target.value))}
+                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <ChevronDownIcon
+                    aria-hidden="true"
+                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -434,11 +542,6 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
                           >
                             {item.total_quantity.toLocaleString()}
                           </span>
-                          {item.reorder_point > 0 && item.total_quantity <= item.reorder_point && (
-                            <div className="text-xs text-yellow-600">
-                              Reorder: {item.reorder_point}
-                            </div>
-                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                           {item.total_reserved.toLocaleString()}
