@@ -65,12 +65,13 @@ sql_paths = [
   "./seed/05_products.sql",
   "./seed/06_inventory.sql",
   "./seed/07_product_features.sql",
-  "./seed/08_stock_movements.sql",
-  "./seed/09_clients.sql",
+  "./seed/08_clients.sql",
+  "./seed/09_service_categories.sql",
   "./seed/10_services.sql",
   "./seed/11_quotes.sql",
   "./seed/12_quote_items.sql",
-  "./seed/13_quote_events.sql"
+  "./seed/13_quote_events.sql",
+  "./seed/14_stock_movements.sql"
 ]
 
 [db.network_restrictions]

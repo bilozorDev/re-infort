@@ -157,8 +157,8 @@ describe("Subcategories API Route", () => {
         ...validSubcategoryData,
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
+        created_by_name: null,
         status: "active",
-        display_order: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

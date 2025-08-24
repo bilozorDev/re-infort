@@ -9,7 +9,7 @@ import {
 } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 import { getCurrentUserName } from "@/app/utils/user";
-import { mockServices, createMockService } from "@/test/fixtures/quotes";
+import { createMockService,mockServices } from "@/test/fixtures/quotes";
 
 import { GET, POST } from "../route";
 
@@ -20,13 +20,13 @@ vi.mock("@/app/utils/user");
 vi.mock("@/app/lib/supabase/server");
 
 describe("Services API Route", () => {
-  const mockSupabase = {
+  const mockSupabase: any = {
     from: vi.fn(() => mockSupabase),
     select: vi.fn(() => mockSupabase),
     eq: vi.fn(() => mockSupabase),
     order: vi.fn(() => mockSupabase),
     insert: vi.fn(() => mockSupabase),
-    single: vi.fn(() => mockSupabase),
+    single: vi.fn(),
   };
 
   beforeEach(() => {
@@ -66,20 +66,20 @@ describe("Services API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to data when awaited
-      const finalPromise = Promise.resolve({
-        data: mockServices,
-        error: null,
-      });
+      // Create a thenable mock that resolves to the data
+      const thenableMock = {
+        ...mockSupabase,
+        then: (resolve: any) => resolve({
+          data: mockServices,
+          error: null,
+        })
+      };
       
-      // Mock the complete chain: from -> select -> eq -> order -> eq -> (awaited)
+      // Mock the complete chain: from -> select -> eq -> order -> eq (returns thenable)
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
-      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.eq.mockReturnValue(thenableMock);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      
-      // For the second .eq() call (status filter), return the promise
-      mockSupabase.eq.mockReturnValueOnce(mockSupabase).mockReturnValue(finalPromise);
 
       const request = createGetRequest();
       const response = await GET(request);
@@ -97,20 +97,20 @@ describe("Services API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to error when awaited
-      const errorPromise = Promise.resolve({
-        data: null,
-        error: { message: "Database error" },
-      });
+      // Create a thenable mock that resolves to an error
+      const errorMock = {
+        ...mockSupabase,
+        then: (resolve: any) => resolve({
+          data: null,
+          error: { message: "Database error" },
+        })
+      };
       
       // Mock the chain but return error at the end
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
-      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.eq.mockReturnValue(errorMock);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      
-      // For the second .eq() call (status filter), return the error promise
-      mockSupabase.eq.mockReturnValueOnce(mockSupabase).mockReturnValue(errorPromise);
 
       const request = createGetRequest();
       const response = await GET(request);

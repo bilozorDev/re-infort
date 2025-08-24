@@ -1,9 +1,13 @@
 "use client";
 
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Fragment, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
+import { AddressAutocomplete, type AddressData } from "@/app/components/ui/address-autocomplete";
+import { FormField, TextArea, TextField } from "@/app/components/ui/form";
 import { type Tables } from "@/app/types/database.types";
 
 type Client = Tables<"clients">;
@@ -23,329 +27,348 @@ export default function ClientForm({
   onSubmit,
   isSubmitting,
 }: ClientFormProps) {
-  const [formData, setFormData] = useState<Partial<Client>>({
-    name: client?.name || "",
-    email: client?.email || "",
-    phone: client?.phone || "",
-    company: client?.company || "",
-    address: client?.address || "",
-    city: client?.city || "",
-    state_province: client?.state_province || "",
-    postal_code: client?.postal_code || "",
-    country: client?.country || "",
-    notes: client?.notes || "",
-    tags: client?.tags || [],
-  });
-
   const [tagInput, setTagInput] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+  const form = useForm({
+    defaultValues: client ? {
+      name: client.name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      company: client.company || "",
+      address: client.address || "",
+      city: client.city || "",
+      state_province: client.state_province || "",
+      postal_code: client.postal_code || "",
+      country: client.country || "",
+      notes: client.notes || "",
+      tags: client.tags || [],
+    } : {
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      address: "",
+      city: "",
+      state_province: "",
+      postal_code: "",
+      country: "",
+      notes: "",
+      tags: [] as string[],
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        // Basic validation
+        if (!value.name?.trim()) {
+          toast.error("Client name is required");
+          return;
+        }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+        if (value.email && !isValidEmail(value.email)) {
+          toast.error("Please enter a valid email address");
+          return;
+        }
+
+        onSubmit(value);
+      } catch (error) {
+        console.error("Form submission error:", error);
+        // Error is handled by parent component
+      }
+    },
+  });
+
+  // Reset tag input when client changes
+  useEffect(() => {
+    if (!client) {
+      setTagInput("");
+    }
+  }, [client]);
+
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...(prev.tags || []), tagInput.trim()]
-      }));
+    const currentTags = form.state.values.tags || [];
+    if (tagInput.trim() && !currentTags.includes(tagInput.trim())) {
+      form.setFieldValue("tags", [...currentTags, tagInput.trim()]);
       setTagInput("");
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags?.filter(t => t !== tag) || []
-    }));
+    const currentTags = form.state.values.tags || [];
+    form.setFieldValue("tags", currentTags.filter(t => t !== tag));
   };
 
   return (
-    <Transition show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </TransitionChild>
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <DialogBackdrop className="fixed inset-0 bg-gray-500/25 transition-opacity" />
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <TransitionChild
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={onClose}
-                  >
-                    <span className="sr-only">Close</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
-                </div>
-                
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <DialogTitle as="h3" className="text-lg font-semibold leading-6 text-gray-900">
-                      {client ? "Edit Client" : "Add New Client"}
-                    </DialogTitle>
-                    
-                    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-                      {/* Basic Information */}
-                      <div className="space-y-4">
-                        <h4 className="text-sm font-medium text-gray-900">Basic Information</h4>
-                        
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                              Name *
-                            </label>
-                            <input
-                              type="text"
-                              name="name"
-                              id="name"
-                              required
-                              value={formData.name}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                              Company
-                            </label>
-                            <input
-                              type="text"
-                              name="company"
-                              id="company"
-                              value={formData.company}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              name="email"
-                              id="email"
-                              value={formData.email}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                              Phone
-                            </label>
-                            <input
-                              type="tel"
-                              name="phone"
-                              id="phone"
-                              value={formData.phone}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
+      <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+            <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+              <div className="flex items-center justify-between mb-5">
+                <DialogTitle className="text-lg font-semibold text-gray-900">
+                  {client ? "Edit Client" : "Add New Client"}
+                </DialogTitle>
+                <button
+                  onClick={onClose}
+                  className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
 
-                      {/* Address Information */}
-                      <div className="space-y-4">
-                        <h4 className="text-sm font-medium text-gray-900">Address</h4>
-                        
-                        <div>
-                          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                            Street Address
-                          </label>
-                          <input
-                            type="text"
-                            name="address"
-                            id="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  form.handleSubmit();
+                }}
+                className="space-y-6"
+              >
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900">Basic Information</h3>
+                  
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                    <form.Field
+                      name="name"
+                      validators={{
+                        onChange: ({ value }) =>
+                          !value ? "Client name is required" : undefined,
+                      }}
+                    >
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="Name"
+                            placeholder="John Doe"
+                            required
                           />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                          <div className="sm:col-span-2">
-                            <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                              City
-                            </label>
-                            <input
-                              type="text"
-                              name="city"
-                              id="city"
-                              value={formData.city}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="state_province" className="block text-sm font-medium text-gray-700">
-                              State/Province
-                            </label>
-                            <input
-                              type="text"
-                              name="state_province"
-                              id="state_province"
-                              value={formData.state_province}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
-                              Postal Code
-                            </label>
-                            <input
-                              type="text"
-                              name="postal_code"
-                              id="postal_code"
-                              value={formData.postal_code}
-                              onChange={handleChange}
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                            Country
-                          </label>
-                          <input
-                            type="text"
-                            name="country"
-                            id="country"
-                            value={formData.country}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
+                        </FormField>
+                      )}
+                    </form.Field>
 
-                      {/* Additional Information */}
-                      <div className="space-y-4">
-                        <h4 className="text-sm font-medium text-gray-900">Additional Information</h4>
-                        
-                        <div>
-                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                            Notes
-                          </label>
-                          <textarea
-                            name="notes"
-                            id="notes"
-                            rows={3}
-                            value={formData.notes}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    <form.Field name="company">
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="Company"
+                            placeholder="Acme Inc."
                           />
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-                            Tags
-                          </label>
-                          <div className="mt-1 flex rounded-md shadow-sm">
-                            <input
-                              type="text"
-                              value={tagInput}
-                              onChange={(e) => setTagInput(e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  handleAddTag();
-                                }
-                              }}
-                              placeholder="Add a tag"
-                              className="block w-full rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleAddTag}
-                              className="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            >
-                              Add
-                            </button>
-                          </div>
-                          {formData.tags && formData.tags.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {formData.tags.map((tag, index) => (
-                                <span
-                                  key={index}
-                                  className="inline-flex items-center gap-x-0.5 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10"
-                                >
-                                  {tag}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveTag(tag)}
-                                    className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:bg-indigo-500 focus:text-white focus:outline-none"
-                                  >
-                                    <XMarkIcon className="h-3 w-3" />
-                                  </button>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                        </FormField>
+                      )}
+                    </form.Field>
 
-                      {/* Form Actions */}
-                      <div className="mt-6 flex items-center justify-end gap-x-3">
-                        <button
-                          type="button"
-                          className="text-sm font-semibold leading-6 text-gray-900"
-                          onClick={onClose}
-                          disabled={isSubmitting}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isSubmitting ? "Saving..." : client ? "Update Client" : "Create Client"}
-                        </button>
-                      </div>
-                    </form>
+                    <form.Field
+                      name="email"
+                      validators={{
+                        onChange: ({ value }) => {
+                          if (value && !isValidEmail(value)) {
+                            return "Please enter a valid email address";
+                          }
+                          return undefined;
+                        },
+                      }}
+                    >
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="Email"
+                            type="email"
+                            placeholder="john@example.com"
+                          />
+                        </FormField>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="phone">
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="Phone"
+                            type="tel"
+                            placeholder="(555) 123-4567"
+                          />
+                        </FormField>
+                      )}
+                    </form.Field>
                   </div>
                 </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
+
+                {/* Address Information */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900">Location</h3>
+                  
+                  <form.Field name="address">
+                    {(field) => (
+                      <FormField field={field}>
+                        <AddressAutocomplete
+                          label="Street Address"
+                          placeholder="123 Main Street"
+                          initialValue={field.state.value}
+                          error={field.state.meta.errors.join(", ")}
+                          onChange={(value) => field.handleChange(value)}
+                          onAddressSelect={(addressData: AddressData) => {
+                            // Update all address fields with the selected data
+                            field.handleChange(addressData.address);
+                            form.setFieldValue("city", addressData.city);
+                            form.setFieldValue("state_province", addressData.state_province);
+                            form.setFieldValue("postal_code", addressData.postal_code);
+                            form.setFieldValue("country", addressData.country);
+                          }}
+                        />
+                      </FormField>
+                    )}
+                  </form.Field>
+
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-3">
+                    <form.Field name="city">
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="City"
+                            placeholder="San Francisco"
+                          />
+                        </FormField>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="state_province">
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="State / Province"
+                            placeholder="CA"
+                          />
+                        </FormField>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="postal_code">
+                      {(field) => (
+                        <FormField field={field}>
+                          <TextField
+                            label="ZIP / Postal Code"
+                            placeholder="94105"
+                          />
+                        </FormField>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <form.Field name="country">
+                    {(field) => (
+                      <FormField field={field}>
+                        <TextField
+                          label="Country"
+                          placeholder="United States"
+                        />
+                      </FormField>
+                    )}
+                  </form.Field>
+                </div>
+
+                {/* Additional Information */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900">Additional Information</h3>
+                  
+                  <form.Field name="notes">
+                    {(field) => (
+                      <FormField field={field}>
+                        <TextArea
+                          label="Notes"
+                          rows={3}
+                          placeholder="Enter any additional notes about this client..."
+                        />
+                      </FormField>
+                    )}
+                  </form.Field>
+
+                  {/* Tags Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tags
+                    </label>
+                    <div className="flex rounded-md shadow-sm">
+                      <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddTag();
+                          }
+                        }}
+                        placeholder="Add a tag"
+                        className="block w-full rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTag}
+                        className="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <form.Field name="tags">
+                      {(field) => {
+                        const tags = field.state.value || [];
+                        return tags.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {tags.map((tag, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center gap-x-0.5 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10"
+                              >
+                                {tag}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveTag(tag)}
+                                  className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:bg-indigo-500 focus:text-white focus:outline-none"
+                                >
+                                  <XMarkIcon className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : null;
+                      }}
+                    </form.Field>
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="mt-6 flex items-center justify-end gap-x-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                    className="text-sm font-semibold text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                  <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                    {([canSubmit]) => (
+                      <button
+                        type="submit"
+                        disabled={!canSubmit || isSubmitting}
+                        className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? "Saving..." : client ? "Update Client" : "Create Client"}
+                      </button>
+                    )}
+                  </form.Subscribe>
+                </div>
+              </form>
+            </div>
+          </DialogPanel>
         </div>
-      </Dialog>
-    </Transition>
+      </div>
+    </Dialog>
   );
 }

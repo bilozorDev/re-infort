@@ -166,10 +166,10 @@ BEGIN
         'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
         'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
         25,
-        'sale',
-        'ORDER-123',
-        NULL,
-        'Test User'
+        'ORDER-123',  -- p_reference_number
+        'sale',       -- p_movement_type
+        NULL,         -- p_reason
+        'Test User'   -- p_user_name
     );
     v_movement_id := (v_movement_result->>'movement_id')::UUID;
     -- Store movement ID in a temp table for later use
@@ -192,10 +192,10 @@ SELECT throws_ok(
     'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
     'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
     50,
-    'sale',
-    'ORDER-456',
-    NULL,
-    'Test User'
+    'ORDER-456',  -- p_reference_number
+    'sale',       -- p_movement_type
+    NULL,         -- p_reason
+    'Test User'   -- p_user_name
   )$$,
   'P0001',
   'Insufficient available stock. Available: 45, Requested: 50',

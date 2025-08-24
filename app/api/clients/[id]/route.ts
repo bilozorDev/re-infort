@@ -5,6 +5,8 @@ import { createClient } from "@/app/lib/supabase/server";
 import { type TablesUpdate } from "@/app/types/database.types";
 import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
+type ClientUpdate = TablesUpdate<"clients">;
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -48,11 +50,11 @@ export async function GET(
 
     const stats = {
       total_quotes: quotes?.length || 0,
-      approved_quotes: quotes?.filter((q: any) => q.status === "approved" || q.status === "converted").length || 0,
-      pending_quotes: quotes?.filter((q: any) => q.status === "sent" || q.status === "viewed").length || 0,
-      total_value: quotes?.reduce((sum: number, q: any) => sum + (q.total || 0), 0) || 0,
+      approved_quotes: quotes?.filter((q) => q.status === "approved" || q.status === "converted").length || 0,
+      pending_quotes: quotes?.filter((q) => q.status === "sent" || q.status === "viewed").length || 0,
+      total_value: quotes?.reduce((sum: number, q) => sum + (q.total || 0), 0) || 0,
       conversion_rate: quotes && quotes.length > 0 
-        ? ((quotes.filter((q: any) => q.status === "converted").length / quotes.length) * 100).toFixed(1)
+        ? ((quotes.filter((q) => q.status === "converted").length / quotes.length) * 100).toFixed(1)
         : "0",
     };
 

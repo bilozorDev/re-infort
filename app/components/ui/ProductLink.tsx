@@ -5,13 +5,16 @@ import Link from "next/link";
 
 import { cn } from "@/app/lib/utils/table";
 
+import HighlightText from "./HighlightText";
+
 interface ProductLinkProps {
   productId: string;
   productName: string;
+  searchQuery?: string;
   className?: string;
 }
 
-export function ProductLink({ productId, productName, className }: ProductLinkProps) {
+export function ProductLink({ productId, productName, searchQuery, className }: ProductLinkProps) {
   return (
     <Link
       href={`/dashboard/products/${productId}`}
@@ -20,7 +23,7 @@ export function ProductLink({ productId, productName, className }: ProductLinkPr
         className
       )}
     >
-      <span>{productName}</span>
+      <HighlightText text={productName} searchQuery={searchQuery} />
       <EyeIcon className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 group-hover:text-indigo-600" />
     </Link>
   );

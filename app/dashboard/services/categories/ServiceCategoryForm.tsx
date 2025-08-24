@@ -3,7 +3,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { Fragment, useEffect } from "react";
+import { Fragment } from "react";
 
 import { FormField, TextArea, TextField } from "@/app/components/ui/form";
 import { 
@@ -23,15 +23,17 @@ export default function ServiceCategoryForm({
   isOpen, 
   onClose 
 }: ServiceCategoryFormProps) {
-  const { data: category } = useServiceCategory(categoryId || undefined);
+  const { data: category, isLoading: isLoadingCategory } = useServiceCategory(categoryId || undefined);
   const createCategory = useCreateServiceCategory();
   const updateCategory = useUpdateServiceCategory();
 
   const form = useForm({
-    defaultValues: {
+    defaultValues: category ? {
+      name: category.name || "",
+      description: category.description || "",
+    } : {
       name: "",
       description: "",
-      display_order: 0,
     },
     onSubmit: async ({ value }) => {
       if (categoryId && category) {
@@ -40,38 +42,17 @@ export default function ServiceCategoryForm({
           data: {
             name: value.name,
             description: value.description || null,
-            display_order: value.display_order,
           },
         });
       } else {
         await createCategory.mutateAsync({
           name: value.name,
           description: value.description || null,
-          display_order: value.display_order,
         });
       }
       onClose();
     },
   });
-
-  // Update form when category data changes
-  useEffect(() => {
-    if (isOpen) {
-      if (category) {
-        form.reset({
-          name: category.name || "",
-          description: category.description || "",
-          display_order: category.display_order || 0,
-        });
-      } else {
-        form.reset({
-          name: "",
-          description: "",
-          display_order: 0,
-        });
-      }
-    }
-  }, [category, isOpen, form]);
 
   const isSubmitting = createCategory.isPending || updateCategory.isPending;
 
@@ -116,9 +97,14 @@ export default function ServiceCategoryForm({
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
                     <DialogTitle as="h3" className="text-lg font-semibold leading-6 text-gray-900">
-                      {category ? "Edit Service Category" : "Add New Service Category"}
+                      {categoryId ? "Edit Service Category" : "Add New Service Category"}
                     </DialogTitle>
 
+                    {categoryId && isLoadingCategory ? (
+                      <div className="mt-6 flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+                      </div>
+                    ) : (
                     <form
                       className="mt-6 space-y-6"
                       onSubmit={(e) => {
@@ -163,30 +149,6 @@ export default function ServiceCategoryForm({
                         )}
                       </form.Field>
 
-                      {/* Display Order */}
-                      <form.Field
-                        name="display_order"
-                        validators={{
-                          onChange: ({ value }) => {
-                            if (value < 0) {
-                              return "Display order must be a positive number";
-                            }
-                            return undefined;
-                          },
-                        }}
-                      >
-                        {(field) => (
-                          <FormField field={field}>
-                            <TextField
-                              id="display_order"
-                              type="number"
-                              label="Display Order"
-                              placeholder="0"
-                              helperText="Categories with lower numbers appear first"
-                            />
-                          </FormField>
-                        )}
-                      </form.Field>
 
                       {/* Form Actions */}
                       <div className="mt-6 flex items-center justify-end gap-x-3">
@@ -212,6 +174,7 @@ export default function ServiceCategoryForm({
                         </button>
                       </div>
                     </form>
+                    )}
                   </div>
                 </div>
               </DialogPanel>

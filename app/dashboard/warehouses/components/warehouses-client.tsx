@@ -67,7 +67,7 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
         <EmptyState isAdmin={isAdmin} onAddWarehouse={() => setShowForm(true)} />
       )}
 
-      {showForm && <WarehouseForm warehouseId={editingWarehouse} onClose={handleCloseForm} />}
+      {showForm && <WarehouseForm key={editingWarehouse || 'new'} warehouseId={editingWarehouse} onClose={handleCloseForm} />}
     </div>
   );
 }

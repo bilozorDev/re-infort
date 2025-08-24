@@ -4,7 +4,6 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, Transitio
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
 import { Fragment, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import { useCreateServiceCategory, useServiceCategories } from "@/app/hooks/use-service-categories";
@@ -35,7 +34,15 @@ export default function ServiceForm({
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const form = useForm({
-    defaultValues: {
+    defaultValues: service ? {
+      name: service.name || "",
+      description: service.description || "",
+      service_category_id: service.service_category_id || "",
+      rate_type: service.rate_type || "fixed" as const,
+      rate: service.rate,
+      unit: service.unit || "",
+      status: service.status || "active" as const,
+    } : {
       name: "",
       description: "",
       service_category_id: "",
@@ -56,36 +63,13 @@ export default function ServiceForm({
     },
   });
 
-  // Update form when service changes or modal opens
+  // Reset auxiliary states when modal opens
   useEffect(() => {
     if (isOpen) {
-      if (service) {
-        // Editing existing service
-        form.reset({
-          name: service.name || "",
-          description: service.description || "",
-          service_category_id: service.service_category_id || "",
-          rate_type: service.rate_type || "fixed",
-          rate: service.rate,
-          unit: service.unit || "",
-          status: service.status || "active",
-        });
-      } else {
-        // Creating new service
-        form.reset({
-          name: "",
-          description: "",
-          service_category_id: "",
-          rate_type: "fixed",
-          rate: null,
-          unit: "",
-          status: "active",
-        });
-      }
       setShowNewCategory(false);
       setNewCategoryName("");
     }
-  }, [service, isOpen, form]);
+  }, [isOpen]);
 
   const handleClose = () => {
     form.reset();
@@ -107,7 +91,7 @@ export default function ServiceForm({
       form.setFieldValue("service_category_id", result.id);
       setNewCategoryName("");
       setShowNewCategory(false);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     }
   };

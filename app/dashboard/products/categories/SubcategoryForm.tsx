@@ -3,7 +3,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { AdjustmentsHorizontalIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import { useCategories, useCreateSubcategory, useUpdateSubcategory } from "@/app/hooks/use-categories";
@@ -31,12 +31,16 @@ export default function SubcategoryForm({
   const [showFeatureManager, setShowFeatureManager] = useState(false);
 
   const form = useForm({
-    defaultValues: {
+    defaultValues: subcategory ? {
+      category_id: subcategory.category_id || categoryId || "",
+      name: subcategory.name || "",
+      description: subcategory.description || "",
+      status: subcategory.status as "active" | "inactive",
+    } : {
       category_id: categoryId || "",
       name: "",
       description: "",
       status: "active" as "active" | "inactive",
-      display_order: "0",
     },
     onSubmit: async ({ value }) => {
       try {
@@ -45,7 +49,6 @@ export default function SubcategoryForm({
           name: value.name,
           description: value.description || null,
           status: value.status,
-          display_order: parseInt(value.display_order) || 0,
         };
 
         if (subcategory) {
@@ -54,7 +57,6 @@ export default function SubcategoryForm({
             name: data.name,
             description: data.description,
             status: data.status,
-            display_order: data.display_order,
           };
           await updateSubcategory.mutateAsync({ id: subcategory.id, data: updateData });
         } else {
@@ -67,27 +69,6 @@ export default function SubcategoryForm({
       }
     },
   });
-
-  // Update form when subcategory data changes
-  useEffect(() => {
-    if (subcategory) {
-      form.reset({
-        category_id: subcategory.category_id || categoryId || "",
-        name: subcategory.name || "",
-        description: subcategory.description || "",
-        status: subcategory.status as "active" | "inactive",
-        display_order: subcategory.display_order?.toString() || "0",
-      });
-    } else {
-      form.reset({
-        category_id: categoryId || "",
-        name: "",
-        description: "",
-        status: "active",
-        display_order: "0",
-      });
-    }
-  }, [subcategory, categoryId, form]);
 
   const statusOptions = [
     { value: "active", label: "Active" },
@@ -190,29 +171,6 @@ export default function SubcategoryForm({
                     )}
                   </form.Field>
 
-                  <form.Field
-                    name="display_order"
-                    validators={{
-                      onChange: ({ value }) => {
-                        const num = parseInt(value);
-                        if (value && (isNaN(num) || num < 0)) {
-                          return "Display order must be a positive number";
-                        }
-                        return undefined;
-                      },
-                    }}
-                  >
-                    {(field) => (
-                      <FormField field={field}>
-                        <TextField
-                          label="Display Order"
-                          type="number"
-                          placeholder="0"
-                          min="0"
-                        />
-                      </FormField>
-                    )}
-                  </form.Field>
                 </div>
 
                 {/* Manage Features Button for existing subcategories */}

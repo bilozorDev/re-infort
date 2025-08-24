@@ -30,6 +30,13 @@ import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form
 import InfoDrawer from "@/app/components/ui/InfoDrawer";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { PhotoUpload } from "@/app/components/ui/PhotoUpload";
+import {
+  Select as SelectUI,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import StepIndicator, { type Step } from "@/app/components/ui/StepIndicator";
 import {
   useCategories,
@@ -1104,30 +1111,34 @@ export default function ProductForm({
                                   </label>
                                   <div className="mt-2">
                                     {definition.input_type === "select" && definition.options ? (
-                                      <select
+                                      <SelectUI
                                         value={productFeatures[definition.id] || ""}
-                                        onChange={(e) =>
+                                        onValueChange={(value) =>
                                           setProductFeatures({
                                             ...productFeatures,
-                                            [definition.id]: e.target.value,
+                                            [definition.id]: value,
                                           })
                                         }
-                                        className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 ${
-                                          definition.is_required &&
-                                          (!productFeatures[definition.id] ||
-                                            productFeatures[definition.id].trim() === "")
-                                            ? "outline-red-300 focus:outline-red-600"
-                                            : "outline-gray-300 focus:outline-indigo-600"
-                                        } placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6`}
-                                        required={definition.is_required}
                                       >
-                                        <option value="">Select {definition.name}</option>
-                                        {definition.options.map((option) => (
-                                          <option key={option} value={option}>
-                                            {option}
-                                          </option>
-                                        ))}
-                                      </select>
+                                        <SelectTrigger 
+                                          className={`w-full ${
+                                            definition.is_required &&
+                                            (!productFeatures[definition.id] ||
+                                              productFeatures[definition.id].trim() === "")
+                                              ? "ring-1 ring-red-300 focus:ring-red-600"
+                                              : ""
+                                          }`}
+                                        >
+                                          <SelectValue placeholder={`Select ${definition.name}`} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {definition.options.map((option) => (
+                                            <SelectItem key={option} value={option}>
+                                              {option}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </SelectUI>
                                     ) : definition.input_type === "boolean" ? (
                                       <div className="flex items-center h-[36px]">
                                         <input

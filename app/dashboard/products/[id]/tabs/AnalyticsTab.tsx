@@ -3,6 +3,13 @@
 import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { useInventoryAnalytics } from "@/app/hooks/use-inventory";
 import { formatCurrency } from "@/app/lib/utils/table";
 
@@ -33,16 +40,17 @@ export function AnalyticsTab({ productId }: AnalyticsTabProps) {
       <div className="bg-white shadow rounded-lg px-6 py-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-gray-900">Analytics Period</h3>
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="365d">Last year</option>
-          </select>
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="365d">Last year</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

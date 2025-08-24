@@ -9,7 +9,7 @@ import {
 } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId } from "@/app/utils/roles";
 import { getCurrentUserName } from "@/app/utils/user";
-import { mockQuotes, createMockQuote, mockQuoteItems } from "@/test/fixtures/quotes";
+import { createMockQuote,mockQuotes } from "@/test/fixtures/quotes";
 
 import { GET, POST } from "../route";
 
@@ -25,10 +25,10 @@ describe("Quotes API Route", () => {
     select: vi.fn(() => mockSupabase),
     eq: vi.fn(() => mockSupabase),
     order: vi.fn(() => mockSupabase),
-    range: vi.fn(() => mockSupabase),
+    range: vi.fn(),
     insert: vi.fn(() => mockSupabase),
-    single: vi.fn(() => mockSupabase),
-    rpc: vi.fn(() => mockSupabase),
+    single: vi.fn(),
+    rpc: vi.fn(),
   };
 
   beforeEach(() => {
@@ -64,18 +64,15 @@ describe("Quotes API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to data when awaited
-      const finalPromise = Promise.resolve({
-        data: mockQuotes,
-        error: null,
-      });
-      
       // Mock the complete chain: from -> select -> eq -> order -> range
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      mockSupabase.range.mockReturnValue(finalPromise);
+      mockSupabase.range.mockResolvedValue({
+        data: mockQuotes,
+        error: null,
+      });
 
       const request = new NextRequest("http://localhost:3000/api/quotes");
       const response = await GET(request);
@@ -128,18 +125,15 @@ describe("Quotes API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to error when awaited
-      const errorPromise = Promise.resolve({
-        data: null,
-        error: { message: "Database error" },
-      });
-      
       // Mock the chain but return error at the end
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      mockSupabase.range.mockReturnValue(errorPromise);
+      mockSupabase.range.mockResolvedValue({
+        data: null,
+        error: { message: "Database error" },
+      });
 
       const request = new NextRequest("http://localhost:3000/api/quotes");
       const response = await GET(request);

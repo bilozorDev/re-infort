@@ -3,9 +3,9 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
 import toast from "react-hot-toast";
 
+import { AddressAutocomplete, type AddressData } from "@/app/components/ui/address-autocomplete";
 import { FormField, TextArea, TextField } from "@/app/components/ui/form";
 import type { Client, ClientInsert, ClientUpdate } from "@/app/types/quotes-helpers";
 
@@ -18,7 +18,19 @@ interface ClientFormProps {
 
 export default function ClientForm({ client, isOpen, onClose, onSubmit }: ClientFormProps) {
   const form = useForm({
-    defaultValues: {
+    defaultValues: client ? {
+      name: client.name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      company: client.company || "",
+      address: client.address || "",
+      city: client.city || "",
+      state_province: client.state_province || "",
+      postal_code: client.postal_code || "",
+      country: client.country || "",
+      notes: client.notes || "",
+      tags: client.tags || [],
+    } : {
       name: "",
       email: "",
       phone: "",
@@ -52,39 +64,6 @@ export default function ClientForm({ client, isOpen, onClose, onSubmit }: Client
       }
     },
   });
-
-  // Update form when client data changes or modal opens
-  useEffect(() => {
-    if (client && isOpen) {
-      form.reset({
-        name: client.name || "",
-        email: client.email || "",
-        phone: client.phone || "",
-        company: client.company || "",
-        address: client.address || "",
-        city: client.city || "",
-        state_province: client.state_province || "",
-        postal_code: client.postal_code || "",
-        country: client.country || "",
-        notes: client.notes || "",
-        tags: client.tags || [],
-      });
-    } else if (!client && isOpen) {
-      form.reset({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        address: "",
-        city: "",
-        state_province: "",
-        postal_code: "",
-        country: "",
-        notes: "",
-        tags: [],
-      });
-    }
-  }, [client, isOpen, form]);
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -191,14 +170,25 @@ export default function ClientForm({ client, isOpen, onClose, onSubmit }: Client
 
                 {/* Address Information */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-900">Address</h3>
+                  <h3 className="text-sm font-medium text-gray-900">Location</h3>
                   
                   <form.Field name="address">
                     {(field) => (
                       <FormField field={field}>
-                        <TextField
+                        <AddressAutocomplete
                           label="Street Address"
                           placeholder="123 Main Street"
+                          initialValue={field.state.value}
+                          error={field.state.meta.errors.join(", ")}
+                          onChange={(value) => field.handleChange(value)}
+                          onAddressSelect={(addressData: AddressData) => {
+                            // Update all address fields with the selected data
+                            field.handleChange(addressData.address);
+                            form.setFieldValue("city", addressData.city);
+                            form.setFieldValue("state_province", addressData.state_province);
+                            form.setFieldValue("postal_code", addressData.postal_code);
+                            form.setFieldValue("country", addressData.country);
+                          }}
                         />
                       </FormField>
                     )}

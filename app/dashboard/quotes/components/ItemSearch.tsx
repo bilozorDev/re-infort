@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import type { SearchResult } from "@/app/types/quotes-helpers";
 import { formatCurrency } from "@/app/utils/formatters";
 
-interface SelectedItem extends Partial<SearchResult> {
+interface SelectedItem extends Omit<Partial<SearchResult>, 'type'> {
   type: "product" | "service" | "custom";
   warehouse_id?: string;
   warehouse_name?: string;

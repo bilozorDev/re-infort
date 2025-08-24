@@ -16,6 +16,13 @@ import React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ProductLink } from "@/app/components/ui/ProductLink";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { StockAdjustmentModal } from "@/app/dashboard/products/[id]/components/StockAdjustmentModal";
 import { useCategories } from "@/app/hooks/use-categories";
 import {
@@ -239,7 +246,7 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
       item.total_quantity,
       item.total_reserved,
       item.total_available,
-      item.reorder_point,
+      (item as any).reorder_point || 0,
       item.warehouse_count,
       item.stock_status,
     ]);
@@ -331,90 +338,79 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
-                <div className="grid grid-cols-1">
-                  <select
-                    value={filters.stockStatus}
-                    onChange={(e) => handleFilterChange("stockStatus", e.target.value)}
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
-                  >
-                    <option value="all">All ({stockStatusCounts.all})</option>
-                    <option value="in-stock">In Stock ({stockStatusCounts["in-stock"]})</option>
-                    <option value="low-stock">Low Stock ({stockStatusCounts["low-stock"]})</option>
-                    <option value="out-of-stock">
+                <Select value={filters.stockStatus} onValueChange={(value) => handleFilterChange("stockStatus", value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All ({stockStatusCounts.all})</SelectItem>
+                    <SelectItem value="in-stock">In Stock ({stockStatusCounts["in-stock"]})</SelectItem>
+                    <SelectItem value="low-stock">Low Stock ({stockStatusCounts["low-stock"]})</SelectItem>
+                    <SelectItem value="out-of-stock">
                       Out of Stock ({stockStatusCounts["out-of-stock"]})
-                    </option>
-                  </select>
-                  <ChevronDownIcon
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <div className="grid grid-cols-1">
-                  <select
-                    value={filters.categoryId || ""}
-                    onChange={(e) => handleFilterChange("categoryId", e.target.value || undefined)}
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
-                  >
-                    <option value="">All Categories</option>
+                <Select 
+                  value={filters.categoryId || ""} 
+                  onValueChange={(value) => handleFilterChange("categoryId", value || undefined)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Categories</SelectItem>
                     {categories?.map((category) => (
-                      <option key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={category.id}>
                         {category.name}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <ChevronDownIcon
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
-                <div className="grid grid-cols-1">
-                  <select
-                    value={filters.warehouseId || ""}
-                    onChange={(e) => handleFilterChange("warehouseId", e.target.value || undefined)}
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
-                  >
-                    <option value="">All Warehouses</option>
+                <Select 
+                  value={filters.warehouseId || ""} 
+                  onValueChange={(value) => handleFilterChange("warehouseId", value || undefined)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Warehouses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Warehouses</SelectItem>
                     {warehouses?.map((warehouse) => (
-                      <option key={warehouse.id} value={warehouse.id}>
+                      <SelectItem key={warehouse.id} value={warehouse.id}>
                         {warehouse.name}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <ChevronDownIcon
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Items per page
                 </label>
-                <div className="grid grid-cols-1">
-                  <select
-                    value={filters.pageSize}
-                    onChange={(e) => handleFilterChange("pageSize", Number(e.target.value))}
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <ChevronDownIcon
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                  />
-                </div>
+                <Select 
+                  value={filters.pageSize?.toString() || "25"} 
+                  onValueChange={(value) => handleFilterChange("pageSize", Number(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Items per page" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

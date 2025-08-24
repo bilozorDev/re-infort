@@ -28,8 +28,7 @@ export async function GET(request: NextRequest) {
       .from("service_categories")
       .select("*")
       .eq("organization_clerk_id", orgId)
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true });
+      .order("created_at", { ascending: true });
 
     // Apply status filter if requested
     if (activeOnly) {
@@ -75,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, status = "active", display_order = 0 } = body;
+    const { name, description, status = "active" } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -96,7 +95,6 @@ export async function POST(request: NextRequest) {
       name: name.trim(),
       description: description?.trim() || null,
       status,
-      display_order,
       created_by_clerk_user_id: userId,
       created_by_name: userName,
     };

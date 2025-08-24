@@ -5,6 +5,7 @@ export const mockUserPreferences: UserPreferences[] = [
     id: 'pref-1',
     clerk_user_id: 'user_test123',
     organization_clerk_id: 'org_test123',
+    navigation_state: null,
     table_preferences: {
       products: {
         columnVisibility: {
@@ -53,6 +54,7 @@ export const mockUserPreferences: UserPreferences[] = [
     id: 'pref-2',
     clerk_user_id: 'user_admin',
     organization_clerk_id: 'org_test123',
+    navigation_state: { inventory_expanded: true },
     table_preferences: {
       products: {
         columnVisibility: {
@@ -93,6 +95,7 @@ export const createMockUserPreferences = (overrides?: Partial<UserPreferences>):
   id: 'pref-test',
   clerk_user_id: 'user_test',
   organization_clerk_id: 'org_test123',
+  navigation_state: null,
   table_preferences: {
     products: {
       columnVisibility: { name: true, sku: true },

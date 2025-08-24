@@ -9,17 +9,19 @@ import {
   TrashIcon 
 } from "@heroicons/react/24/outline";
 
+import HighlightText from "@/app/components/ui/HighlightText";
 import { type Tables } from "@/app/types/database.types";
 
 type Client = Tables<"clients">;
 
 interface ClientListProps {
   clients: Client[];
+  searchQuery?: string;
   onEdit: (client: Client) => void;
   onDelete: (id: string) => void;
 }
 
-export default function ClientList({ clients, onEdit, onDelete }: ClientListProps) {
+export default function ClientList({ clients, searchQuery, onEdit, onDelete }: ClientListProps) {
   if (clients.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
@@ -54,15 +56,15 @@ export default function ClientList({ clients, onEdit, onDelete }: ClientListProp
                 </span>
               </div>
               <div className="min-w-0 flex-auto">
-                <p className="text-sm font-semibold leading-6 text-gray-900">
+                <div className="text-sm font-semibold leading-6 text-gray-900">
                   <span className="absolute inset-x-0 -top-px bottom-0" />
-                  {client.name}
-                </p>
+                  <HighlightText text={client.name} searchQuery={searchQuery} />
+                </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-5 text-gray-500">
                   {client.email && (
                     <span className="flex items-center gap-x-1">
                       <EnvelopeIcon className="h-3 w-3" />
-                      {client.email}
+                      <HighlightText text={client.email} searchQuery={searchQuery} />
                     </span>
                   )}
                   {client.phone && (
@@ -74,7 +76,7 @@ export default function ClientList({ clients, onEdit, onDelete }: ClientListProp
                   {client.company && (
                     <span className="flex items-center gap-x-1">
                       <BuildingOfficeIcon className="h-3 w-3" />
-                      {client.company}
+                      <HighlightText text={client.company} searchQuery={searchQuery} />
                     </span>
                   )}
                   {client.city && client.state_province && (

@@ -16,8 +16,7 @@ export async function getAllCategories(organizationId: string): Promise<Category
     .from("categories")
     .select("*")
     .eq("organization_clerk_id", organizationId)
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch categories: ${error.message}`);
@@ -34,8 +33,7 @@ export async function getActiveCategories(organizationId: string): Promise<Categ
     .select("*")
     .eq("organization_clerk_id", organizationId)
     .eq("status", "active")
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch active categories: ${error.message}`);
@@ -167,8 +165,7 @@ export async function getAllSubcategories(organizationId: string): Promise<Subca
     .from("subcategories")
     .select("*")
     .eq("organization_clerk_id", organizationId)
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch subcategories: ${error.message}`);
@@ -189,8 +186,7 @@ export async function getSubcategoriesByCategory(
     .eq("category_id", categoryId)
     .eq("organization_clerk_id", organizationId)
     .eq("status", "active")
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(`Failed to fetch subcategories: ${error.message}`);

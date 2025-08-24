@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         service_category:service_categories(*)
       `)
       .eq("organization_clerk_id", orgId)
-      .order("name", { ascending: true });
+      .order("created_at", { ascending: true });
 
     // Apply status filter
     if (status !== "all") {
@@ -42,12 +42,18 @@ export async function GET(request: NextRequest) {
 
     // Apply search filter
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,category.ilike.%${search}%`);
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
-    // Apply category filter (support both old and new category system)
+    // Apply category filter
     if (category) {
-      query = query.or(`category.eq.${category},service_category_id.eq.${category}`);
+      if (category === "no_category") {
+        // Filter for services with no category
+        query = query.is("service_category_id", null);
+      } else {
+        // Filter for specific category
+        query = query.eq("service_category_id", category);
+      }
     }
 
     const { data, error } = await query;
@@ -63,8 +69,7 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("organization_clerk_id", orgId)
       .eq("status", "active")
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true });
+      .order("created_at", { ascending: true });
 
     return NextResponse.json({ 
       data,
@@ -137,7 +142,6 @@ export async function POST(request: NextRequest) {
       created_by_name: userName,
       name: body.name,
       description: body.description || null,
-      category: body.category || null, // Keep for backward compatibility
       service_category_id: body.service_category_id || null,
       rate_type: body.rate_type || "fixed",
       rate: body.rate || null,

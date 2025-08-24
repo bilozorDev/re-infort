@@ -16,7 +16,7 @@ export async function getSubcategories(
     .from("subcategories")
     .select("*")
     .eq("organization_clerk_id", orgId)
-    .order("display_order", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (categoryId) {
     query = query.eq("category_id", categoryId);

@@ -5,7 +5,6 @@ CREATE TABLE service_categories (
     name TEXT NOT NULL,
     description TEXT,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
-    display_order INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
     created_by_clerk_user_id TEXT NOT NULL,
@@ -22,7 +21,6 @@ ADD COLUMN service_category_id UUID REFERENCES service_categories(id) ON DELETE 
 -- Create indexes for better query performance
 CREATE INDEX idx_service_categories_org ON service_categories(organization_clerk_id);
 CREATE INDEX idx_service_categories_status ON service_categories(status);
-CREATE INDEX idx_service_categories_display_order ON service_categories(display_order);
 CREATE INDEX idx_services_service_category_id ON services(service_category_id);
 
 -- Create trigger for updating updated_at timestamp

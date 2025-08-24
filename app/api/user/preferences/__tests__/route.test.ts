@@ -51,11 +51,12 @@ describe("User Preferences API Route", () => {
     });
 
     it("should return user preferences successfully", async () => {
-      const mockPreferences = {
+      const mockPreferences: UserPreferences = {
         id: "pref_123",
         clerk_user_id: "user_123",
         organization_clerk_id: "org_123",
-        table_preferences: { products: { pageSize: 20 } },
+        navigation_state: null,
+        table_preferences: { products: { pageSize: 25 } },
         ui_preferences: { theme: "dark" },
         feature_settings: { notifications: true },
         created_at: new Date().toISOString(),
@@ -63,7 +64,7 @@ describe("User Preferences API Route", () => {
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
-      vi.mocked(getUserPreferences).mockResolvedValue(mockPreferences as UserPreferences);
+      vi.mocked(getUserPreferences).mockResolvedValue(mockPreferences);
 
       const response = await GET();
 
@@ -86,8 +87,8 @@ describe("User Preferences API Route", () => {
   });
 
   describe("PATCH /api/user/preferences", () => {
-    const validPreferencesData = {
-      theme: "dark",
+    const validPreferencesData: UIPreferences = {
+      theme: "dark" as const,
       notifications_enabled: false,
       language: "fr",
     };
@@ -114,10 +115,11 @@ describe("User Preferences API Route", () => {
     });
 
     it("should update preferences successfully", async () => {
-      const mockUpdatedPreferences = {
+      const mockUpdatedPreferences: UserPreferences = {
         id: "pref_123",
         clerk_user_id: "user_123",
         organization_clerk_id: "org_123",
+        navigation_state: null,
         table_preferences: {},
         ui_preferences: validPreferencesData,
         feature_settings: {},
@@ -126,7 +128,7 @@ describe("User Preferences API Route", () => {
       };
 
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock("user_123", "org_123"));
-      vi.mocked(upsertUserPreferences).mockResolvedValue(mockUpdatedPreferences as UserPreferences);
+      vi.mocked(upsertUserPreferences).mockResolvedValue(mockUpdatedPreferences);
 
       const request = createPatchRequest(validPreferencesData);
       const response = await PATCH(request);

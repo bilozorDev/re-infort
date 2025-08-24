@@ -20,7 +20,6 @@ export const createCategorySchema = z.object({
   name: z.string().min(1, "Category name is required").max(100),
   description: z.string().optional().nullable(),
   status: z.enum(["active", "inactive"]).default("active"),
-  display_order: z.number().int().min(0).default(0),
 });
 
 export const updateCategorySchema = createCategorySchema.partial();
@@ -30,7 +29,6 @@ export const createSubcategorySchema = z.object({
   name: z.string().min(1, "Subcategory name is required").max(100),
   description: z.string().optional().nullable(),
   status: z.enum(["active", "inactive"]).default("active"),
-  display_order: z.number().int().min(0).default(0),
 });
 
 export const updateSubcategorySchema = createSubcategorySchema.partial();
@@ -43,7 +41,6 @@ export const createFeatureDefinitionSchema = z.object({
   options: z.array(z.string()).optional().nullable(),
   unit: z.string().max(20).optional().nullable(),
   is_required: z.boolean().default(false),
-  display_order: z.number().int().min(0).default(0),
 });
 
 export const updateFeatureDefinitionSchema = createFeatureDefinitionSchema.partial();

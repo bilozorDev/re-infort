@@ -2,7 +2,6 @@
 
 import { CubeIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -214,6 +213,7 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
 
       {showCategoryForm && (
         <CategoryForm
+          key={editingCategory?.id || 'new'}
           category={editingCategory}
           isOpen={showCategoryForm}
           onClose={() => {
@@ -225,6 +225,7 @@ export function CategoriesClient({ isAdmin }: CategoriesClientProps) {
 
       {showSubcategoryForm && (
         <SubcategoryForm
+          key={editingSubcategory?.id || `new-${subcategoryCategoryId}`}
           subcategory={editingSubcategory}
           categoryId={subcategoryCategoryId}
           isOpen={showSubcategoryForm}

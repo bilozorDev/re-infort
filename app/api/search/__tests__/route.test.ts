@@ -19,13 +19,13 @@ vi.mock("@/app/utils/roles");
 vi.mock("@/app/lib/supabase/server");
 
 describe("Search API Route", () => {
-  const mockSupabase = {
+  const mockSupabase: any = {
     from: vi.fn(() => mockSupabase),
     select: vi.fn(() => mockSupabase),
     eq: vi.fn(() => mockSupabase),
     or: vi.fn(() => mockSupabase),
     ilike: vi.fn(() => mockSupabase),
-    limit: vi.fn(() => mockSupabase),
+    limit: vi.fn(),
   };
 
   beforeEach(() => {

@@ -40,7 +40,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name: string | null
           description: string | null
-          display_order: number | null
           id: string
           name: string
           organization_clerk_id: string
@@ -52,7 +51,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name: string
           organization_clerk_id: string
@@ -64,7 +62,6 @@ export type Database = {
           created_by_clerk_user_id?: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name?: string
           organization_clerk_id?: string
@@ -829,7 +826,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name: string | null
           description: string | null
-          display_order: number | null
           id: string
           name: string
           organization_clerk_id: string
@@ -841,7 +837,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name: string
           organization_clerk_id: string
@@ -853,7 +848,6 @@ export type Database = {
           created_by_clerk_user_id?: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name?: string
           organization_clerk_id?: string
@@ -864,7 +858,6 @@ export type Database = {
       }
       services: {
         Row: {
-          category: string | null
           created_at: string | null
           created_by_clerk_user_id: string
           created_by_name: string | null
@@ -880,7 +873,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          category?: string | null
           created_at?: string | null
           created_by_clerk_user_id: string
           created_by_name?: string | null
@@ -896,7 +888,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          category?: string | null
           created_at?: string | null
           created_by_clerk_user_id?: string
           created_by_name?: string | null
@@ -1010,7 +1001,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name: string | null
           description: string | null
-          display_order: number | null
           id: string
           name: string
           organization_clerk_id: string
@@ -1023,7 +1013,6 @@ export type Database = {
           created_by_clerk_user_id: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name: string
           organization_clerk_id: string
@@ -1036,7 +1025,6 @@ export type Database = {
           created_by_clerk_user_id?: string
           created_by_name?: string | null
           description?: string | null
-          display_order?: number | null
           id?: string
           name?: string
           organization_clerk_id?: string

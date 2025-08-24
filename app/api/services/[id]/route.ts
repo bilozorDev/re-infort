@@ -115,7 +115,7 @@ export async function PATCH(
     const updateData: TablesUpdate<"services"> = {};
     
     const allowedFields = [
-      "name", "description", "category", "service_category_id",
+      "name", "description", "service_category_id",
       "rate_type", "rate", "unit", "status"
     ];
 

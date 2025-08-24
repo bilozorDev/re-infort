@@ -88,9 +88,9 @@ export async function GET(request: NextRequest) {
             .eq("product_id", product.id)
             .eq("organization_clerk_id", orgId);
 
-          const availability = inventory?.map((inv: any) => ({
+          const availability = inventory?.map((inv) => ({
             warehouse_id: inv.warehouse_id,
-            warehouse_name: inv.warehouses?.name || "Unknown",
+            warehouse_name: (inv.warehouses as { name?: string })?.name || "Unknown",
             available_quantity: inv.quantity - inv.reserved_quantity,
             reserved_quantity: inv.reserved_quantity
           })) || [];
@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
             description: product.description,
             sku: product.sku,
             price: product.price,
-            category: (product.categories as any)?.name,
-            subcategory: (product.subcategories as any)?.name,
+            category: 'categories' in product && product.categories ? (product.categories as { name?: string }).name : undefined,
+            subcategory: 'subcategories' in product && product.subcategories ? (product.subcategories as { name?: string }).name : undefined,
             availability,
             photo_url: product.photo_urls?.[0] || null
           });

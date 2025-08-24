@@ -68,6 +68,7 @@ describe("Warehouses [id] API Route", () => {
         notes: null,
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
+        created_by_name: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -156,6 +157,7 @@ describe("Warehouses [id] API Route", () => {
         notes: null,
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
+        created_by_name: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

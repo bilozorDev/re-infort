@@ -26,7 +26,7 @@ export function OverviewTab({ product, isAdmin }: OverviewTabProps) {
   const [productImages, setProductImages] = useState<string[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [lowStockEnabled, setLowStockEnabled] = useState(product.low_stock_threshold > 0);
+  const [lowStockEnabled, setLowStockEnabled] = useState((product.low_stock_threshold ?? 0) > 0);
   const [threshold, setThreshold] = useState(product.low_stock_threshold || 10);
   const [thresholdInput, setThresholdInput] = useState((product.low_stock_threshold || 10).toString());
   const [isEditingThreshold, setIsEditingThreshold] = useState(false);

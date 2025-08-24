@@ -8,18 +8,23 @@ import {
   TrashIcon 
 } from "@heroicons/react/24/outline";
 
+import HighlightText from "@/app/components/ui/HighlightText";
 import { type Tables } from "@/app/types/database.types";
 
-type Service = Tables<"services">;
+type ServiceCategory = Tables<"service_categories">;
+type Service = Tables<"services"> & {
+  service_category?: ServiceCategory | null;
+};
 
 interface ServiceListProps {
   services: Service[];
+  searchQuery?: string;
   onEdit: (service: Service) => void;
   onDelete: (id: string) => void;
   isAdmin: boolean;
 }
 
-export default function ServiceList({ services, onEdit, onDelete, isAdmin }: ServiceListProps) {
+export default function ServiceList({ services, searchQuery, onEdit, onDelete, isAdmin }: ServiceListProps) {
   const formatRate = (service: Service) => {
     if (!service.rate) return "Custom pricing";
     
@@ -78,9 +83,11 @@ export default function ServiceList({ services, onEdit, onDelete, isAdmin }: Ser
               </div>
               <div className="min-w-0 flex-auto">
                 <div className="flex items-start gap-x-3">
-                  <p className="text-sm font-semibold leading-6 text-gray-900">
-                    {service.name}
-                  </p>
+                  <HighlightText 
+                    text={service.name}
+                    searchQuery={searchQuery}
+                    className="text-sm font-semibold leading-6 text-gray-900"
+                  />
                   {service.status === "inactive" && (
                     <span className="inline-flex items-center rounded-md bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                       Inactive
@@ -88,19 +95,20 @@ export default function ServiceList({ services, onEdit, onDelete, isAdmin }: Ser
                   )}
                 </div>
                 {service.description && (
-                  <p className="mt-1 text-sm leading-5 text-gray-500 line-clamp-2">
-                    {service.description}
-                  </p>
+                  <HighlightText
+                    text={service.description}
+                    searchQuery={searchQuery}
+                    className="mt-1 text-sm leading-5 text-gray-500 line-clamp-2"
+                  />
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-5 text-gray-500">
                   <span className="flex items-center gap-x-1">
                     <CurrencyDollarIcon className="h-3 w-3" />
                     {formatRate(service)}
                   </span>
-                  {service.category && (
-                    <span className="flex items-center gap-x-1">
-                      <TagIcon className="h-3 w-3" />
-                      {service.category}
+                  {service.service_category && (
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                      {service.service_category.name}
                     </span>
                   )}
                 </div>

@@ -43,8 +43,7 @@ export function useCreateServiceCategory() {
     mutationFn: async (data: { 
       name: string; 
       description?: string | null; 
-      status?: "active" | "inactive"; 
-      display_order?: number 
+      status?: "active" | "inactive"
     }) => {
       const response = await fetch("/api/service-categories", {
         method: "POST",
@@ -84,8 +83,7 @@ export function useUpdateServiceCategory() {
       data: Partial<{ 
         name: string; 
         description?: string | null; 
-        status?: "active" | "inactive"; 
-        display_order?: number 
+        status?: "active" | "inactive"
       }> 
     }) => {
       const response = await fetch(`/api/service-categories/${id}`, {

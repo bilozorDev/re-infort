@@ -122,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setQuotingOpen(quotingExpanded);
       }
     }
-  }, [isLoaded, inventoryExpanded, quotingExpanded, isOnInventoryPage, isOnQuotingPage, setInventoryExpanded, setQuotingExpanded]);
+  }, [isLoaded, inventoryExpanded, quotingExpanded, isOnInventoryPage, isOnQuotingPage, setInventoryExpanded, setQuotingExpanded, inventoryOpen, quotingOpen]);
 
   const handleInventoryToggle = useCallback((open: boolean) => {
     setInventoryOpen(open);
@@ -215,10 +215,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 {item.name}
                                 <ChevronDownIcon
                                   className={classNames(
+                                    "ml-auto h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200",
                                     (item.name === "Inventory" && inventoryOpen) || 
                                     (item.name === "Quoting" && quotingOpen) 
-                                      ? "rotate-180" : "",
-                                    "ml-auto mr-2 h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
+                                      ? "rotate-180" : ""
                                   )}
                                   aria-hidden={true}
                                 />
@@ -364,10 +364,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {item.name}
                             <ChevronDownIcon
                               className={classNames(
+                                "ml-auto h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200",
                                 (item.name === "Inventory" && inventoryOpen) || 
                                 (item.name === "Quoting" && quotingOpen) 
-                                  ? "rotate-180" : "",
-                                "ml-auto mr-2 h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200"
+                                  ? "rotate-180" : ""
                               )}
                               aria-hidden={true}
                             />

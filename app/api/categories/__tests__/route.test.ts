@@ -162,8 +162,8 @@ describe("Categories API Route", () => {
         ...validCategoryData,
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
+        created_by_name: null,
         status: "active",
-        display_order: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -184,7 +184,6 @@ describe("Categories API Route", () => {
           name: "New Category",
           description: "Category description",
           status: "active",
-          display_order: 0,
         }),
         "org_123",
         "user_123"

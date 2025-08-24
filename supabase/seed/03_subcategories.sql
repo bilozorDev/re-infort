@@ -22,7 +22,7 @@ cables_cat AS (
   SELECT id FROM inserted_categories WHERE name = 'Cables & Accessories'
 )
 -- Insert subcategories
-INSERT INTO subcategories (category_id, name, description, status, display_order, organization_clerk_id, created_by_clerk_user_id)
+INSERT INTO subcategories (category_id, name, description, status, organization_clerk_id, created_by_clerk_user_id)
 SELECT 
   CASE 
     WHEN sub.name IN ('Desktop Computers', 'Laptop Computers', 'Servers') THEN (SELECT id FROM computing_cat)
@@ -34,29 +34,28 @@ SELECT
   sub.name,
   sub.description,
   'active',
-  sub.display_order,
   'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     -- Computing subcategories
-    ('Desktop Computers', 'Desktop PCs and workstations', 1),
-    ('Laptop Computers', 'Portable computers and notebooks', 2),
-    ('Servers', 'Rack and tower servers', 3),
+    ('Desktop Computers', 'Desktop PCs and workstations'),
+    ('Laptop Computers', 'Portable computers and notebooks'),
+    ('Servers', 'Rack and tower servers'),
     -- Networking subcategories
-    ('Switches', 'Network switches and hubs', 1),
-    ('Routers', 'Network routers and gateways', 2),
-    ('Firewalls', 'Security appliances and firewalls', 3),
+    ('Switches', 'Network switches and hubs'),
+    ('Routers', 'Network routers and gateways'),
+    ('Firewalls', 'Security appliances and firewalls'),
     -- Storage subcategories
-    ('SSDs', 'Solid state drives', 1),
-    ('RAM', 'Memory modules', 2),
-    ('Hard Drives', 'Traditional hard disk drives', 3),
+    ('SSDs', 'Solid state drives'),
+    ('RAM', 'Memory modules'),
+    ('Hard Drives', 'Traditional hard disk drives'),
     -- Peripherals subcategories
-    ('Monitors', 'Computer displays and screens', 1),
-    ('Keyboards & Mice', 'Input devices', 2),
-    ('USB Adapters', 'USB WiFi and other adapters', 3),
+    ('Monitors', 'Computer displays and screens'),
+    ('Keyboards & Mice', 'Input devices'),
+    ('USB Adapters', 'USB WiFi and other adapters'),
     -- Cables subcategories
-    ('Network Cables', 'Ethernet and fiber cables', 1),
-    ('Power Cables', 'Power cords and adapters', 2),
-    ('USB Cables', 'USB data and charging cables', 3)
-) AS sub(name, description, display_order);
+    ('Network Cables', 'Ethernet and fiber cables'),
+    ('Power Cables', 'Power cords and adapters'),
+    ('USB Cables', 'USB data and charging cables')
+) AS sub(name, description);

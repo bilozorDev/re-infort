@@ -66,7 +66,7 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { name: string; description?: string | null; status?: "active" | "inactive"; display_order?: number }) => {
+    mutationFn: async (data: { name: string; description?: string | null; status?: "active" | "inactive" }) => {
       const response = await fetch("/api/categories", {
         method: "POST",
         headers: {
@@ -96,7 +96,7 @@ export function useCreateSubcategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { category_id: string; name: string; description?: string | null; status?: "active" | "inactive"; display_order?: number }) => {
+    mutationFn: async (data: { category_id: string; name: string; description?: string | null; status?: "active" | "inactive" }) => {
       const response = await fetch("/api/subcategories", {
         method: "POST",
         headers: {

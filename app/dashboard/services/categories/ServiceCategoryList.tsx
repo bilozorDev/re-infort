@@ -29,9 +29,9 @@ export default function ServiceCategoryList({
     setDeletingId(category.id);
     try {
       await deleteCategory.mutateAsync(category.id);
-    } catch (error: any) {
-      if (error.hasDependencies) {
-        toast.error(error.message);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'hasDependencies' in error) {
+        toast.error((error as { message: string }).message);
       }
     } finally {
       setDeletingId(null);
@@ -65,14 +65,6 @@ export default function ServiceCategoryList({
                 {category.description}
               </p>
             )}
-            <div className="mt-1 flex items-center gap-x-4 text-xs text-gray-500">
-              {category.display_order !== null && (
-                <span>Order: {category.display_order}</span>
-              )}
-              <span>
-                Created: {new Date(category.created_at).toLocaleDateString()}
-              </span>
-            </div>
           </div>
 
           <div className="flex items-center gap-x-2">

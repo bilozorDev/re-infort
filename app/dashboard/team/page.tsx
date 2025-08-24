@@ -7,6 +7,13 @@ import { UsersIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import type { OrganizationInvitation, OrganizationMember } from "@/app/types/team";
 
 export default function TeamPage() {
@@ -202,7 +209,7 @@ export default function TeamPage() {
               onClick={() => setRoleModalOpen(false)}
             />
 
-            <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            <div className="relative transform overflow-visible rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
               <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                 <button
                   type="button"
@@ -226,21 +233,19 @@ export default function TeamPage() {
                       <label htmlFor="role" className="block text-sm/6 font-medium text-gray-900">
                         Select new role
                       </label>
-                      <div className="mt-2 grid grid-cols-1">
-                        <select
-                          id="role"
-                          name="role"
+                      <div className="mt-2">
+                        <Select
                           value={newRole}
-                          onChange={(e) => setNewRole(e.target.value as "org:admin" | "org:member")}
-                          className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6"
+                          onValueChange={(value) => setNewRole(value as "org:admin" | "org:member")}
                         >
-                          <option value="org:member">Member</option>
-                          <option value="org:admin">Admin</option>
-                        </select>
-                        <ChevronDownIcon
-                          aria-hidden="true"
-                          className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                        />
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="org:member">Member</SelectItem>
+                            <SelectItem value="org:admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -366,21 +371,19 @@ export default function TeamPage() {
                     className="block min-w-0 grow py-1.5 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
                     required
                   />
-                  <div className="grid shrink-0 grid-cols-1 focus-within:relative">
-                    <select
-                      name="role"
-                      aria-label="Role"
+                  <div className="shrink-0">
+                    <Select
                       value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value as "org:admin" | "org:member")}
-                      className="col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-7 pl-3 text-base text-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      onValueChange={(value) => setInviteRole(value as "org:admin" | "org:member")}
                     >
-                      <option value="org:member">Member</option>
-                      <option value="org:admin">Admin</option>
-                    </select>
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                    />
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="org:member">Member</SelectItem>
+                        <SelectItem value="org:admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-4 sm:shrink-0">

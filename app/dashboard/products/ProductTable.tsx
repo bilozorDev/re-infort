@@ -21,6 +21,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import HighlightText from "@/app/components/ui/HighlightText";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { ProductLink } from "@/app/components/ui/ProductLink";
 import { Tooltip } from "@/app/components/ui/Tooltip";
@@ -240,11 +241,14 @@ export function ProductTable({
               <ProductLink
                 productId={row.original.id}
                 productName={row.original.name}
+                searchQuery={globalFilter}
               />
               {row.original.description && (
-                <div className="text-sm text-gray-500 truncate max-w-xs mt-1">
-                  {row.original.description}
-                </div>
+                <HighlightText
+                  text={row.original.description}
+                  searchQuery={globalFilter}
+                  className="text-sm text-gray-500 truncate max-w-xs mt-1 block"
+                />
               )}
             </div>
           );
@@ -503,7 +507,7 @@ export function ProductTable({
         enableHiding: false,
       },
     ],
-    [productImages, isAdmin, onEdit, handleDelete, openLightbox, inventoryMap]
+    [productImages, isAdmin, onEdit, handleDelete, openLightbox, inventoryMap, globalFilter]
   );
 
   const table = useReactTable({

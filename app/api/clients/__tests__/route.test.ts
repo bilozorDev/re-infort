@@ -9,7 +9,7 @@ import {
 } from "@/app/test-utils/clerk-mocks";
 import { getCurrentOrgId } from "@/app/utils/roles";
 import { getCurrentUserName } from "@/app/utils/user";
-import { mockClients, createMockClient } from "@/test/fixtures/quotes";
+import { createMockClient,mockClients } from "@/test/fixtures/quotes";
 
 import { GET, POST } from "../route";
 
@@ -27,10 +27,10 @@ describe("Clients API Route", () => {
     or: vi.fn(() => mockSupabase),
     ilike: vi.fn(() => mockSupabase),
     limit: vi.fn(() => mockSupabase),
-    range: vi.fn(() => mockSupabase),
+    range: vi.fn(),
     order: vi.fn(() => mockSupabase),
     insert: vi.fn(() => mockSupabase),
-    single: vi.fn(() => mockSupabase),
+    single: vi.fn(),
   };
 
   beforeEach(() => {
@@ -70,19 +70,16 @@ describe("Clients API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to data when awaited
-      const finalPromise = Promise.resolve({
-        data: mockClients,
-        error: null,
-        count: null
-      });
-      
       // Mock the complete chain: from -> select -> eq -> order -> range
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      mockSupabase.range.mockReturnValue(finalPromise);
+      mockSupabase.range.mockResolvedValue({
+        data: mockClients,
+        error: null,
+        count: null
+      });
 
       const request = createGetRequest();
       const response = await GET(request);
@@ -105,19 +102,16 @@ describe("Clients API Route", () => {
       vi.mocked(auth).mockResolvedValue(createAuthenticatedMock());
       vi.mocked(getCurrentOrgId).mockResolvedValue("org_test123");
       
-      // Create a final mock that resolves to error when awaited
-      const errorPromise = Promise.resolve({
-        data: null,
-        error: { message: "Database error" },
-        count: null
-      });
-      
       // Mock the chain but return error at the end
       mockSupabase.from.mockReturnValue(mockSupabase);
       mockSupabase.select.mockReturnValue(mockSupabase);
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.order.mockReturnValue(mockSupabase);
-      mockSupabase.range.mockReturnValue(errorPromise);
+      mockSupabase.range.mockResolvedValue({
+        data: null,
+        error: { message: "Database error" },
+        count: null
+      });
 
       const request = createGetRequest();
       const response = await GET(request);

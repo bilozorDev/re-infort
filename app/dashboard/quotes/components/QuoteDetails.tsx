@@ -491,7 +491,7 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="activity" className="w-full">
+      <Tabs value="activity" className="w-full">
         <TabsList>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="comments">Comments</TabsTrigger>

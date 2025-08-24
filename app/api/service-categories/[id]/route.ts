@@ -83,10 +83,10 @@ export async function PATCH(
 
     const { id } = await context.params;
     const body = await request.json();
-    const { name, description, status, display_order } = body;
+    const { name, description, status } = body;
 
     // Validate at least one field to update
-    if (!name && description === undefined && !status && display_order === undefined) {
+    if (!name && description === undefined && !status) {
       return NextResponse.json(
         { error: "No valid fields to update" },
         { status: 400 }
@@ -96,11 +96,10 @@ export async function PATCH(
     const supabase = await createClient();
 
     // Build update object
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim() || null;
     if (status) updateData.status = status;
-    if (display_order !== undefined) updateData.display_order = display_order;
 
     const { data, error } = await supabase
       .from("service_categories")

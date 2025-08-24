@@ -206,6 +206,7 @@ export default function ClientsClient() {
         ) : (
           <ClientList
             clients={clientsData?.data || []}
+            searchQuery={searchQuery}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -215,6 +216,7 @@ export default function ClientsClient() {
       {/* Client Form Modal */}
       {isFormOpen && (
         <ClientForm
+          key={editingClient?.id || 'new'}
           client={editingClient}
           isOpen={isFormOpen}
           onClose={handleCloseForm}

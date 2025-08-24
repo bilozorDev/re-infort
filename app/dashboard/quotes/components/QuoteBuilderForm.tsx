@@ -2,10 +2,10 @@
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Plus } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -62,7 +62,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
   });
 
   const createQuoteMutation = useMutation({
-    mutationFn: async (data: QuoteInsert) => {
+    mutationFn: async (data: any) => {
       const response = await fetch("/api/quotes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,7 +75,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
       // Add items to the quote
       if (items.length > 0) {
         const itemsData = items.map((item) => ({
-          type: item.type,
+          item_type: (item as any).type || 'custom',
           product_id: item.product_id,
           service_id: item.service_id,
           warehouse_id: item.warehouse_id,
@@ -169,19 +169,19 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
     { value: "fixed", label: "Fixed Amount" },
   ];
 
-  const handleAddItem = (item: Parameters<typeof ItemSearch extends React.FC<infer P> ? P['onSelectItem'] : never>[0]) => {
+  const handleAddItem = (item: any) => {
     const newItem: QuoteItem = {
       id: `temp-${Date.now()}`,
-      type: item.type,
+      item_type: item.type,
       product_id: item.type === "product" ? item.id : undefined,
       service_id: item.type === "service" ? item.id : undefined,
       warehouse_id: item.warehouse_id,
-      name: item.name,
+      name: item.name || '',
       description: item.description,
       quantity: 1,
       unit_price: item.price || item.rate || 0,
       subtotal: item.price || item.rate || 0,
-    };
+    } as any;
     setItems([...items, newItem]);
     setShowItemSearch(false);
   };
@@ -195,7 +195,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
     
     // Recalculate subtotal
     const item = updatedItems[index];
-    let subtotal = item.quantity * item.unit_price;
+    let subtotal = (item.quantity || 1) * (item.unit_price || 0);
     
     if (item.discount_type === "percentage" && item.discount_value) {
       subtotal -= subtotal * (item.discount_value / 100);
@@ -355,7 +355,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
                       <h3 className="text-sm font-medium text-gray-900 mb-3">Quote Items</h3>
                       {items.length > 0 && (
                         <QuoteItemsList
-                          items={items}
+                          items={items as any}
                           onUpdateItem={handleUpdateItem}
                           onRemoveItem={handleRemoveItem}
                         />

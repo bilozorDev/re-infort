@@ -3,7 +3,6 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
 
 import { AddressAutocomplete, type AddressData } from "@/app/components/ui/address-autocomplete";
 import { Checkbox, FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
@@ -22,7 +21,18 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
   const updateWarehouse = useUpdateWarehouse();
 
   const form = useForm({
-    defaultValues: {
+    defaultValues: warehouse ? {
+      name: warehouse.name,
+      type: warehouse.type as WarehouseType,
+      status: warehouse.status as WarehouseStatus,
+      address: warehouse.address,
+      city: warehouse.city,
+      state_province: warehouse.state_province,
+      postal_code: warehouse.postal_code,
+      country: warehouse.country,
+      notes: warehouse.notes || "",
+      is_default: warehouse.is_default,
+    } : {
       name: "",
       type: "office" as WarehouseType,
       status: "active" as WarehouseStatus,
@@ -30,7 +40,7 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
       city: "",
       state_province: "",
       postal_code: "",
-      country: "United States",
+      country: "",
       notes: "",
       is_default: false,
     },
@@ -54,25 +64,6 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
     },
   });
 
-  // Update form when warehouse data loads
-  useEffect(() => {
-    if (warehouse) {
-      // Reset the form with the warehouse data
-      form.reset({
-        name: warehouse.name,
-        type: warehouse.type as WarehouseType,
-        status: warehouse.status as WarehouseStatus,
-        address: warehouse.address,
-        city: warehouse.city,
-        state_province: warehouse.state_province,
-        postal_code: warehouse.postal_code,
-        country: warehouse.country,
-        notes: warehouse.notes || "",
-        is_default: warehouse.is_default,
-      });
-    }
-  }, [warehouse, form]);
-
   const typeOptions = [
     { value: "office", label: "Office" },
     { value: "vehicle", label: "Vehicle" },
@@ -84,11 +75,6 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
     { value: "inactive", label: "Inactive" },
   ];
 
-  const countryOptions = [
-    { value: "United States", label: "United States" },
-    { value: "Canada", label: "Canada" },
-    { value: "Mexico", label: "Mexico" },
-  ];
 
   const isSubmitting = createWarehouse.isPending || updateWarehouse.isPending;
 
@@ -255,7 +241,10 @@ export function WarehouseForm({ warehouseId, onClose }: WarehouseFormProps) {
                       <form.Field name="country">
                         {(field) => (
                           <FormField field={field}>
-                            <Select label="Country" options={countryOptions} required />
+                            <TextField
+                              label="Country"
+                              placeholder="United States"
+                            />
                           </FormField>
                         )}
                       </form.Field>

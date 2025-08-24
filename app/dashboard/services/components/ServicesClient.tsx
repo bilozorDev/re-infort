@@ -6,13 +6,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect,useState } from "react";
 import { toast } from "sonner";
 
-import { type Tables } from "@/app/types/database.types";
-
 import { PageHeader } from "@/app/components/ui/page-header";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { useServiceCategories } from "@/app/hooks/use-service-categories";
+import { type Tables } from "@/app/types/database.types";
 
 import ServiceForm from "./ServiceForm";
 import ServiceList from "./ServiceList";
+import ServiceListSkeleton from "./ServiceListSkeleton";
+import ServiceStatsSkeleton from "./ServiceStatsSkeleton";
 
 type Service = Tables<"services">;
 
@@ -213,35 +221,49 @@ export default function ServicesClient() {
         </div>
 
         <div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-          >
-            <option value="">All Categories</option>
-            {categories?.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="no_category">No Category</SelectItem>
+              {categories && categories.length > 0 ? (
+                <>
+                  <div className="mx-2 my-1 border-t border-gray-200" />
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </>
+              ) : (
+                <SelectItem value="_no_categories" disabled>
+                  No categories available
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Stats */}
-      {servicesData && (
+      {isLoading ? (
+        <ServiceStatsSkeleton />
+      ) : servicesData && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="bg-white overflow-hidden rounded-lg border border-gray-200">
             <div className="px-4 py-5 sm:p-6">
@@ -273,10 +295,7 @@ export default function ServicesClient() {
       {/* Services List */}
       <div className="mt-8">
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
-            <p className="mt-2 text-sm text-gray-500">Loading services...</p>
-          </div>
+          <ServiceListSkeleton />
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-sm text-red-600">Error loading services. Please try again.</p>
@@ -284,6 +303,7 @@ export default function ServicesClient() {
         ) : (
           <ServiceList
             services={servicesData?.data || []}
+            searchQuery={searchQuery}
             onEdit={handleEdit}
             onDelete={handleDelete}
             isAdmin={isAdmin}
@@ -294,6 +314,7 @@ export default function ServicesClient() {
       {/* Service Form Modal */}
       {isFormOpen && (
         <ServiceForm
+          key={editingService?.id || 'new'}
           service={editingService}
           isOpen={isFormOpen}
           onClose={handleCloseForm}

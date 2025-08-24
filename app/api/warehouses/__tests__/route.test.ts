@@ -163,6 +163,7 @@ describe("Warehouses API Route", () => {
         ...validWarehouseData,
         organization_clerk_id: "org_123",
         created_by_clerk_user_id: "user_123",
+        created_by_name: null,
         status: "active",
         is_default: false,
         created_at: new Date().toISOString(),
