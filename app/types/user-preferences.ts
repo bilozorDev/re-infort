@@ -7,8 +7,14 @@ export interface UserPreferences {
   table_preferences: TablePreferences;
   ui_preferences: UIPreferences;
   feature_settings: FeatureSettings;
+  navigation_state: NavigationState | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface NavigationState {
+  inventory_expanded?: boolean;
+  [key: string]: boolean | undefined;
 }
 
 export interface TablePreferences {
@@ -44,3 +50,4 @@ export interface FeatureSettings {
 
 export type CreateUserPreferencesInput = Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateUserPreferencesInput = Partial<Omit<UserPreferences, 'id' | 'clerk_user_id' | 'organization_clerk_id' | 'created_at' | 'updated_at'>>;
+export type { NavigationState };
