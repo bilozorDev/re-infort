@@ -24,6 +24,30 @@ interface QuoteItem extends Omit<QuoteItemInsert, 'quote_id'> {
   subtotal: number;
 }
 
+interface ItemSearchResult {
+  id: string;
+  type: 'product' | 'service' | 'custom';
+  name: string;
+  description?: string;
+  price?: number;
+  rate?: number;
+  warehouse_id?: string;
+}
+
+interface QuoteFormData {
+  client_id?: string;
+  company_id?: string;
+  assigned_to_clerk_user_id?: string;
+  valid_from?: string;
+  valid_until?: string;
+  discount_type?: 'percentage' | 'fixed';
+  discount_value?: number;
+  tax_rate?: number;
+  terms_and_conditions?: string;
+  notes?: string;
+  internal_notes?: string;
+}
+
 interface QuoteBuilderFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -62,7 +86,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
   });
 
   const createQuoteMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: QuoteFormData) => {
       const response = await fetch("/api/quotes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,7 +99,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
       // Add items to the quote
       if (items.length > 0) {
         const itemsData = items.map((item) => ({
-          item_type: (item as any).type || 'custom',
+          item_type: item.item_type || 'custom',
           product_id: item.product_id,
           service_id: item.service_id,
           warehouse_id: item.warehouse_id,
@@ -169,7 +193,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
     { value: "fixed", label: "Fixed Amount" },
   ];
 
-  const handleAddItem = (item: any) => {
+  const handleAddItem = (item: ItemSearchResult) => {
     const newItem: QuoteItem = {
       id: `temp-${Date.now()}`,
       item_type: item.type,
@@ -181,7 +205,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
       quantity: 1,
       unit_price: item.price || item.rate || 0,
       subtotal: item.price || item.rate || 0,
-    } as any;
+    };
     setItems([...items, newItem]);
     setShowItemSearch(false);
   };
@@ -355,7 +379,10 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
                       <h3 className="text-sm font-medium text-gray-900 mb-3">Quote Items</h3>
                       {items.length > 0 && (
                         <QuoteItemsList
-                          items={items as any}
+                          items={items.map(item => ({
+                            ...item,
+                            type: item.item_type as "product" | "service" | "custom"
+                          }))}
                           onUpdateItem={handleUpdateItem}
                           onRemoveItem={handleRemoveItem}
                         />

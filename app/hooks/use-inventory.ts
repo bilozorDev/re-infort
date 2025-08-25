@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { type ProductInventorySummary } from "@/app/types/inventory";
@@ -45,10 +46,14 @@ interface TransferStockParams {
 // Hook to get product inventory summary
 export function useProductInventory(productId: string) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["product-inventory", productId],
+    queryKey: ["product-inventory", productId, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
       // First try the RPC function
       const { data: rpcData, error: rpcError } = await supabase.rpc("get_product_total_inventory", {
         p_product_id: productId,
@@ -63,7 +68,7 @@ export function useProductInventory(productId: string) {
         }
       }
 
-      // Fallback: manually aggregate inventory data
+      // Fallback: manually aggregate inventory data with org filtering
       const { data: inventory, error: invError } = await supabase
         .from("inventory")
         .select(
@@ -72,7 +77,8 @@ export function useProductInventory(productId: string) {
           warehouse:warehouses(id, name)
         `
         )
-        .eq("product_id", productId);
+        .eq("product_id", productId)
+        .eq("organization_clerk_id", orgId);
 
       if (invError) throw invError;
 
@@ -120,14 +126,20 @@ export function useProductInventory(productId: string) {
 // Hook to get product inventory by warehouse
 export function useProductWarehouseInventory(productId: string) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["product-warehouse-inventory", productId],
+    queryKey: ["product-warehouse-inventory", productId, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
       const { data, error } = await supabase
         .from("inventory_details")
         .select("*")
         .eq("product_id", productId)
+        .eq("organization_clerk_id", orgId)
         .order("warehouse_name");
 
       if (error) throw error;
@@ -223,20 +235,25 @@ export function useTransferStock() {
 // Hook to get inventory analytics
 export function useInventoryAnalytics(productId: string, period: string = "30d") {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["inventory-analytics", productId, period],
+    queryKey: ["inventory-analytics", productId, period, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
       // Parse period
       const days = parseInt(period.replace("d", ""));
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Get movements for the period
+      // Get movements for the period with org filtering
       const { data: movements, error: movementsError } = await supabase
         .from("stock_movements_details")
         .select("*")
         .eq("product_id", productId)
+        .eq("organization_clerk_id", orgId)
         .gte("created_at", startDate.toISOString())
         .order("created_at", { ascending: false });
 
@@ -246,21 +263,23 @@ export function useInventoryAnalytics(productId: string, period: string = "30d")
       const totalMovement = movements?.reduce((sum, m) => sum + m.quantity, 0) || 0;
       const avgDailyMovement = totalMovement / days;
 
-      // Get current inventory for stock value
+      // Get current inventory for stock value with org filtering
       const { data: inventory, error: invError } = await supabase
         .from("inventory")
         .select("quantity")
-        .eq("product_id", productId);
+        .eq("product_id", productId)
+        .eq("organization_clerk_id", orgId);
 
       if (invError) throw invError;
 
       const totalQuantity = inventory?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
-      // Get product price for stock value calculation
+      // Get product price for stock value calculation with org filtering
       const { data: product, error: productError } = await supabase
         .from("products")
         .select("price, cost")
         .eq("id", productId)
+        .eq("organization_clerk_id", orgId)
         .single();
 
       if (productError) throw productError;
@@ -317,46 +336,48 @@ export function useInventoryAnalytics(productId: string, period: string = "30d")
   });
 }
 
-// Hook to get all products inventory summary
+// Hook to get all products inventory summary (optimized batch fetch)
 export function useAllProductsInventory(productIds: string[]) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["all-products-inventory", productIds],
+    queryKey: ["all-products-inventory", productIds, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
       if (!productIds || productIds.length === 0) {
         return new Map<string, InventorySummary>();
       }
 
-      // Batch fetch inventory summaries for all products
-      const inventoryPromises = productIds.map(async (productId) => {
-        try {
-          const { data, error } = await supabase.rpc("get_product_total_inventory", {
-            p_product_id: productId,
-          });
-
-          if (error) {
-            console.error(`Failed to fetch inventory for product ${productId}:`, error);
-            return [productId, null];
-          }
-
-          // The RPC function returns an array with one row, so we need to get the first element
-          const inventoryData = Array.isArray(data) && data.length > 0 ? data[0] : data;
-          return [productId, inventoryData as InventorySummary];
-        } catch (error) {
-          console.error(`Failed to fetch inventory for product ${productId}:`, error);
-          return [productId, null];
-        }
+      // Use batch RPC function to fetch all inventory at once (fixes N+1 pattern)
+      const { data, error } = await supabase.rpc("get_products_total_inventory", {
+        p_product_ids: productIds,
       });
 
-      const results = await Promise.all(inventoryPromises);
+      if (error) {
+        console.error("Failed to fetch batch inventory:", error);
+        throw error;
+      }
+
       const inventoryMap = new Map<string, InventorySummary>();
 
-      results.forEach(([productId, inventory]) => {
-        if (inventory) {
-          inventoryMap.set(productId as string, inventory as InventorySummary);
-        }
-      });
+      // Process the batch results
+      if (data && Array.isArray(data)) {
+        data.forEach((item) => {
+          if (item && item.product_id) {
+            inventoryMap.set(item.product_id, {
+              total_quantity: item.total_quantity || 0,
+              total_reserved: item.total_reserved || 0,
+              total_available: item.total_available || 0,
+              warehouse_count: item.warehouse_count || 0,
+              warehouses: item.warehouses || [],
+            } as InventorySummary);
+          }
+        });
+      }
 
       return inventoryMap;
     },

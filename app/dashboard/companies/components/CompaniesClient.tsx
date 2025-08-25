@@ -18,6 +18,30 @@ interface CompanyWithContacts extends Company {
   contacts?: Contact[];
 }
 
+interface CompanyFormData {
+  name: string;
+  website?: string;
+  industry?: string;
+  company_size?: string;
+  tax_id?: string;
+  address?: string;
+  city?: string;
+  state_province?: string;
+  postal_code?: string;
+  country?: string;
+  notes?: string;
+  status?: string;
+  primaryContact?: {
+    first_name: string;
+    last_name: string;
+    email?: string;
+    phone?: string;
+    mobile?: string;
+    title?: string;
+    department?: string;
+  };
+}
+
 export default function CompaniesClient() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<CompanyWithContacts | null>(null);
@@ -44,7 +68,7 @@ export default function CompaniesClient() {
 
   // Create company mutation
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CompanyFormData) => {
       const response = await fetch("/api/companies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +94,7 @@ export default function CompaniesClient() {
 
   // Update company mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: CompanyFormData }) => {
       const response = await fetch(`/api/companies/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -117,7 +141,7 @@ export default function CompaniesClient() {
     },
   });
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: CompanyFormData) => {
     if (editingCompany) {
       updateMutation.mutate({ id: editingCompany.id, data });
     } else {

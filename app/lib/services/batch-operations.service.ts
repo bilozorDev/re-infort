@@ -1,5 +1,6 @@
 import { createClient } from "@/app/lib/supabase/server";
 import { type Product } from "@/app/types/product";
+import { isAdmin } from "@/app/utils/roles";
 
 interface BatchUpdateResult<T> {
   successful: T[];
@@ -36,12 +37,19 @@ interface BatchStockTransfer {
 /**
  * Batch update multiple products
  * Processes updates in chunks to avoid overwhelming the database
+ * Requires admin role for security
  */
 export async function batchUpdateProducts(
   updates: BatchProductUpdate[],
   organizationId: string,
   chunkSize: number = 10
 ): Promise<BatchUpdateResult<BatchProductUpdate>> {
+  // Check admin role before proceeding
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    throw new Error("Only administrators can perform batch product updates");
+  }
+  
   const supabase = await createClient();
   const result: BatchUpdateResult<BatchProductUpdate> = {
     successful: [],
@@ -94,12 +102,19 @@ export async function batchUpdateProducts(
 /**
  * Batch adjust inventory for multiple products/warehouses
  * Uses database transaction to ensure consistency
+ * Requires admin role for security
  */
 export async function batchAdjustInventory(
   adjustments: BatchInventoryAdjustment[],
   userId: string,
   chunkSize: number = 10
 ): Promise<BatchUpdateResult<BatchInventoryAdjustment>> {
+  // Check admin role before proceeding
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    throw new Error("Only administrators can perform batch inventory adjustments");
+  }
+  
   const supabase = await createClient();
   const result: BatchUpdateResult<BatchInventoryAdjustment> = {
     successful: [],
@@ -184,12 +199,19 @@ export async function batchAdjustInventory(
 /**
  * Batch transfer stock between warehouses
  * Ensures atomic operations for each transfer
+ * Requires admin role for security
  */
 export async function batchStockTransfers(
   transfers: BatchStockTransfer[],
   userId: string,
   chunkSize: number = 5
 ): Promise<BatchUpdateResult<BatchStockTransfer>> {
+  // Check admin role before proceeding
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    throw new Error("Only administrators can perform batch stock transfers");
+  }
+  
   const supabase = await createClient();
   const result: BatchUpdateResult<BatchStockTransfer> = {
     successful: [],
@@ -245,12 +267,19 @@ export async function batchStockTransfers(
 /**
  * Batch delete products
  * Checks for inventory before deletion
+ * Requires admin role for security
  */
 export async function batchDeleteProducts(
   productIds: string[],
   organizationId: string,
   chunkSize: number = 10
 ): Promise<BatchUpdateResult<string>> {
+  // Check admin role before proceeding
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    throw new Error("Only administrators can perform batch product deletions");
+  }
+  
   const supabase = await createClient();
   const result: BatchUpdateResult<string> = {
     successful: [],
@@ -319,6 +348,7 @@ export async function batchDeleteProducts(
 /**
  * Batch import products from CSV or JSON
  * Validates and creates products with proper error handling
+ * Requires admin role for security
  */
 export async function batchImportProducts(
   products: Partial<Product>[],
@@ -327,6 +357,12 @@ export async function batchImportProducts(
   skipDuplicates: boolean = true,
   chunkSize: number = 20
 ): Promise<BatchUpdateResult<Partial<Product>>> {
+  // Check admin role before proceeding
+  const userIsAdmin = await isAdmin();
+  if (!userIsAdmin) {
+    throw new Error("Only administrators can perform batch product imports");
+  }
+  
   const supabase = await createClient();
   const result: BatchUpdateResult<Partial<Product>> = {
     successful: [],

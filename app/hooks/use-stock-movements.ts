@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 
 import { useSupabase } from "./use-supabase";
@@ -36,11 +37,19 @@ interface MovementFilters {
 // Hook to get stock movements for a product
 export function useStockMovements(productId?: string | undefined, filters?: MovementFilters) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["stock-movements", productId, filters],
+    queryKey: ["stock-movements", productId, filters, orgId],
     queryFn: async () => {
-      let query = supabase.from("stock_movements_details").select("*");
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
+      let query = supabase
+        .from("stock_movements_details")
+        .select("*")
+        .eq("organization_clerk_id", orgId);
 
       // Apply product filter if provided
       if (productId) {
@@ -90,14 +99,20 @@ export function useStockMovements(productId?: string | undefined, filters?: Move
 // Hook to get recent movements for a product (for activity feed)
 export function useRecentMovements(productId: string, limit: number = 5) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["recent-movements", productId, limit],
+    queryKey: ["recent-movements", productId, limit, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
       const { data, error } = await supabase
         .from("stock_movements_details")
         .select("*")
         .eq("product_id", productId)
+        .eq("organization_clerk_id", orgId)
         .order("created_at", { ascending: false })
         .limit(limit);
 
@@ -111,11 +126,19 @@ export function useRecentMovements(productId: string, limit: number = 5) {
 // Hook to get all movements for organization (for global inventory page)
 export function useOrganizationMovements(filters?: MovementFilters) {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["organization-movements", filters],
+    queryKey: ["organization-movements", filters, orgId],
     queryFn: async () => {
-      let query = supabase.from("stock_movements_details").select("*");
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
+      let query = supabase
+        .from("stock_movements_details")
+        .select("*")
+        .eq("organization_clerk_id", orgId);
 
       // Apply filters
       if (filters?.type) {
@@ -154,19 +177,25 @@ export function useOrganizationMovements(filters?: MovementFilters) {
 // Hook to get movement statistics
 export function useMovementStatistics(period: string = "30d") {
   const supabase = useSupabase();
+  const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["movement-statistics", period],
+    queryKey: ["movement-statistics", period, orgId],
     queryFn: async () => {
+      if (!orgId) {
+        throw new Error("Organization context required");
+      }
+      
       // Parse period
       const days = parseInt(period.replace("d", ""));
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Get all movements for the period
+      // Get all movements for the period with org filtering
       const { data: movements, error } = await supabase
         .from("stock_movements")
         .select("*")
+        .eq("organization_clerk_id", orgId)
         .gte("created_at", startDate.toISOString());
 
       if (error) throw error;

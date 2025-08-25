@@ -4,6 +4,8 @@ import { ExclamationTriangleIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { LowStockAlertsSkeleton } from "@/app/components/skeletons/LowStockAlertsSkeleton";
 import { StockAdjustmentModal } from "@/app/dashboard/products/[id]/components/StockAdjustmentModal";
 
 interface LowStockItem {
@@ -21,9 +23,12 @@ interface LowStockItem {
 interface LowStockAlertsProps {
   items: LowStockItem[];
   isAdmin: boolean;
+  isLoading?: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
 }
 
-export function LowStockAlerts({ items, isAdmin }: LowStockAlertsProps) {
+function LowStockAlertsContent({ items, isAdmin, isLoading, error, onRetry }: LowStockAlertsProps) {
   const [selectedProduct, setSelectedProduct] = useState<{ productId: string; warehouseId: string } | null>(null);
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
 
@@ -31,6 +36,30 @@ export function LowStockAlerts({ items, isAdmin }: LowStockAlertsProps) {
     setSelectedProduct({ productId, warehouseId });
     setAdjustmentModalOpen(true);
   };
+
+  if (isLoading) {
+    return <LowStockAlertsSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Failed to load alerts</h3>
+          <p className="mt-1 text-sm text-gray-500">We couldn&apos;t fetch low stock alerts.</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="mt-3 text-sm text-indigo-600 hover:text-indigo-500"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -136,5 +165,20 @@ export function LowStockAlerts({ items, isAdmin }: LowStockAlertsProps) {
         />
       )}
     </>
+  );
+}
+
+// Export with ErrorBoundary wrapper
+export function LowStockAlerts(props: LowStockAlertsProps) {
+  return (
+    <ErrorBoundary
+      level="section"
+      resetKeys={[props.items?.length]}
+      onError={(error) => {
+        console.error("LowStockAlerts error:", error);
+      }}
+    >
+      <LowStockAlertsContent {...props} />
+    </ErrorBoundary>
   );
 }

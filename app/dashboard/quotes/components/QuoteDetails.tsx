@@ -30,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/ca
 import { PageHeader } from "@/app/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Textarea } from "@/app/components/ui/textarea";
+import { type QuoteComment, type QuoteEvent } from "@/app/types/quotes-helpers";
 import { formatCurrency } from "@/app/utils/formatters";
 
 import QuoteItemsList from "./QuoteItemsList";
@@ -504,7 +505,7 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
             <CardContent>
               {quote.events && quote.events.length > 0 ? (
                 <div className="space-y-4">
-                  {quote.events.map((event: any) => (
+                  {quote.events.map((event: QuoteEvent) => (
                     <div key={event.id} className="flex gap-3">
                       <div className="w-2 h-2 rounded-full bg-gray-400 mt-2" />
                       <div className="flex-1">
@@ -536,7 +537,7 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
               <div className="space-y-4">
                 {quote.comments && quote.comments.length > 0 && (
                   <div className="space-y-3">
-                    {quote.comments.map((comment: any) => (
+                    {quote.comments.map((comment: QuoteComment) => (
                       <div key={comment.id} className="border rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium">{comment.user_name}</span>

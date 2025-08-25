@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/app/lib/supabase/server";
+import { type Database } from "@/app/types/database.types";
+
+type QuoteItem = Database["public"]["Tables"]["quote_items"]["Row"];
 
 export async function GET(
   request: NextRequest,
@@ -62,7 +65,7 @@ export async function GET(
         email: tokenData.quote.client.email,
         company: tokenData.quote.client.company,
       },
-      items: tokenData.quote.items.map((item: any) => ({
+      items: tokenData.quote.items.map((item: QuoteItem) => ({
         id: item.id,
         type: item.type,
         name: item.name,

@@ -12,11 +12,31 @@ import { type Tables } from "@/app/types/database.types";
 
 type Contact = Tables<"contacts">;
 
+interface ContactFormData {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  title?: string;
+  department?: string;
+  is_primary?: boolean;
+  preferred_contact_method?: string;
+  has_different_address?: boolean;
+  address?: string;
+  city?: string;
+  state_province?: string;
+  postal_code?: string;
+  country?: string;
+  notes?: string;
+  birthday?: string;
+}
+
 interface ContactFormProps {
   contact: Contact | null;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: ContactFormData) => void;
   isSubmitting: boolean;
 }
 

@@ -3,6 +3,9 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { DataError } from "@/app/components/errors/DataError";
+import { WarehouseListSkeleton } from "@/app/components/skeletons/WarehouseListSkeleton";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { useWarehouses } from "@/app/hooks/use-warehouses";
 
@@ -14,10 +17,10 @@ interface WarehousesClientProps {
   isAdmin: boolean;
 }
 
-export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
+function WarehousesClientContent({ isAdmin }: WarehousesClientProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<string | null>(null);
-  const { data: warehouses, isLoading, error } = useWarehouses();
+  const { data: warehouses, isLoading, error, refetch } = useWarehouses();
 
   const handleEdit = (id: string) => {
     setEditingWarehouse(id);
@@ -31,16 +34,29 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      <div className="space-y-6">
+        <PageHeader
+          title="Warehouses"
+          description="Manage your inventory locations and warehouses"
+        />
+        <WarehouseListSkeleton />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
-        <p className="text-sm text-red-800">Failed to load warehouses. Please try again later.</p>
+      <div className="space-y-6">
+        <PageHeader
+          title="Warehouses"
+          description="Manage your inventory locations and warehouses"
+        />
+        <DataError
+          title="Failed to load warehouses"
+          message="We couldn't fetch your warehouse list. Please check your connection and try again."
+          error={error as Error}
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }
@@ -69,5 +85,19 @@ export function WarehousesClient({ isAdmin }: WarehousesClientProps) {
 
       {showForm && <WarehouseForm key={editingWarehouse || 'new'} warehouseId={editingWarehouse} onClose={handleCloseForm} />}
     </div>
+  );
+}
+
+// Export with ErrorBoundary wrapper
+export function WarehousesClient(props: WarehousesClientProps) {
+  return (
+    <ErrorBoundary
+      level="page"
+      onError={(error) => {
+        console.error("WarehousesClient error:", error);
+      }}
+    >
+      <WarehousesClientContent {...props} />
+    </ErrorBoundary>
   );
 }

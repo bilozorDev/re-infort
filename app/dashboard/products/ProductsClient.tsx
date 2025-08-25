@@ -4,6 +4,10 @@ import { Cog6ToothIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { type Table } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { DataError } from "@/app/components/errors/DataError";
+import { GridSkeleton } from "@/app/components/skeletons/GridSkeleton";
+import { ProductTableSkeleton } from "@/app/components/skeletons/ProductTableSkeleton";
 import { PageHeader } from "@/app/components/ui/page-header";
 import { useAllCategories } from "@/app/hooks/use-categories";
 import { useProducts } from "@/app/hooks/use-products";
@@ -18,8 +22,8 @@ interface ProductsClientProps {
   organizationId: string;
 }
 
-export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps) {
-  const { data: products, isLoading } = useProducts();
+function ProductsClientContent({ isAdmin, organizationId }: ProductsClientProps) {
+  const { data: products, isLoading, error, refetch } = useProducts();
   const { data: categories } = useAllCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -110,33 +114,18 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="inline-flex items-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Loading products...
-            </div>
-          </div>
-        </div>
+        viewMode === "grid" ? (
+          <GridSkeleton items={12} columns={3} />
+        ) : (
+          <ProductTableSkeleton />
+        )
+      ) : error ? (
+        <DataError
+          title="Failed to load products"
+          message="We couldn't fetch your product catalog. Please try again."
+          error={error as Error}
+          onRetry={() => refetch()}
+        />
       ) : (
         <ProductList
           products={filteredProducts}
@@ -162,5 +151,20 @@ export function ProductsClient({ isAdmin, organizationId }: ProductsClientProps)
         />
       )}
     </div>
+  );
+}
+
+// Export the component wrapped with ErrorBoundary
+export function ProductsClient(props: ProductsClientProps) {
+  return (
+    <ErrorBoundary
+      level="page"
+      resetKeys={[props.organizationId]}
+      onError={(error) => {
+        console.error("ProductsClient error:", error);
+      }}
+    >
+      <ProductsClientContent {...props} />
+    </ErrorBoundary>
   );
 }

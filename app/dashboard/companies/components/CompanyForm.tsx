@@ -16,11 +16,35 @@ interface CompanyWithContacts extends Company {
   contacts?: Contact[];
 }
 
+interface CompanyFormData {
+  name: string;
+  website?: string;
+  industry?: string;
+  company_size?: string;
+  tax_id?: string;
+  address?: string;
+  city?: string;
+  state_province?: string;
+  postal_code?: string;
+  country?: string;
+  notes?: string;
+  status?: string;
+  primaryContact?: {
+    first_name: string;
+    last_name: string;
+    email?: string;
+    phone?: string;
+    mobile?: string;
+    title?: string;
+    department?: string;
+  };
+}
+
 interface CompanyFormProps {
   company: CompanyWithContacts | null;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: CompanyFormData) => void;
   isSubmitting: boolean;
 }
 

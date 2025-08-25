@@ -246,7 +246,7 @@ export function StockLevelsView({ isAdmin }: StockLevelsViewProps) {
       item.total_quantity,
       item.total_reserved,
       item.total_available,
-      (item as any).reorder_point || 0,
+      item.low_stock_threshold || 0,
       item.warehouse_count,
       item.stock_status,
     ]);
