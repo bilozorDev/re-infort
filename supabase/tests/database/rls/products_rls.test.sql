@@ -24,6 +24,15 @@ SELECT policies_are(
   'Products table has correct RLS policies'
 );
 
+-- Clean up any existing test data first
+-- First delete dependent data
+DELETE FROM stock_movements WHERE product_id IN (SELECT id FROM products WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM inventory WHERE product_id IN (SELECT id FROM products WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM product_features WHERE product_id IN (SELECT id FROM products WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM quote_items WHERE product_id IN (SELECT id FROM products WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM products WHERE organization_clerk_id IN ('org_test123', 'org_test456');
+DELETE FROM categories WHERE id = 'e5f6a7b8-c9d0-1234-efab-567890123456'::uuid;
+
 -- Set up test data
 -- First create a category for the products
 INSERT INTO categories (id, name, organization_clerk_id, created_by_clerk_user_id, status)

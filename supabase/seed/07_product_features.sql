@@ -1,6 +1,6 @@
 -- Seed data for IT product features
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Organization ID: org_test123
+-- User ID: user_test123
 
 -- Clean up existing product features
 TRUNCATE TABLE product_features CASCADE;
@@ -231,7 +231,7 @@ WITH product_feature_data AS (
 )
 INSERT INTO product_features (organization_clerk_id, product_id, feature_definition_id, name, value, is_custom)
 SELECT 
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
+  'org_test123',
   p.id,
   fd.id,
   fd.name,
@@ -241,6 +241,6 @@ FROM product_feature_data pfd
 JOIN products p ON p.sku = pfd.product_sku
 JOIN subcategories s ON s.name = pfd.subcategory_name
 JOIN feature_definitions fd ON fd.subcategory_id = s.id AND fd.name = pfd.feature_name
-WHERE p.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
-  AND s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
-  AND fd.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi';
+WHERE p.organization_clerk_id = 'org_test123'
+  AND s.organization_clerk_id = 'org_test123'
+  AND fd.organization_clerk_id = 'org_test123';

@@ -1,16 +1,16 @@
 -- Seed data for IT inventory
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Organization ID: org_test123
+-- User ID: user_test123
 
 -- Clean up existing inventory data
 TRUNCATE TABLE inventory CASCADE;
 
 -- Insert inventory for each product in each warehouse
 WITH warehouse_ids AS (
-  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_test123'
 ),
 product_ids AS (
-  SELECT id, sku FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, sku FROM products WHERE organization_clerk_id = 'org_test123'
 )
 INSERT INTO inventory (product_id, warehouse_id, quantity, reserved_quantity, organization_clerk_id, created_by_clerk_user_id)
 SELECT 
@@ -104,8 +104,8 @@ SELECT
     WHEN w.name = 'Downtown Store' AND p.sku LIKE 'APPLE-MBP%' THEN 1
     ELSE 0
   END as reserved_quantity,
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
-  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
+  'org_test123',
+  'user_test123'
 FROM product_ids p
 CROSS JOIN warehouse_ids w
 -- Skip items that shouldn't be stocked at certain locations

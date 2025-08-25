@@ -21,6 +21,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { DeleteButton } from "@/app/components/ui/DeleteButton";
+import { EditButton } from "@/app/components/ui/EditButton";
 import HighlightText from "@/app/components/ui/HighlightText";
 import { PhotoLightbox } from "@/app/components/ui/PhotoLightbox";
 import { ProductLink } from "@/app/components/ui/ProductLink";
@@ -486,19 +488,19 @@ export function ProductTable({
         cell: ({ row }) => {
           return (
             <div className="flex items-center justify-end gap-2">
-              <button
+              <EditButton
                 onClick={() => onEdit(row.original.id)}
-                className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
-              >
-                Edit<span className="sr-only">, {row.original.name}</span>
-              </button>
+                variant="text"
+                size="md"
+                srText={row.original.name}
+              />
               {isAdmin && (
-                <button
+                <DeleteButton
                   onClick={() => handleDelete(row.original.id)}
-                  className="text-red-600 hover:text-red-900 font-medium text-sm"
-                >
-                  Delete<span className="sr-only">, {row.original.name}</span>
-                </button>
+                  variant="text"
+                  size="md"
+                  srText={row.original.name}
+                />
               )}
             </div>
           );

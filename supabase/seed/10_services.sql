@@ -1,13 +1,13 @@
 -- Seed data for services
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Organization ID: org_test123
+-- User ID: user_test123
 
 -- Clean up existing service data
 TRUNCATE TABLE services CASCADE;
 
 -- Insert sample services with service_category_id references
 WITH service_category_ids AS (
-  SELECT id, name FROM service_categories WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, name FROM service_categories WHERE organization_clerk_id = 'org_test123'
 )
 INSERT INTO services (
   name, 
@@ -29,8 +29,8 @@ SELECT
   s.rate,
   s.unit,
   s.status,
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
-  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq',
+  'org_test123',
+  'user_test123',
   'Admin User'
 FROM (
   VALUES

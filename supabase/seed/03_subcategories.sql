@@ -1,10 +1,10 @@
 -- Seed data for IT equipment subcategories
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Organization ID: org_test123
+-- User ID: user_test123
 
 -- Use CTEs to capture IDs and insert related data
 WITH inserted_categories AS (
-  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_test123'
 ),
 computing_cat AS (
   SELECT id FROM inserted_categories WHERE name = 'Computing'
@@ -34,8 +34,8 @@ SELECT
   sub.name,
   sub.description,
   'active',
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
-  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
+  'org_test123',
+  'user_test123'
 FROM (
   VALUES 
     -- Computing subcategories

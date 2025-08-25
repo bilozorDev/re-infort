@@ -15,7 +15,6 @@ import {
   DocumentTextIcon,
   FolderIcon,
   HomeIcon,
-  UserGroupIcon,
   UsersIcon,
   WrenchScrewdriverIcon,
   XMarkIcon,
@@ -49,7 +48,7 @@ const navigation: NavItem[] = [
     icon: DocumentTextIcon,
     children: [
       { name: "Quotes", href: "/dashboard/quotes", icon: DocumentTextIcon },
-      { name: "Clients", href: "/dashboard/clients", icon: UserGroupIcon },
+      { name: "Companies", href: "/dashboard/companies", icon: BuildingOfficeIcon },
       { name: "Services", href: "/dashboard/services", icon: WrenchScrewdriverIcon },
     ],
   },
@@ -75,6 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   // Check if we're on any quoting page
   const isOnQuotingPage = pathname.startsWith('/dashboard/quotes') || 
+                          pathname.startsWith('/dashboard/companies') || 
                           pathname.startsWith('/dashboard/clients') || 
                           pathname.startsWith('/dashboard/services');
   

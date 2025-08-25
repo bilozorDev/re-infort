@@ -23,6 +23,17 @@ SELECT policies_are(
   'Categories table has correct RLS policies'
 );
 
+-- Clean up any existing test data first
+-- First delete dependent data
+DELETE FROM stock_movements WHERE product_id IN (SELECT id FROM products WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456')));
+DELETE FROM inventory WHERE product_id IN (SELECT id FROM products WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456')));
+DELETE FROM product_features WHERE product_id IN (SELECT id FROM products WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456')));
+DELETE FROM quote_items WHERE product_id IN (SELECT id FROM products WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456')));
+DELETE FROM products WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM subcategories WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM feature_definitions WHERE category_id IN (SELECT id FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM categories WHERE organization_clerk_id IN ('org_test123', 'org_test456');
+
 -- Set up test data
 INSERT INTO categories (id, name, organization_clerk_id, created_by_clerk_user_id, status)
 VALUES 

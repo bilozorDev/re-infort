@@ -23,6 +23,13 @@ SELECT policies_are(
   'Warehouses table has correct RLS policies'
 );
 
+-- Clean up any existing test data first
+-- First delete dependent data
+DELETE FROM stock_movements WHERE from_warehouse_id IN (SELECT id FROM warehouses WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM stock_movements WHERE to_warehouse_id IN (SELECT id FROM warehouses WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM inventory WHERE warehouse_id IN (SELECT id FROM warehouses WHERE organization_clerk_id IN ('org_test123', 'org_test456'));
+DELETE FROM warehouses WHERE organization_clerk_id IN ('org_test123', 'org_test456');
+
 -- Set up test data
 INSERT INTO warehouses (id, name, type, organization_clerk_id, created_by_clerk_user_id, address, city, state_province, postal_code, country, status)
 VALUES 

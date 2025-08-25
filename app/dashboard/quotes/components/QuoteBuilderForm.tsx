@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import type { SelectOption } from "@/app/components/ui/form";
 import { FormField, Select, TextArea, TextField } from "@/app/components/ui/form";
 import StepIndicator, { type Step } from "@/app/components/ui/StepIndicator";
-import type { Client, QuoteInsert, QuoteItemInsert } from "@/app/types/quotes-helpers";
+import type { Client, QuoteItemInsert } from "@/app/types/quotes-helpers";
 import { formatCurrency } from "@/app/utils/formatters";
 
 import ItemSearch from "./ItemSearch";

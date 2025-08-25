@@ -1,21 +1,20 @@
 -- Seed data for IT products
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Using test organization and user IDs
 
 -- Clean up existing products
 TRUNCATE TABLE products CASCADE;
 
 -- Insert IT products
 WITH inserted_categories AS (
-  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_test123'
 ),
 inserted_subcategories AS (
   SELECT s.id, s.name, c.name as category_name 
   FROM subcategories s
   JOIN categories c ON s.category_id = c.id
-  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  WHERE s.organization_clerk_id = 'org_test123'
 )
-INSERT INTO products (sku, name, description, category_id, subcategory_id, cost, price, status, organization_clerk_id, created_by_clerk_user_id)
+INSERT INTO products (sku, name, description, category_id, subcategory_id, cost, price, status, organization_clerk_id, created_by_clerk_user_id, created_by_name)
 SELECT 
   p.sku,
   p.name,
@@ -25,8 +24,9 @@ SELECT
   p.cost,
   p.price,
   'active',
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
-  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
+  'org_test123',
+  'user_test123',
+  'John Admin'
 FROM (
   VALUES 
     -- Desktop Computers

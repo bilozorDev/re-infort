@@ -65,7 +65,7 @@ sql_paths = [
   "./seed/05_products.sql",
   "./seed/06_inventory.sql",
   "./seed/07_product_features.sql",
-  "./seed/08_clients.sql",
+  "./seed/08_companies.sql",
   "./seed/09_service_categories.sql",
   "./seed/10_services.sql",
   "./seed/11_quotes.sql",

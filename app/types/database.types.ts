@@ -166,6 +166,164 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_size: string | null
+          country: string | null
+          created_at: string | null
+          created_by_clerk_user_id: string
+          created_by_name: string | null
+          id: string
+          industry: string | null
+          name: string
+          notes: string | null
+          organization_clerk_id: string
+          postal_code: string | null
+          state_province: string | null
+          status: string | null
+          tags: string[] | null
+          tax_id: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_size?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by_clerk_user_id: string
+          created_by_name?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          notes?: string | null
+          organization_clerk_id: string
+          postal_code?: string | null
+          state_province?: string | null
+          status?: string | null
+          tags?: string[] | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_size?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by_clerk_user_id?: string
+          created_by_name?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          notes?: string | null
+          organization_clerk_id?: string
+          postal_code?: string | null
+          state_province?: string | null
+          status?: string | null
+          tags?: string[] | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          address: string | null
+          birthday: string | null
+          city: string | null
+          company_id: string
+          country: string | null
+          created_at: string | null
+          created_by_clerk_user_id: string
+          created_by_name: string | null
+          department: string | null
+          email: string | null
+          first_name: string
+          has_different_address: boolean | null
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          mobile: string | null
+          notes: string | null
+          organization_clerk_id: string
+          phone: string | null
+          postal_code: string | null
+          preferred_contact_method: string | null
+          state_province: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          birthday?: string | null
+          city?: string | null
+          company_id: string
+          country?: string | null
+          created_at?: string | null
+          created_by_clerk_user_id: string
+          created_by_name?: string | null
+          department?: string | null
+          email?: string | null
+          first_name: string
+          has_different_address?: boolean | null
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          mobile?: string | null
+          notes?: string | null
+          organization_clerk_id: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_contact_method?: string | null
+          state_province?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          birthday?: string | null
+          city?: string | null
+          company_id?: string
+          country?: string | null
+          created_at?: string | null
+          created_by_clerk_user_id?: string
+          created_by_name?: string | null
+          department?: string | null
+          email?: string | null
+          first_name?: string
+          has_different_address?: boolean | null
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          mobile?: string | null
+          notes?: string | null
+          organization_clerk_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_contact_method?: string | null
+          state_province?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_definitions: {
         Row: {
           category_id: string | null
@@ -730,6 +888,7 @@ export type Database = {
           assigned_to_clerk_user_id: string | null
           assigned_to_name: string | null
           client_id: string | null
+          company_id: string | null
           created_at: string | null
           created_by_clerk_user_id: string
           created_by_name: string | null
@@ -758,6 +917,7 @@ export type Database = {
           assigned_to_clerk_user_id?: string | null
           assigned_to_name?: string | null
           client_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by_clerk_user_id: string
           created_by_name?: string | null
@@ -786,6 +946,7 @@ export type Database = {
           assigned_to_clerk_user_id?: string | null
           assigned_to_name?: string | null
           client_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by_clerk_user_id?: string
           created_by_name?: string | null
@@ -816,6 +977,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1447,6 +1615,20 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: string
       }
+      get_company_with_primary_contact: {
+        Args: { p_company_id: string }
+        Returns: {
+          company_id: string
+          company_industry: string
+          company_name: string
+          company_website: string
+          primary_contact_email: string
+          primary_contact_id: string
+          primary_contact_name: string
+          primary_contact_phone: string
+          primary_contact_title: string
+        }[]
+      }
       get_org_id_from_path: {
         Args: { object_name: string }
         Returns: string
@@ -1469,6 +1651,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      migrate_clients_to_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       release_quote_reservations: {
         Args: { p_quote_id: string; p_reason?: string }
         Returns: Json
@@ -1480,22 +1666,15 @@ export type Database = {
         Returns: Json
       }
       reserve_inventory: {
-        Args:
-          | {
-              p_movement_type?: string
-              p_product_id: string
-              p_quantity: number
-              p_reason?: string
-              p_reference_number?: string
-              p_user_name?: string
-              p_warehouse_id: string
-            }
-          | {
-              p_product_id: string
-              p_quantity: number
-              p_reference_number?: string
-              p_warehouse_id: string
-            }
+        Args: {
+          p_movement_type?: string
+          p_product_id: string
+          p_quantity: number
+          p_reason?: string
+          p_reference_number?: string
+          p_user_name?: string
+          p_warehouse_id: string
+        }
         Returns: Json
       }
       reserve_quote_inventory: {

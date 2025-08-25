@@ -3,11 +3,11 @@
 import { 
   ClockIcon,
   CurrencyDollarIcon,
-  PencilSquareIcon,
   TagIcon,
-  TrashIcon 
 } from "@heroicons/react/24/outline";
 
+import { DeleteButton } from "@/app/components/ui/DeleteButton";
+import { EditButton } from "@/app/components/ui/EditButton";
 import HighlightText from "@/app/components/ui/HighlightText";
 import { type Tables } from "@/app/types/database.types";
 
@@ -116,18 +116,18 @@ export default function ServiceList({ services, searchQuery, onEdit, onDelete, i
             </div>
             {isAdmin && (
               <div className="flex shrink-0 items-center gap-x-2">
-                <button
+                <EditButton
                   onClick={() => onEdit(service)}
-                  className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  <PencilSquareIcon className="h-4 w-4" />
-                </button>
-                <button
+                  variant="icon"
+                  size="md"
+                  srText={service.name}
+                />
+                <DeleteButton
                   onClick={() => onDelete(service.id)}
-                  className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </button>
+                  variant="icon"
+                  size="md"
+                  srText={service.name}
+                />
               </div>
             )}
           </li>

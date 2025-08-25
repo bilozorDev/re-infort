@@ -1,8 +1,9 @@
 "use client";
 
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/20/solid";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
+import { DeleteButton } from "@/app/components/ui/DeleteButton";
+import { EditButton } from "@/app/components/ui/EditButton";
 import { useDeleteWarehouse } from "@/app/hooks/use-warehouses";
 import { type Warehouse } from "@/app/types/warehouse";
 
@@ -78,20 +79,20 @@ export function WarehouseList({ warehouses, isAdmin, onEdit }: WarehouseListProp
                 </div>
                 {isAdmin && (
                   <div className="ml-4 flex-shrink-0 flex gap-2">
-                    <button
+                    <EditButton
                       onClick={() => onEdit(warehouse.id)}
-                      className="rounded-md bg-white p-2 text-gray-400 shadow-xs ring-1 ring-gray-900/5 hover:text-gray-500"
-                      title="Edit warehouse"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button
+                      variant="icon"
+                      size="md"
+                      className="text-gray-400 hover:text-gray-500"
+                      srText={warehouse.name}
+                    />
+                    <DeleteButton
                       onClick={() => handleDelete(warehouse)}
-                      className="rounded-md bg-white p-2 text-gray-400 shadow-xs ring-1 ring-gray-900/5 hover:text-red-500"
-                      title="Delete warehouse"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
+                      variant="icon"
+                      size="md"
+                      className="text-gray-400 hover:text-red-500"
+                      srText={warehouse.name}
+                    />
                   </div>
                 )}
               </div>

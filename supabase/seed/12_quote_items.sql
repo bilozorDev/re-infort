@@ -1,19 +1,18 @@
 -- Seed data for quote items (products and services in quotes)
--- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
--- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+-- Using test organization and user IDs
 
 -- Clean up existing quote items data
 TRUNCATE TABLE quote_items CASCADE;
 
 -- Get reference IDs for quotes, products, and services
 WITH quote_refs AS (
-  SELECT id, quote_number FROM quotes WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, quote_number FROM quotes WHERE organization_clerk_id = 'org_test123'
 ),
 product_refs AS (
-  SELECT id, name, sku, price FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  SELECT id, name, sku, price FROM products WHERE organization_clerk_id = 'org_test123'
 ),
 service_refs AS (
-  SELECT id, name, rate FROM services WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi' AND status = 'active'
+  SELECT id, name, rate FROM services WHERE organization_clerk_id = 'org_test123' AND status = 'active'
 )
 
 -- Insert quote items with realistic IT equipment and services
@@ -41,7 +40,7 @@ SELECT
   unit_price,
   discount_type,
   discount_value,
-  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
+  'org_test123'
 FROM (
   VALUES
     -- QT-2024-001: TechCorp IT Infrastructure Upgrade (DRAFT)
