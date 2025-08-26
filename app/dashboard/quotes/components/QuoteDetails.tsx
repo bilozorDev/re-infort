@@ -287,45 +287,49 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
               <CardTitle>Client Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <User className="h-4 w-4" />
-                    Contact Name
-                  </div>
-                  <p className="font-medium">{quote.client.name}</p>
-                </div>
-                {quote.client.company && (
+              {quote.client ? (
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                      <Building className="h-4 w-4" />
-                      Company
+                      <User className="h-4 w-4" />
+                      Contact Name
                     </div>
-                    <p className="font-medium">{quote.client.company}</p>
+                    <p className="font-medium">{quote.client.name || "N/A"}</p>
                   </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <Mail className="h-4 w-4" />
-                    Email
+                  {quote.client.company && (
+                    <div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                        <Building className="h-4 w-4" />
+                        Company
+                      </div>
+                      <p className="font-medium">{quote.client.company}</p>
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </div>
+                    <p className="font-medium">{quote.client.email || "N/A"}</p>
                   </div>
-                  <p className="font-medium">{quote.client.email}</p>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                      <Calendar className="h-4 w-4" />
+                      Valid Until
+                    </div>
+                    <p className="font-medium">
+                      {format(new Date(quote.valid_until), "PPP")}
+                      {daysUntilExpiry > 0 && daysUntilExpiry <= 7 && (
+                        <span className="text-orange-600 text-sm ml-2">
+                          ({daysUntilExpiry} days left)
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                    <Calendar className="h-4 w-4" />
-                    Valid Until
-                  </div>
-                  <p className="font-medium">
-                    {format(new Date(quote.valid_until), "PPP")}
-                    {daysUntilExpiry > 0 && daysUntilExpiry <= 7 && (
-                      <span className="text-orange-600 text-sm ml-2">
-                        ({daysUntilExpiry} days left)
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
+              ) : (
+                <p className="text-gray-500">No client information available</p>
+              )}
             </CardContent>
           </Card>
 
@@ -516,7 +520,7 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
                           </span>
                         </div>
                         <p className="text-sm text-gray-500">
-                          {format(new Date(event.created_at), "PPp")}
+                          {event.created_at ? format(new Date(event.created_at), "PPp") : "N/A"}
                         </p>
                       </div>
                     </div>
@@ -542,7 +546,7 @@ export default function QuoteDetails({ paramsPromise }: QuoteDetailsProps) {
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium">{comment.user_name}</span>
                           <span className="text-sm text-gray-500">
-                            {format(new Date(comment.created_at), "PPp")}
+                            {comment.created_at ? format(new Date(comment.created_at), "PPp") : "N/A"}
                           </span>
                         </div>
                         <p className="text-sm">{comment.comment}</p>

@@ -7,8 +7,9 @@ import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; contactId: string } }
+  { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
+  const { id, contactId } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -25,8 +26,8 @@ export async function GET(
     const { data, error } = await supabase
       .from("contacts")
       .select("*")
-      .eq("id", params.contactId)
-      .eq("company_id", params.id)
+      .eq("id", contactId)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId)
       .single();
 
@@ -50,8 +51,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; contactId: string } }
+  { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
+  const { id, contactId } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -99,8 +101,8 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("contacts")
       .update(updateData)
-      .eq("id", params.contactId)
-      .eq("company_id", params.id)
+      .eq("id", contactId)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId)
       .select()
       .single();
@@ -132,8 +134,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; contactId: string } }
+  { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
+  const { id, contactId } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -159,7 +162,7 @@ export async function DELETE(
     const { data: contacts, error: contactsError } = await supabase
       .from("contacts")
       .select("id")
-      .eq("company_id", params.id)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId);
 
     if (contactsError) {
@@ -178,8 +181,8 @@ export async function DELETE(
     const { data: contact, error: checkError } = await supabase
       .from("contacts")
       .select("is_primary")
-      .eq("id", params.contactId)
-      .eq("company_id", params.id)
+      .eq("id", contactId)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId)
       .single();
 
@@ -195,8 +198,8 @@ export async function DELETE(
     const { error } = await supabase
       .from("contacts")
       .delete()
-      .eq("id", params.contactId)
-      .eq("company_id", params.id)
+      .eq("id", contactId)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId);
 
     if (error) {
@@ -206,13 +209,13 @@ export async function DELETE(
 
     // If we deleted the primary contact, set another contact as primary
     if (contact?.is_primary && contacts && contacts.length > 1) {
-      const remainingContactId = contacts.find(c => c.id !== params.contactId)?.id;
+      const remainingContactId = contacts.find(c => c.id !== contactId)?.id;
       if (remainingContactId) {
         await supabase
           .from("contacts")
           .update({ is_primary: true })
           .eq("id", remainingContactId)
-          .eq("company_id", params.id)
+          .eq("company_id", id)
           .eq("organization_clerk_id", orgId);
       }
     }

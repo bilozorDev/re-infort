@@ -10,8 +10,9 @@ import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -23,7 +24,7 @@ export async function GET(
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const featureDefinition = await getFeatureDefinitionById(params.id, orgId);
+    const featureDefinition = await getFeatureDefinitionById(id, orgId);
 
     if (!featureDefinition) {
       return NextResponse.json({ error: "Feature definition not found" }, { status: 404 });
@@ -41,8 +42,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -63,7 +65,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const featureDefinition = await updateFeatureDefinition(params.id, body, orgId);
+    const featureDefinition = await updateFeatureDefinition(id, body, orgId);
 
     return NextResponse.json(featureDefinition);
   } catch (error) {
@@ -80,8 +82,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -101,7 +104,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    await deleteFeatureDefinition(params.id, orgId);
+    await deleteFeatureDefinition(id, orgId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

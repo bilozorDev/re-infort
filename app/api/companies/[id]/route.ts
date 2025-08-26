@@ -7,8 +7,9 @@ import { getCurrentOrgId, isAdmin } from "@/app/utils/roles";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -50,7 +51,7 @@ export async function GET(
           country
         )
       ` : "*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("organization_clerk_id", orgId)
       .single();
 
@@ -76,8 +77,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -116,7 +118,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("companies")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("organization_clerk_id", orgId)
       .select()
       .single();
@@ -148,8 +150,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -175,7 +178,7 @@ export async function DELETE(
     const { data: quotes, error: quotesError } = await supabase
       .from("quotes")
       .select("id")
-      .eq("company_id", params.id)
+      .eq("company_id", id)
       .limit(1);
 
     if (quotesError) {
@@ -194,7 +197,7 @@ export async function DELETE(
     const { error } = await supabase
       .from("companies")
       .delete()
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("organization_clerk_id", orgId);
 
     if (error) {

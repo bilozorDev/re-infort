@@ -159,10 +159,9 @@ SELECT results_eq(
 -- Store the movement ID for later release
 DO $$
 DECLARE
-    v_movement_result JSON;
     v_movement_id UUID;
 BEGIN
-    v_movement_result := reserve_inventory(
+    v_movement_id := reserve_inventory(
         'c5d6e7f8-a9b0-1234-cdef-567890123456'::uuid,
         'e7f8a9b0-c1d2-3456-efab-789012345678'::uuid,
         25,
@@ -171,7 +170,6 @@ BEGIN
         NULL,         -- p_reason
         'Test User'   -- p_user_name
     );
-    v_movement_id := (v_movement_result->>'movement_id')::UUID;
     -- Store movement ID in a temp table for later use
     CREATE TEMP TABLE IF NOT EXISTS test_movement_ids (id UUID);
     INSERT INTO test_movement_ids VALUES (v_movement_id);
@@ -223,8 +221,8 @@ SELECT results_eq(
 
 -- Test get_product_total_inventory function
 SELECT results_eq(
-  $$SELECT total_quantity, warehouse_count 
-    FROM get_product_total_inventory('d6e7f8a9-b0c1-2345-defa-678901234567'::uuid)$$,
+  $$SELECT (get_product_total_inventory('d6e7f8a9-b0c1-2345-defa-678901234567'::uuid)->>'total_quantity')::INTEGER,
+           (get_product_total_inventory('d6e7f8a9-b0c1-2345-defa-678901234567'::uuid)->>'warehouse_count')::INTEGER$$,
   $$SELECT 50::INTEGER, 2::INTEGER$$,
   'get_product_total_inventory returns correct totals'
 );

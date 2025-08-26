@@ -11,8 +11,9 @@ import { updateSubcategorySchema } from "@/app/lib/validations/product";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { orgId } = await auth();
 
@@ -20,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: "Organization not found" }, { status: 401 });
     }
 
-    const subcategory = await getSubcategoryById(params.id, orgId);
+    const subcategory = await getSubcategoryById(id, orgId);
 
     if (!subcategory) {
       return NextResponse.json({ error: "Subcategory not found" }, { status: 404 });
@@ -32,7 +33,7 @@ export async function GET(
     const { count: productCount } = await supabase
       .from("products")
       .select("*", { count: "exact", head: true })
-      .eq("subcategory_id", params.id)
+      .eq("subcategory_id", id)
       .eq("organization_clerk_id", orgId);
 
     return NextResponse.json({
@@ -50,8 +51,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { orgId } = await auth();
 
@@ -62,7 +64,7 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateSubcategorySchema.parse(body);
 
-    const subcategory = await updateSubcategory(params.id, validatedData, orgId);
+    const subcategory = await updateSubcategory(id, validatedData, orgId);
 
     return NextResponse.json(subcategory);
   } catch (error) {
@@ -82,8 +84,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { orgId } = await auth();
 
@@ -102,7 +105,7 @@ export async function DELETE(
       const { count: productCount } = await supabase
         .from("products")
         .select("*", { count: "exact", head: true })
-        .eq("subcategory_id", params.id)
+        .eq("subcategory_id", id)
         .eq("organization_clerk_id", orgId);
 
       // Return count so frontend can show appropriate warning
@@ -119,7 +122,7 @@ export async function DELETE(
     }
 
     // Proceed with deletion (force or no dependencies)
-    await deleteSubcategory(params.id, orgId, forceDelete);
+    await deleteSubcategory(id, orgId, forceDelete);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

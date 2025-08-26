@@ -67,7 +67,7 @@ export async function GET(
       },
       items: tokenData.quote.items.map((item: QuoteItem) => ({
         id: item.id,
-        type: item.type,
+        type: item.item_type,
         name: item.name,
         description: item.description,
         quantity: item.quantity,

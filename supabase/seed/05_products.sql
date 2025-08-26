@@ -6,13 +6,13 @@ TRUNCATE TABLE products CASCADE;
 
 -- Insert IT products
 WITH inserted_categories AS (
-  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_test123'
+  SELECT id, name FROM categories WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 inserted_subcategories AS (
   SELECT s.id, s.name, c.name as category_name 
   FROM subcategories s
   JOIN categories c ON s.category_id = c.id
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO products (sku, name, description, category_id, subcategory_id, cost, price, status, organization_clerk_id, created_by_clerk_user_id, created_by_name)
 SELECT 
@@ -24,9 +24,9 @@ SELECT
   p.cost,
   p.price,
   'active',
-  'org_test123',
-  'user_test123',
-  'John Admin'
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq',
+  'Alex Bilozor'
 FROM (
   VALUES 
     -- Desktop Computers

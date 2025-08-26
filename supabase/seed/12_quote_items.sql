@@ -6,13 +6,13 @@ TRUNCATE TABLE quote_items CASCADE;
 
 -- Get reference IDs for quotes, products, and services
 WITH quote_refs AS (
-  SELECT id, quote_number FROM quotes WHERE organization_clerk_id = 'org_test123'
+  SELECT id, quote_number FROM quotes WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 product_refs AS (
-  SELECT id, name, sku, price FROM products WHERE organization_clerk_id = 'org_test123'
+  SELECT id, name, sku, price FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 service_refs AS (
-  SELECT id, name, rate FROM services WHERE organization_clerk_id = 'org_test123' AND status = 'active'
+  SELECT id, name, rate FROM services WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi' AND status = 'active'
 )
 
 -- Insert quote items with realistic IT equipment and services
@@ -40,7 +40,7 @@ SELECT
   unit_price,
   discount_type,
   discount_value,
-  'org_test123'
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 FROM (
   VALUES
     -- QT-2024-001: TechCorp IT Infrastructure Upgrade (DRAFT)

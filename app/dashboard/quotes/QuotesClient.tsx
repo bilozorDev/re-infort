@@ -164,7 +164,7 @@ export default function QuotesClient() {
                 </TableRow>
               ) : (
                 filteredQuotes.map((quote: QuoteWithRelations) => {
-                  const daysUntilExpiry = getDaysUntilExpiry(quote.valid_until);
+                  const daysUntilExpiry = getDaysUntilExpiry(quote.valid_until || new Date().toISOString());
                   const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry > 0 && quote.status === "sent";
                   
                   return (
@@ -180,13 +180,13 @@ export default function QuotesClient() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                      <TableCell>{getStatusBadge(quote.status || "draft")}</TableCell>
                       <TableCell>
-                        {new Date(quote.created_at).toLocaleDateString()}
+                        {quote.created_at ? new Date(quote.created_at).toLocaleDateString() : "N/A"}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {new Date(quote.valid_until).toLocaleDateString()}
+                          {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "N/A"}
                           {isExpiringSoon && (
                             <Badge variant="outline" className="text-orange-600 border-orange-600">
                               {daysUntilExpiry}d left

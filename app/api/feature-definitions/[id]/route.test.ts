@@ -37,7 +37,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "def_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -49,7 +49,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "def_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -71,7 +71,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(getFeatureDefinitionById).mockResolvedValue(mockDefinition as FeatureDefinition);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "def_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -85,7 +85,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(getFeatureDefinitionById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "def_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -100,7 +100,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -112,7 +112,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -125,7 +125,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -146,7 +146,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(updateFeatureDefinition).mockResolvedValue(mockUpdated as FeatureDefinition);
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -164,7 +164,7 @@ describe("Feature Definitions [id] API Route", () => {
       );
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(409);
       const data = await response.json();
@@ -178,7 +178,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(updateFeatureDefinition).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("PUT", updateData);
-      const response = await PUT(request, { params: { id: "def_123" } });
+      const response = await PUT(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -191,7 +191,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "def_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -203,7 +203,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(isAdmin).mockResolvedValue(false);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "def_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -216,7 +216,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(getCurrentOrgId).mockResolvedValue(null);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "def_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -230,7 +230,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(deleteFeatureDefinition).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "def_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -245,7 +245,7 @@ describe("Feature Definitions [id] API Route", () => {
       vi.mocked(deleteFeatureDefinition).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "def_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "def_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();

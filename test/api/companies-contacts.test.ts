@@ -156,7 +156,7 @@ describe('/api/companies/[id]/contacts', () => {
   describe('GET /api/companies/[id]/contacts', () => {
     it('should return list of contacts for a company', async () => {
       const request = new NextRequest(`http://localhost:3000/api/companies/${companyId}/contacts`);
-      const response = await GET(request, { params: { id: companyId } });
+      const response = await GET(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -178,7 +178,7 @@ describe('/api/companies/[id]/contacts', () => {
       }));
 
       const request = new NextRequest(`http://localhost:3000/api/companies/${companyId}/contacts`);
-      const response = await GET(request, { params: { id: companyId } });
+      const response = await GET(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -201,7 +201,7 @@ describe('/api/companies/[id]/contacts', () => {
         body: JSON.stringify(requestBody)
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(201);
@@ -219,7 +219,7 @@ describe('/api/companies/[id]/contacts', () => {
         body: JSON.stringify(requestBody)
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -235,7 +235,7 @@ describe('/api/companies/[id]/contacts', () => {
         body: JSON.stringify({ first_name: 'Test', last_name: 'User' })
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(403);

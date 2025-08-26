@@ -87,7 +87,7 @@ describe("User Preferences API Route", () => {
   });
 
   describe("PATCH /api/user/preferences", () => {
-    const validPreferencesData: UIPreferences = {
+    const validPreferencesData: UserPreferences = {
       theme: "dark" as const,
       notifications_enabled: false,
       language: "fr",

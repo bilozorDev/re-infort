@@ -19,7 +19,7 @@ import { formatCurrency } from "@/app/utils/formatters";
 import ItemSearch from "./ItemSearch";
 import QuoteItemsList from "./QuoteItemsList";
 
-interface QuoteItem extends Omit<QuoteItemInsert, 'quote_id'> {
+interface QuoteItem extends Omit<QuoteItemInsert, 'quote_id' | 'organization_clerk_id'> {
   id: string;
   subtotal: number;
 }
@@ -160,12 +160,12 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
         status: value.status,
         valid_from: value.valid_from,
         valid_until: value.valid_until,
-        discount_type: value.discount_type === "none" ? null : value.discount_type,
+        discount_type: value.discount_type === "none" ? undefined : value.discount_type,
         discount_value: value.discount_type === "none" ? 0 : parseFloat(value.discount_value) || 0,
         tax_rate: parseFloat(value.tax_rate) || 0,
-        terms_and_conditions: value.terms_and_conditions || null,
-        notes: value.notes || null,
-        internal_notes: value.internal_notes || null,
+        terms_and_conditions: value.terms_and_conditions || undefined,
+        notes: value.notes || undefined,
+        internal_notes: value.internal_notes || undefined,
       };
 
       createQuoteMutation.mutate(quoteData);

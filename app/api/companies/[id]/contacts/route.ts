@@ -8,8 +8,9 @@ import { getCurrentUserName } from "@/app/utils/user";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -30,7 +31,7 @@ export async function GET(
     let query = supabase
       .from("contacts")
       .select("*")
-      .eq("company_id", params.id)
+      .eq("company_id", id)
       .eq("organization_clerk_id", orgId)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: false });
@@ -59,8 +60,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -104,7 +106,7 @@ export async function POST(
     const { data: company, error: companyError } = await supabase
       .from("companies")
       .select("id")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("organization_clerk_id", orgId)
       .single();
 
@@ -116,7 +118,7 @@ export async function POST(
 
     const contactData: TablesInsert<"contacts"> = {
       organization_clerk_id: orgId,
-      company_id: params.id,
+      company_id: id,
       created_by_clerk_user_id: userId,
       created_by_name: userName,
       first_name: body.first_name,

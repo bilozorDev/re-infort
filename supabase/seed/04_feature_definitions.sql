@@ -1,6 +1,6 @@
 -- Seed data for IT equipment feature definitions
--- Organization ID: org_test123
--- User ID: user_test123
+-- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
+-- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
 
 -- Clean up existing feature definitions
 TRUNCATE TABLE feature_definitions CASCADE;
@@ -10,11 +10,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Desktop Computers'),
   f.name,
   f.input_type,
@@ -22,7 +22,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('CPU Model', 'text', NULL, NULL, true, 1),
@@ -40,11 +40,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Laptop Computers'),
   f.name,
   f.input_type,
@@ -52,7 +52,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('CPU Model', 'text', NULL, NULL, true, 1),
@@ -69,11 +69,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Servers'),
   f.name,
   f.input_type,
@@ -81,7 +81,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('CPU Model', 'text', NULL, NULL, true, 1),
@@ -99,11 +99,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Switches'),
   f.name,
   f.input_type,
@@ -111,7 +111,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Port Count', 'number', NULL, 'ports', true, 1),
@@ -128,11 +128,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Routers'),
   f.name,
   f.input_type,
@@ -140,7 +140,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('WAN Ports', 'number', NULL, 'ports', true, 1),
@@ -156,11 +156,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Firewalls'),
   f.name,
   f.input_type,
@@ -168,7 +168,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Throughput', 'number', NULL, 'Gbps', true, 1),
@@ -184,11 +184,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'SSDs'),
   f.name,
   f.input_type,
@@ -196,7 +196,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Capacity', 'select', '["128GB", "256GB", "512GB", "1TB", "2TB", "4TB"]'::jsonb, NULL, true, 1),
@@ -212,11 +212,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'RAM'),
   f.name,
   f.input_type,
@@ -224,7 +224,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Capacity', 'select', '["4GB", "8GB", "16GB", "32GB", "64GB"]'::jsonb, NULL, true, 1),
@@ -239,11 +239,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Monitors'),
   f.name,
   f.input_type,
@@ -251,7 +251,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Screen Size', 'select', '["21.5\"", "24\"", "27\"", "32\"", "34\"", "43\""]'::jsonb, NULL, true, 1),
@@ -267,11 +267,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Keyboards & Mice'),
   f.name,
   f.input_type,
@@ -279,7 +279,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Type', 'select', '["Keyboard", "Mouse", "Combo"]'::jsonb, NULL, true, 1),
@@ -294,11 +294,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'USB Adapters'),
   f.name,
   f.input_type,
@@ -306,7 +306,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Adapter Type', 'select', '["WiFi", "Ethernet", "Bluetooth", "Hub", "Display"]'::jsonb, NULL, true, 1),
@@ -320,11 +320,11 @@ WITH subcat_ids AS (
   SELECT s.id, s.name
   FROM subcategories s 
   JOIN categories c ON s.category_id = c.id 
-  WHERE s.organization_clerk_id = 'org_test123'
+  WHERE s.organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO feature_definitions (organization_clerk_id, subcategory_id, name, input_type, options, unit, is_required, display_order, created_by_clerk_user_id)
 SELECT 
-  'org_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
   (SELECT id FROM subcat_ids WHERE name = 'Network Cables'),
   f.name,
   f.input_type,
@@ -332,7 +332,7 @@ SELECT
   f.unit,
   f.is_required,
   f.display_order,
-  'user_test123'
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM (
   VALUES 
     ('Cable Type', 'select', '["Cat5e", "Cat6", "Cat6a", "Cat7", "Cat8", "Fiber"]'::jsonb, NULL, true, 1),

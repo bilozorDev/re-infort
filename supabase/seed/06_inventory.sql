@@ -1,16 +1,19 @@
 -- Seed data for IT inventory
--- Organization ID: org_test123
--- User ID: user_test123
+-- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
+-- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
+
+-- Temporarily drop the trigger that causes issues during seed
+DROP TRIGGER IF EXISTS update_product_status_trigger ON inventory;
 
 -- Clean up existing inventory data
 TRUNCATE TABLE inventory CASCADE;
 
 -- Insert inventory for each product in each warehouse
 WITH warehouse_ids AS (
-  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_test123'
+  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 product_ids AS (
-  SELECT id, sku FROM products WHERE organization_clerk_id = 'org_test123'
+  SELECT id, sku FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 )
 INSERT INTO inventory (product_id, warehouse_id, quantity, reserved_quantity, organization_clerk_id, created_by_clerk_user_id)
 SELECT 
@@ -104,8 +107,8 @@ SELECT
     WHEN w.name = 'Downtown Store' AND p.sku LIKE 'APPLE-MBP%' THEN 1
     ELSE 0
   END as reserved_quantity,
-  'org_test123',
-  'user_test123'
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq'
 FROM product_ids p
 CROSS JOIN warehouse_ids w
 -- Skip items that shouldn't be stocked at certain locations
@@ -128,3 +131,9 @@ AND NOT (w.name = 'Delivery Van' AND p.sku IN (
   'CAT6-25FT', 'CAT6-50FT', 'CAT6-100FT', 'CAT6A-25FT',  -- No long cables in van
   'C13-6FT', 'C19-6FT', 'PDU-BASIC-8', 'USB3-EXTENSION-10FT'  -- No power/extension cables in van
 ));
+
+-- Recreate the trigger after seed
+CREATE TRIGGER update_product_status_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON inventory
+    FOR EACH ROW
+    EXECUTE FUNCTION update_product_status_from_inventory();

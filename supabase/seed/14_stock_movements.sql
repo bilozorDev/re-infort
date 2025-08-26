@@ -1,16 +1,16 @@
 -- Seed data for IT stock movements
--- Organization ID: org_test123
--- User ID: user_test123
+-- Organization ID: org_31Vn5FBdgy2geINV5ggcrmM7Oqi
+-- User ID: user_31VkPrT5Eh3UtaCmdlfDGLxCsaq
 
 -- Clean up existing stock movements
 TRUNCATE TABLE stock_movements CASCADE;
 
 -- Insert sample IT product stock movements
 WITH warehouse_ids AS (
-  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_test123'
+  SELECT id, name FROM warehouses WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 product_ids AS (
-  SELECT id, sku, name FROM products WHERE organization_clerk_id = 'org_test123'
+  SELECT id, sku, name FROM products WHERE organization_clerk_id = 'org_31Vn5FBdgy2geINV5ggcrmM7Oqi'
 ),
 main_wh AS (
   SELECT id FROM warehouse_ids WHERE name = 'Main Warehouse'
@@ -42,8 +42,8 @@ SELECT
   m.reason,
   m.reference_number,
   m.status,
-  'org_test123',
-  'user_test123',
+  'org_31Vn5FBdgy2geINV5ggcrmM7Oqi',
+  'user_31VkPrT5Eh3UtaCmdlfDGLxCsaq',
   NOW() - (m.days_ago || ' days')::interval
 FROM product_ids p
 JOIN (

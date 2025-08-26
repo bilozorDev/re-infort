@@ -111,7 +111,7 @@ describe('Company Contacts API', () => {
       mockCreateClient.mockResolvedValue(mockSupabase as any);
 
       const request = new NextRequest(`http://localhost:3000/api/companies/${companyId}/contacts`);
-      const response = await GET(request, { params: { id: companyId } });
+      const response = await GET(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -140,7 +140,7 @@ describe('Company Contacts API', () => {
       mockCreateClient.mockResolvedValue(mockSupabase as any);
 
       const request = new NextRequest(`http://localhost:3000/api/companies/${companyId}/contacts`);
-      const response = await GET(request, { params: { id: companyId } });
+      const response = await GET(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -203,7 +203,7 @@ describe('Company Contacts API', () => {
         body: JSON.stringify(newContact)
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(201);
@@ -218,7 +218,7 @@ describe('Company Contacts API', () => {
         body: JSON.stringify({ first_name: 'Test', last_name: 'User' })
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -231,7 +231,7 @@ describe('Company Contacts API', () => {
         body: JSON.stringify({ email: 'test@example.com' })
       });
 
-      const response = await POST(request, { params: { id: companyId } });
+      const response = await POST(request, { params: Promise.resolve({ id: companyId }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);

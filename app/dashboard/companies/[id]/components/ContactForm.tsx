@@ -106,11 +106,11 @@ export default function ContactForm({
         const submitData = {
           ...value,
           has_different_address: hasDifferentAddress,
-          address: hasDifferentAddress ? value.address : null,
-          city: hasDifferentAddress ? value.city : null,
-          state_province: hasDifferentAddress ? value.state_province : null,
-          postal_code: hasDifferentAddress ? value.postal_code : null,
-          country: hasDifferentAddress ? value.country : null,
+          address: hasDifferentAddress ? value.address : undefined,
+          city: hasDifferentAddress ? value.city : undefined,
+          state_province: hasDifferentAddress ? value.state_province : undefined,
+          postal_code: hasDifferentAddress ? value.postal_code : undefined,
+          country: hasDifferentAddress ? value.country : undefined,
         };
 
         onSubmit(submitData);

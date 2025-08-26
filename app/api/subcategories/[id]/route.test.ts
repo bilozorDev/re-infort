@@ -64,7 +64,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "sub_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -76,7 +76,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(getSubcategoryById).mockResolvedValue(null);
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "sub_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(404);
       const data = await response.json();
@@ -99,7 +99,7 @@ describe("Subcategories [id] API Route", () => {
                          .mockReturnValueOnce({ count: 5 }); // products
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "sub_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -115,7 +115,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(getSubcategoryById).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("GET");
-      const response = await GET(request, { params: { id: "sub_123" } });
+      const response = await GET(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(500);
       const data = await response.json();
@@ -130,7 +130,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "sub_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -149,7 +149,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(updateSubcategory).mockResolvedValue(mockUpdated);
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "sub_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -163,7 +163,7 @@ describe("Subcategories [id] API Route", () => {
       );
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "sub_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -177,7 +177,7 @@ describe("Subcategories [id] API Route", () => {
       );
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "sub_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(409);
       const data = await response.json();
@@ -189,7 +189,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(updateSubcategory).mockRejectedValue(new Error("Validation error"));
 
       const request = createRequest("PATCH", updateData);
-      const response = await PATCH(request, { params: { id: "sub_123" } });
+      const response = await PATCH(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -202,7 +202,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(auth).mockResolvedValue(createUnauthenticatedMock());
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(401);
       const data = await response.json();
@@ -217,7 +217,7 @@ describe("Subcategories [id] API Route", () => {
                          .mockReturnValueOnce({ count: 5 }); // products
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(409);
       const data = await response.json();
@@ -234,7 +234,7 @@ describe("Subcategories [id] API Route", () => {
                          .mockReturnValueOnce({ count: 0 }); // products
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -247,7 +247,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(deleteSubcategory).mockResolvedValue(undefined);
 
       const request = createRequest("DELETE", null, "http://localhost:3000/api/subcategories/sub_123?force=true");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -267,7 +267,7 @@ describe("Subcategories [id] API Route", () => {
       );
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(403);
       const data = await response.json();
@@ -284,7 +284,7 @@ describe("Subcategories [id] API Route", () => {
       vi.mocked(deleteSubcategory).mockRejectedValue(new Error("Database error"));
 
       const request = createRequest("DELETE");
-      const response = await DELETE(request, { params: { id: "sub_123" } });
+      const response = await DELETE(request, { params: Promise.resolve({ id: "sub_123" }) });
 
       expect(response.status).toBe(400);
       const data = await response.json();
