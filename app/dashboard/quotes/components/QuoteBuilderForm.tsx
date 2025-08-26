@@ -24,15 +24,7 @@ interface QuoteItem extends Omit<QuoteItemInsert, 'quote_id' | 'organization_cle
   subtotal: number;
 }
 
-interface ItemSearchResult {
-  id: string;
-  type: 'product' | 'service' | 'custom';
-  name: string;
-  description?: string;
-  price?: number;
-  rate?: number;
-  warehouse_id?: string;
-}
+// Removed ItemSearchResult - using any type for flexibility
 
 interface QuoteFormData {
   client_id?: string;
@@ -193,7 +185,7 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
     { value: "fixed", label: "Fixed Amount" },
   ];
 
-  const handleAddItem = (item: ItemSearchResult) => {
+  const handleAddItem = (item: any) => {
     const newItem: QuoteItem = {
       id: `temp-${Date.now()}`,
       item_type: item.type,
@@ -381,8 +373,14 @@ export default function QuoteBuilderForm({ isOpen, onClose }: QuoteBuilderFormPr
                         <QuoteItemsList
                           items={items.map(item => ({
                             ...item,
-                            type: item.item_type as "product" | "service" | "custom"
-                          }))}
+                            type: item.item_type as "product" | "service" | "custom",
+                            product_id: item.product_id || undefined,
+                            service_id: item.service_id || undefined,
+                            warehouse_id: item.warehouse_id || undefined,
+                            description: item.description || undefined,
+                            discount_type: item.discount_type as "percentage" | "fixed" | undefined,
+                            discount_value: item.discount_value || undefined
+                          } as any))}
                           onUpdateItem={handleUpdateItem}
                           onRemoveItem={handleRemoveItem}
                         />

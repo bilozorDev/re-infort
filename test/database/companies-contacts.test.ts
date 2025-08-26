@@ -11,7 +11,7 @@ describe('Companies and Contacts Database Tests', () => {
   const testOrgId = 'org_test123';
   const testUserId = 'user_test123';
   let testCompanyId: string;
-  let testContactId: string;
+  let _testContactId: string;
 
   beforeEach(async () => {
     // Use service role for testing to bypass RLS
@@ -280,7 +280,7 @@ describe('Companies and Contacts Database Tests', () => {
       });
 
       // Should see companies from same org
-      const { data: ownCompanies } = await anonClient
+      const { data: _ownCompanies } = await anonClient
         .from('companies')
         .select();
 
@@ -340,7 +340,7 @@ describe('Companies and Contacts Database Tests', () => {
         });
 
       expect(failError).toBeDefined();
-      expect(failError.message).toContain('violates');
+      expect(failError?.message).toContain('violates');
     });
   });
 

@@ -50,4 +50,4 @@ export interface FeatureSettings {
 
 export type CreateUserPreferencesInput = Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateUserPreferencesInput = Partial<Omit<UserPreferences, 'id' | 'clerk_user_id' | 'organization_clerk_id' | 'created_at' | 'updated_at'>>;
-export type { NavigationState };
+// NavigationState is already exported as interface above

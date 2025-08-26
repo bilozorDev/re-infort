@@ -10,7 +10,7 @@ import {
   createAuthenticatedMock,
   createUnauthenticatedMock,
 } from "@/app/test-utils/clerk-mocks";
-import type { UserPreferences } from "@/app/types/user-preferences";
+import type { UIPreferences, UserPreferences } from "@/app/types/user-preferences";
 
 import { GET, PATCH } from "../route";
 
@@ -87,13 +87,12 @@ describe("User Preferences API Route", () => {
   });
 
   describe("PATCH /api/user/preferences", () => {
-    const validPreferencesData: UserPreferences = {
+    const validPreferencesData: UIPreferences = {
       theme: "dark" as const,
-      notifications_enabled: false,
       language: "fr",
     };
 
-    function createPatchRequest(body: Record<string, unknown>) {
+    function createPatchRequest(body: any) {
       return new NextRequest("http://localhost:3000/api/user/preferences", {
         method: "PATCH",
         headers: {

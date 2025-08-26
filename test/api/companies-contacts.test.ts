@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET, POST, PUT, DELETE } from '@/app/api/companies/[id]/contacts/route';
-import { PUT as UPDATE_CONTACT, DELETE as DELETE_CONTACT } from '@/app/api/companies/[id]/contacts/[contactId]/route';
+import { GET, POST } from '@/app/api/companies/[id]/contacts/route';
+import { PATCH as UPDATE_CONTACT, DELETE as DELETE_CONTACT } from '@/app/api/companies/[id]/contacts/[contactId]/route';
 import { createClient } from '@/app/lib/supabase/server';
 
 // Mock Clerk auth
@@ -260,7 +260,7 @@ describe('/api/companies/[id]/contacts', () => {
       );
 
       const response = await UPDATE_CONTACT(request, { 
-        params: { id: companyId, contactId: contactId } 
+        params: Promise.resolve({ id: companyId, contactId: contactId }) 
       });
       const data = await response.json();
 
@@ -292,7 +292,7 @@ describe('/api/companies/[id]/contacts', () => {
       );
 
       const response = await UPDATE_CONTACT(request, {
-        params: { id: companyId, contactId: contactId }
+        params: Promise.resolve({ id: companyId, contactId: contactId })
       });
       const data = await response.json();
 
@@ -309,7 +309,7 @@ describe('/api/companies/[id]/contacts', () => {
       );
 
       const response = await DELETE_CONTACT(request, {
-        params: { id: companyId, contactId: contactId }
+        params: Promise.resolve({ id: companyId, contactId: contactId })
       });
       const data = await response.json();
 
@@ -327,7 +327,7 @@ describe('/api/companies/[id]/contacts', () => {
       );
 
       const response = await DELETE_CONTACT(request, {
-        params: { id: companyId, contactId: contactId }
+        params: Promise.resolve({ id: companyId, contactId: contactId })
       });
       const data = await response.json();
 
@@ -351,7 +351,7 @@ describe('/api/companies/[id]/contacts', () => {
       );
 
       const response = await DELETE_CONTACT(request, {
-        params: { id: companyId, contactId: contactId }
+        params: Promise.resolve({ id: companyId, contactId: contactId })
       });
       const data = await response.json();
 

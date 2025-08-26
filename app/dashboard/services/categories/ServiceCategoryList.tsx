@@ -30,8 +30,8 @@ export default function ServiceCategoryList({
     try {
       await deleteCategory.mutateAsync(category.id);
     } catch (error) {
-      if (error && typeof error === 'object' && 'hasDependencies' in error) {
-        toast.error((error as { message: string }).message);
+      if (error && typeof error === 'object' && 'message' in error) {
+        toast.error((error as unknown as { message: string }).message);
       }
     } finally {
       setDeletingId(null);

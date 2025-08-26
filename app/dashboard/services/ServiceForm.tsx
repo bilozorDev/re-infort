@@ -56,11 +56,11 @@ export default function ServiceForm({ service, isOpen, onClose, onSubmit }: Serv
       form.reset({
         name: service.name || "",
         description: service.description || "",
-        category: service.category || "",
-        rate_type: service.rate_type || "fixed",
+        category: service.service_category_id || "",
+        rate_type: (service.rate_type as "fixed" | "hourly" | "custom") || "fixed",
         rate: service.rate?.toString() || "",
         unit: service.unit || "",
-        status: service.status || "active",
+        status: (service.status as "active" | "inactive") || "active",
       });
     } else if (!service && isOpen) {
       form.reset({

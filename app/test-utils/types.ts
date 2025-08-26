@@ -53,8 +53,8 @@ export function createMockCategory(overrides?: Partial<Category>): Category {
     updated_at: new Date().toISOString(),
     created_by_clerk_user_id: "user_123",
     description: null,
-    display_order: null,
     status: "active",
+    created_by_name: null,
     ...overrides,
   };
 }
@@ -78,6 +78,8 @@ export function createMockProduct(overrides?: Partial<Product>): Product {
     cost: null,
     serial_number: null,
     photo_urls: null,
+    low_stock_threshold: null,
+    created_by_name: null,
     ...overrides,
   };
 }
@@ -100,6 +102,7 @@ export function createMockWarehouse(overrides?: Partial<Warehouse>): Warehouse {
     created_by_clerk_user_id: "user_123",
     notes: null,
     is_default: false,
+    created_by_name: null,
     ...overrides,
   };
 }
@@ -115,11 +118,12 @@ export function createMockFeatureDefinition(overrides?: Partial<FeatureDefinitio
     updated_at: new Date().toISOString(),
     created_by_clerk_user_id: "user_123",
     is_required: false,
-    display_order: null,
     options: null,
     unit: null,
     category_id: null,
     subcategory_id: null,
+    display_order: null,
+    created_by_name: null,
     ...overrides,
   };
 }
@@ -135,8 +139,8 @@ export function createMockSubcategory(overrides?: Partial<Subcategory>): Subcate
     updated_at: new Date().toISOString(),
     created_by_clerk_user_id: "user_123",
     description: null,
-    display_order: null,
     status: "active",
+    created_by_name: null,
     ...overrides,
   };
 }
@@ -202,6 +206,7 @@ export function createMockUserPreferences(overrides?: Partial<UserPreferences>):
     table_preferences: {},
     ui_preferences: {},
     feature_settings: {},
+    navigation_state: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,

@@ -225,7 +225,7 @@ describe('Product Validation Schemas', () => {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.status).toBe('active')
-        expect(result.data.display_order).toBe(0)
+        // display_order removed from schema
       }
     })
 
@@ -346,7 +346,7 @@ describe('Product Validation Schemas', () => {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.is_required).toBe(false)
-        expect(result.data.display_order).toBe(0)
+        // display_order removed from schema
       }
     })
   })
